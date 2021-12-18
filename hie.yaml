@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "./packages/helic/lib"
+      component: "lib:helic"
+
+    - path: "./packages/helic/app"
+      component: "helic:exe:hel"
+
+    - path: "./packages/helic/test"
+      component: "helic:test:helic-unit"

@@ -1,0 +1,9 @@
+version: 0.1.0.0
+description: Please see the README on GitLab at <https://gitlab.tryp.io/haskell/helic>
+license: BSD-2-Clause-Patent
+license-file: LICENSE
+author: Torsten Schmits
+maintainer: hackage@tryp.io
+copyright: 2021 Torsten Schmits
+category: Clipboard
+build-type: Simple

@@ -1,0 +1,103 @@
+name: helic
+synopsis: Clipboard Manager
+description: See <https://hackage.haskell.org/package/helic/docs/Helic.html>
+<<: !include shared/meta.yaml
+<<: !include shared/extensions.yaml
+
+library:
+  source-dirs: lib
+  other-modules:
+    - Prelude
+  dependencies:
+    - name: base
+      version: '>= 4 && < 5'
+      mixin:
+        hiding (Prelude)
+    - aeson >= 1.4
+    - chronos
+    - composition
+    - containers
+    - data-default
+    - either
+    - exon
+    - gi-gdk
+    - gi-gtk
+    - hostname
+    - http-client
+    - http-client-tls
+    - lens
+    - optparse-applicative
+    - path
+    - path-io
+    - polysemy >= 1.5
+    - polysemy-conc
+    - polysemy-chronos
+    - polysemy-http
+    - polysemy-log >= 0.3.0.2
+    - polysemy-plugin >= 0.3
+    - polysemy-process
+    - polysemy-resume
+    - polysemy-time
+    - relude
+    - servant
+    - servant-client
+    - servant-client-core
+    - servant-server
+    - template-haskell
+    - text
+    - typed-process
+    - wai
+    - wai-extra
+    - warp
+    - unix
+    - yaml
+
+executables:
+  hel:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - name: base
+        version: '>= 4 && < 5'
+        mixin:
+          hiding (Prelude)
+      - name: helic
+        mixin:
+          - hiding (Helic.Prelude)
+          - (Helic.Prelude as Prelude)
+      - polysemy
+      - polysemy-plugin
+
+tests:
+  helic-unit:
+    <<: !include shared/test.yaml
+    dependencies:
+      - name: base
+        version: '>= 4 && < 5'
+        mixin:
+          hiding (Prelude)
+      - name: helic
+        mixin:
+          - hiding (Helic.Prelude)
+          - (Helic.Prelude as Prelude)
+      - chronos
+      - containers
+      - path
+      - polysemy >= 1.5
+      - polysemy-chronos
+      - polysemy-log
+      - polysemy-plugin >= 0.3
+      - polysemy-test
+      - polysemy-time
+      - tasty
+      - torsor
+
+ghc-options:
+  - -Wall
+  - -Wredundant-constraints
+  - -Wunused-packages
+  - -fplugin=Polysemy.Plugin
