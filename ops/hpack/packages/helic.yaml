@@ -8,6 +8,8 @@ library:
   source-dirs: lib
   other-modules:
     - Prelude
+  generated-other-modules:
+    - Paths_helic
   dependencies:
     - name: base
       version: '>= 4 && < 5'

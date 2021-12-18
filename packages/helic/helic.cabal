@@ -51,6 +51,9 @@ library
       Helic.Yank
   other-modules:
       Prelude
+      Paths_helic
+  autogen-modules:
+      Paths_helic
   hs-source-dirs:
       lib
   default-extensions:
