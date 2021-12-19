@@ -1,5 +1,5 @@
 version: 0.1.0.0
-description: Please see the README on GitLab at <https://gitlab.tryp.io/haskell/helic>
+github: tek/helic
 license: BSD-2-Clause-Patent
 license-file: LICENSE
 author: Torsten Schmits

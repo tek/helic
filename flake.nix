@@ -38,6 +38,7 @@
       overrides = { inherit all ghc901 dev; };
       compatVersions = ["901"];
       ghci.extraArgs = ["-fplugin=Polysemy.Plugin"];
+      versionFile = "ops/hpack/shared/meta.yaml";
       shellConfig = { pkgs, ...}: {
         buildInputs = gtkDeps pkgs;
         haskellPackages = g: [g.hsc2hs];
