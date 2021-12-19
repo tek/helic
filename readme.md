@@ -99,20 +99,22 @@ tmux:
 For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
 
 ```nix
-services.helic = {
-  enable = true;
-  name = "myhost";
-  maxHistory = 1000;
-  net = {
-    port = 10001;
-    hosts = ["remote1:1000" "remote2:2000"];
-    timeout = 5;
-  };
-  tmux = {
+{
+  services.helic = {
     enable = true;
-    package = old.tmux;
+    name = "myhost";
+    maxHistory = 1000;
+    net = {
+      port = 10001;
+      hosts = ["remote1:1000" "remote2:2000"];
+      timeout = 5;
+    };
+    tmux = {
+      enable = true;
+      package = old.tmux;
+    };
   };
-};
+}
 ```
 
 The meaning of these options is:
