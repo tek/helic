@@ -1,4 +1,5 @@
 {-# options_haddock prune #-}
+
 -- |Daemon Logic, Internal
 module Helic.Listen where
 
@@ -85,12 +86,34 @@ insertEvent e = do
 truncateLog ::
   Member (AtomicState (Seq Event)) r =>
   Int ->
-  Sem r ()
+  Sem r (Maybe Int)
 truncateLog maxHistory =
-  atomicModify' \ evs ->
+  atomicState' \ evs ->
     if length evs > maxHistory
-    then Seq.drop 1 evs
-    else evs
+    then (Seq.drop 1 evs, Just (length evs - maxHistory))
+    else (evs, Nothing)
+
+logTruncation ::
+  Member Log r =>
+  Int ->
+  Sem r ()
+logTruncation num =
+  Log.info [exon|removed #{show num} #{noun} from the history.|]
+  where
+    noun =
+      if num == 1 then "entry" else "entries"
+
+handleEvent ::
+  Members Agents r =>
+  Members [AtomicState (Seq Event), ChronosTime, Log] r =>
+  Maybe Int ->
+  Event ->
+  Sem r ()
+handleEvent maxHistory e = do
+  Log.debug [exon|listen: #{show e}|]
+  whenM (insertEvent e) do
+    broadcast e
+    traverse_ logTruncation =<< truncateLog (fromMaybe 100 maxHistory)
 
 -- |Listen for 'Event' via 'Polysemy.Conc.Events', broadcasting them to agents.
 listen ::
@@ -99,5 +122,4 @@ listen ::
   Maybe Int ->
   Sem r ()
 listen maxHistory =
-  Conc.subscribeLoop \ e ->
-    whenM (insertEvent e) (broadcast e *> truncateLog (fromMaybe 100 maxHistory))
+  Conc.subscribeLoop (handleEvent maxHistory)

@@ -1,4 +1,5 @@
 {-# options_haddock prune #-}
+
 -- |Config File Parsing, Internal
 module Helic.Config.File where
 
@@ -15,7 +16,7 @@ parseFileConfig ::
   Path Abs File ->
   Sem r Config
 parseFileConfig (toFilePath -> path) = do
-  Log.info [exon|Reading config file #{toText path}|]
+  Log.debug [exon|Reading config file #{toText path}|]
   fromEither =<< mapLeft formatError <$> embed (decodeFileEither path)
   where
     formatError exc =

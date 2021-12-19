@@ -9,3 +9,9 @@ data Selection =
   |
   Secondary
   deriving stock (Eq, Show)
+
+toXString :: Selection -> Text
+toXString = \case
+  Clipboard -> "CLIPBOARD"
+  Primary -> "PRIMARY"
+  Secondary -> "SECONDARY"

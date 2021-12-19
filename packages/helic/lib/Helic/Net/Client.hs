@@ -1,4 +1,5 @@
 {-# options_haddock prune #-}
+
 -- |HTTP Client, Internal
 module Helic.Net.Client where
 
@@ -9,12 +10,13 @@ import qualified Polysemy.Log as Log
 import Polysemy.Log (Log)
 import Polysemy.Time (MilliSeconds (MilliSeconds))
 import Servant (type (:<|>) ((:<|>)))
-import Servant.Client (ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
+import Servant.Client (BaseUrl, ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
 
 import Helic.Data.Event (Event)
 import Helic.Data.Host (Host (Host))
-import Helic.Data.NetConfig (Timeout)
-import Helic.Net.Api (Api)
+import qualified Helic.Data.NetConfig as NetConfig
+import Helic.Data.NetConfig (NetConfig, Timeout)
+import Helic.Net.Api (Api, defaultPort)
 
 get :: ClientM (Seq Event)
 yank :: Event -> ClientM ()
@@ -28,7 +30,7 @@ sendTo ::
   Sem r ()
 sendTo configTimeout (Host addr) event = do
   Log.debug [exon|sending to #{addr}|]
-  url <- note "bad url" (parseBaseUrl (toString addr))
+  url <- note [exon|Invalid host name: #{addr}|] (parseBaseUrl (toString addr))
   mgr <- Manager.get
   let
     timeout =
@@ -36,5 +38,19 @@ sendTo configTimeout (Host addr) event = do
     env =
       mkClientEnv mgr url
     req =
-      mapLeft show <$> runClientM (yank event) env
-  fromEither =<< Conc.timeoutAs_ (Left "timed out") timeout (embed req)
+      fmap (mapLeft show) <$> tryAny (runClientM (yank event) env)
+  fromEither =<< fromEither =<< Conc.timeoutAs_ (Left "timed out") timeout req
+
+localhost ::
+  Member (Reader NetConfig) r =>
+  Sem r Host
+localhost = do
+  port <- asks NetConfig.port
+  pure (Host [exon|localhost:#{show (fromMaybe defaultPort port)}|])
+
+localhostUrl ::
+  Members [Reader NetConfig, Error Text] r =>
+  Sem r BaseUrl
+localhostUrl = do
+  Host host <- localhost
+  note [exon|Invalid server port: #{host}|] (parseBaseUrl (toString host))

@@ -28,13 +28,14 @@ library:
     - either >= 5
     - exon >= 0.2.0.1
     - gi-gdk >= 3
+    - gi-glib >= 2
     - gi-gtk >= 3
     - hostname >= 1
     - http-client >= 0.5.14
     - http-client-tls >= 0.3.1
     - optparse-applicative >= 0.16
-    - path
-    - path-io
+    - path >= 0.8
+    - path-io >= 1.6
     - polysemy >= 1.6
     - polysemy-conc >= 0.5
     - polysemy-chronos >= 0.2.0.1
@@ -49,10 +50,11 @@ library:
     - servant-client >= 0.18
     - servant-client-core >= 0.18
     - servant-server >= 0.18
+    - table-layout >= 0.9
     - template-haskell
+    - terminal-size >= 0.3.2.1
     - text
     - typed-process >= 0.2.6
-    - wai >= 3.2
     - wai-extra >= 3.1
     - warp >= 3.3
     - unix
@@ -87,6 +89,7 @@ tests:
       - path
       - polysemy
       - polysemy-chronos
+      - polysemy-conc
       - polysemy-log
       - polysemy-plugin
       - polysemy-test

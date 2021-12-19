@@ -37,6 +37,7 @@ library
       Helic.Data.GtkState
       Helic.Data.Host
       Helic.Data.InstanceName
+      Helic.Data.ListConfig
       Helic.Data.NetConfig
       Helic.Data.Selection
       Helic.Data.TmuxConfig
@@ -50,6 +51,7 @@ library
       Helic.Interpreter.AgentX
       Helic.Interpreter.InstanceName
       Helic.Interpreter.XClipboard
+      Helic.List
       Helic.Listen
       Helic.Net.Api
       Helic.Net.Client
@@ -133,13 +135,14 @@ library
     , either >=5
     , exon >=0.2.0.1
     , gi-gdk >=3
+    , gi-glib >=2
     , gi-gtk >=3
     , hostname >=1
     , http-client >=0.5.14
     , http-client-tls >=0.3.1
     , optparse-applicative >=0.16
-    , path
-    , path-io
+    , path >=0.8
+    , path-io >=1.6
     , polysemy >=1.6
     , polysemy-chronos >=0.2.0.1
     , polysemy-conc >=0.5
@@ -154,11 +157,12 @@ library
     , servant-client >=0.18
     , servant-client-core >=0.18
     , servant-server >=0.18
+    , table-layout >=0.9
     , template-haskell
+    , terminal-size >=0.3.2.1
     , text
     , typed-process >=0.2.6
     , unix
-    , wai >=3.2
     , wai-extra >=3.1
     , warp >=3.3
     , yaml >=0.11
@@ -248,6 +252,7 @@ test-suite helic-unit
   other-modules:
       Helic.Test.ConfigFileTest
       Helic.Test.InsertEventTest
+      Helic.Test.ListenTest
       Paths_helic
   hs-source-dirs:
       test
@@ -318,6 +323,7 @@ test-suite helic-unit
     , path
     , polysemy
     , polysemy-chronos
+    , polysemy-conc
     , polysemy-log
     , polysemy-plugin
     , polysemy-test

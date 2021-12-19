@@ -4,7 +4,7 @@
   inputs.hix.url = github:tek/hix;
   inputs.polysemy-conc.url = github:tek/polysemy-conc;
 
-  outputs = { hix, polysemy-conc, ... }:
+  outputs = { self, hix, polysemy-conc, ... }:
   let
     gtkDeps = pkgs: with pkgs; [
       pkgconfig
@@ -52,5 +52,5 @@
       };
     };
 
-  in outputs // { nixosModule = import ./ops/nix/module.nix outputs.packages; };
+  in outputs // { nixosModule = import ./ops/nix/module.nix self; };
 }

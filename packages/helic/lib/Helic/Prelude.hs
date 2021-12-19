@@ -116,6 +116,15 @@ tryAny =
   embed . fmap (mapLeft show) . try @SomeException
 {-# inline tryAny #-}
 
+catchAny ::
+  Member (Embed IO) r =>
+  IO a ->
+  (Text -> Sem r a) ->
+  Sem r a
+catchAny ma handle =
+  either handle pure =<< tryAny ma
+{-# inline catchAny #-}
+
 basicOptions :: Aeson.Options
 basicOptions =
   Aeson.defaultOptions {

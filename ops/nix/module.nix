@@ -1,11 +1,15 @@
-packages: { config, lib, pkgs, ... }:
+self: { config, lib, pkgs, ... }:
 with lib;
 let
   cfg = config.services.helic;
-  pkg = packages.${pkgs.system}.helic;
 in {
   options.services.helic = {
     enable = mkEnableOption "Clipboard Manager";
+    package = mkOption {
+      type = types.package;
+      default = self.packages.${pkgs.system}.helic;
+      description = "The package to use for helic.";
+    };
     name = mkOption {
       type = types.nullOr types.str;
       default = null;
@@ -44,7 +48,7 @@ in {
     };
   };
   config = mkIf cfg.enable {
-    environment.systemPackages = [pkg];
+    environment.systemPackages = [cfg.package];
     environment.etc."helic.yaml".text = ''
     ${if cfg.name == null then "" else "name: ${cfg.name}"}
     tmux:
@@ -62,7 +66,7 @@ in {
       restartIfChanged = true;
       serviceConfig = {
         Restart = "always";
-        ExecStart = "${pkg}/bin/hel listen";
+        ExecStart = "${cfg.package}/bin/hel listen";
       };
     };
   };

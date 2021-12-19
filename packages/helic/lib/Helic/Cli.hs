@@ -1,4 +1,5 @@
 {-# options_haddock prune #-}
+
 -- |CLI, Internal
 module Helic.Cli where
 
@@ -17,15 +18,16 @@ import Polysemy.Conc (
 import Polysemy.Error (errorToIOFinal)
 import Polysemy.Http.Interpreter.Manager (interpretManager)
 import qualified Polysemy.Log as Log
-import Polysemy.Log (Log, Severity (Info), interpretLogStdoutLevelConc)
+import Polysemy.Log (Log, Severity (Info, Trace), interpretLogStdoutLevelConc)
 import Polysemy.Reader (runReader)
 import Polysemy.Time (MilliSeconds (MilliSeconds))
 import System.IO (hLookAhead)
 
-import Helic.Cli.Options (Command (Listen, Yank), Conf (Conf), parser)
+import Helic.Cli.Options (Command (List, Listen, Yank), Conf (Conf), parser)
 import Helic.Config.File (findFileConfig)
 import Helic.Data.Config (Config (Config))
 import Helic.Data.Event (Event)
+import Helic.Data.ListConfig (ListConfig)
 import Helic.Data.XClipboardEvent (XClipboardEvent)
 import Helic.Data.YankConfig (YankConfig (YankConfig))
 import Helic.Interpreter.AgentNet (interpretAgentNet)
@@ -33,6 +35,7 @@ import Helic.Interpreter.AgentTmux (interpretAgentTmux)
 import Helic.Interpreter.AgentX (interpretAgentX)
 import Helic.Interpreter.InstanceName (interpretInstanceName)
 import Helic.Interpreter.XClipboard (interpretXClipboardGtk, listenXClipboard)
+import Helic.List (list)
 import Helic.Listen (listen)
 import Helic.Yank (yank)
 
@@ -70,7 +73,7 @@ runIO verbose =
   asyncToIOFinal .
   interpretRace .
   interpretTimeChronos .
-  interpretLogStdoutLevelConc (if verbose then Nothing else Just Info) .
+  interpretLogStdoutLevelConc (if verbose then (Just Trace) else Just Info) .
   interpretCritical .
   interpretInterrupt .
   logError
@@ -97,10 +100,21 @@ yankApp ::
   Config ->
   YankConfig ->
   Sem IOStack ()
-yankApp (Config name _ net _) yankConf =
+yankApp (Config name _ net _) yankConfig =
   interpretManager $
   interpretInstanceName name $
-  yank (fromMaybe def net) yankConf
+  runReader (fromMaybe def net) $
+  yank yankConfig
+
+listApp ::
+  Config ->
+  ListConfig ->
+  Sem IOStack ()
+listApp (Config _ _ net _) listConfig =
+  runReader listConfig $
+  interpretManager $
+  runReader (fromMaybe def net) $
+  list
 
 runCommand :: Config -> Command -> Sem IOStack ()
 runCommand config = \case
@@ -108,6 +122,8 @@ runCommand config = \case
     listenApp config
   Yank yankConf ->
     yankApp config yankConf
+  List showConf ->
+    listApp config showConf
 
 defaultCommand :: Sem IOStack Command
 defaultCommand = do
