@@ -67,6 +67,7 @@ $ echo 'yank me' | hel # yank
 Global CLI options are specified *before* the command name, command-specific ones after it.
 
 |Command|Name|Description|
+|---|---|---|
 |Global|`--verbose`|Increase the log level.|
 |Global|`--config-file FILE`|Use the specified file path instead of the default locations.|
 |`listen`|`--agent NAME`|Used to avoid sending yanks back to the application that sent them.|
@@ -117,6 +118,7 @@ services.helic = {
 The meaning of these options is:
 
 |Key|Default|Description|
+|---|---|---|
 |`name`|Host name|An identifier for the host, used for filtering duplicates.|
 |`maxHistory`|100|The number of yanks that should be kept.|
 |`net.port`|`9500`|The HTTP port the daemon listens to for both remote sync and `hel yank`.|
