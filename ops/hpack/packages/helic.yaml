@@ -33,8 +33,8 @@ library:
     - http-client >= 0.5.14
     - http-client-tls >= 0.3.1
     - optparse-applicative >= 0.16
-    - path >= 0.8
-    - path-io >= 1.6
+    - path
+    - path-io
     - polysemy >= 1.6
     - polysemy-conc >= 0.5
     - polysemy-chronos >= 0.2.0.1
