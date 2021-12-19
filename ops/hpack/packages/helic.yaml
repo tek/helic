@@ -4,6 +4,16 @@ description: See <https://hackage.haskell.org/package/helic/docs/Helic.html>
 <<: !include shared/meta.yaml
 <<: !include shared/extensions.yaml
 
+extra-source-files:
+  - readme.md
+  - changelog.md
+
+dependencies:
+  - name: base
+    version: '>= 4 && < 5'
+    mixin:
+      hiding (Prelude)
+
 library:
   source-dirs: lib
   other-modules:
@@ -11,48 +21,42 @@ library:
   generated-other-modules:
     - Paths_helic
   dependencies:
-    - name: base
-      version: '>= 4 && < 5'
-      mixin:
-        hiding (Prelude)
     - aeson >= 1.4
-    - chronos
-    - composition
+    - chronos >= 1.1.1
     - containers
-    - data-default
-    - either
-    - exon
-    - gi-gdk
-    - gi-gtk
-    - hostname
-    - http-client
-    - http-client-tls
-    - lens
-    - optparse-applicative
-    - path
-    - path-io
-    - polysemy >= 1.5
-    - polysemy-conc
-    - polysemy-chronos
-    - polysemy-http
-    - polysemy-log >= 0.3.0.2
-    - polysemy-plugin >= 0.3
-    - polysemy-process
-    - polysemy-resume
-    - polysemy-time
-    - relude
-    - servant
-    - servant-client
-    - servant-client-core
-    - servant-server
+    - data-default >= 0.2
+    - either >= 5
+    - exon >= 0.2.0.1
+    - gi-gdk >= 3
+    - gi-gtk >= 3
+    - hostname >= 1
+    - http-client >= 0.5.14
+    - http-client-tls >= 0.3.1
+    - optparse-applicative >= 0.16
+    - path >= 0.8
+    - path-io >= 1.6
+    - polysemy >= 1.6
+    - polysemy-conc >= 0.5
+    - polysemy-chronos >= 0.2.0.1
+    - polysemy-http >= 0.5
+    - polysemy-log >= 0.4
+    - polysemy-plugin >= 0.4
+    - polysemy-process >= 0.5
+    - polysemy-resume >= 0.2
+    - polysemy-time >= 0.1.4
+    - relude >= 0.7
+    - servant >= 0.18
+    - servant-client >= 0.18
+    - servant-client-core >= 0.18
+    - servant-server >= 0.18
     - template-haskell
     - text
-    - typed-process
-    - wai
-    - wai-extra
-    - warp
+    - typed-process >= 0.2.6
+    - wai >= 3.2
+    - wai-extra >= 3.1
+    - warp >= 3.3
     - unix
-    - yaml
+    - yaml >= 0.11
 
 executables:
   hel:
@@ -63,10 +67,6 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - name: base
-        version: '>= 4 && < 5'
-        mixin:
-          hiding (Prelude)
       - name: helic
         mixin:
           - hiding (Helic.Prelude)
@@ -78,10 +78,6 @@ tests:
   helic-unit:
     <<: !include shared/test.yaml
     dependencies:
-      - name: base
-        version: '>= 4 && < 5'
-        mixin:
-          hiding (Prelude)
       - name: helic
         mixin:
           - hiding (Helic.Prelude)
@@ -89,10 +85,10 @@ tests:
       - chronos
       - containers
       - path
-      - polysemy >= 1.5
+      - polysemy
       - polysemy-chronos
       - polysemy-log
-      - polysemy-plugin >= 0.3
+      - polysemy-plugin
       - polysemy-test
       - polysemy-time
       - tasty

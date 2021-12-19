@@ -8,6 +8,7 @@ import Polysemy.Log (Log)
 import qualified Polysemy.Process as Process
 import Polysemy.Process (Process)
 import Polysemy.Process.Effect.Process (withProcess)
+import Polysemy.Resume (type (!!), (!!))
 
 import Helic.Data.Event (Event (Event))
 
