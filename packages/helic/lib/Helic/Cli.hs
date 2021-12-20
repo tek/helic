@@ -105,6 +105,7 @@ yankApp (Config name _ net _) yankConfig =
   interpretManager $
   interpretInstanceName name $
   runReader (fromMaybe def net) $
+  interpretClientNet $
   yank yankConfig
 
 listApp ::
