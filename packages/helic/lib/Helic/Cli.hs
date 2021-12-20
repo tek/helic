@@ -33,6 +33,7 @@ import Helic.Data.YankConfig (YankConfig (YankConfig))
 import Helic.Interpreter.AgentNet (interpretAgentNet)
 import Helic.Interpreter.AgentTmux (interpretAgentTmux)
 import Helic.Interpreter.AgentX (interpretAgentX)
+import Helic.Interpreter.Client (interpretClientNet)
 import Helic.Interpreter.InstanceName (interpretInstanceName)
 import Helic.Interpreter.XClipboard (interpretXClipboardGtk, listenXClipboard)
 import Helic.List (list)
@@ -114,6 +115,7 @@ listApp (Config _ _ net _) listConfig =
   runReader listConfig $
   interpretManager $
   runReader (fromMaybe def net) $
+  interpretClientNet $
   list
 
 runCommand :: Config -> Command -> Sem IOStack ()
