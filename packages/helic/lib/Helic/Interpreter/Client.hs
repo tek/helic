@@ -1,3 +1,4 @@
+-- |Client Interpreter, Internal
 module Helic.Interpreter.Client where
 
 import Polysemy.Http (Manager)
@@ -12,6 +13,7 @@ import Helic.Effect.Client (Client (Get, Yank))
 import qualified Helic.Net.Client as Api
 import Helic.Net.Client (localhost, localhostUrl, sendTo)
 
+-- |Interpret 'Client' via HTTP.
 interpretClientNet ::
   Members [Manager, Reader NetConfig, Log, Error Text, Race, Embed IO] r =>
   InterpreterFor Client r
@@ -25,6 +27,7 @@ interpretClientNet =
       timeout <- asks NetConfig.timeout
       runError (sendTo timeout host event)
 
+-- |Interpret 'Client' with a constant list of 'Event's and no capability to yank.
 interpretClientConst ::
   [Event] ->
   InterpreterFor Client r
