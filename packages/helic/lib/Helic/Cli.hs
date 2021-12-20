@@ -14,12 +14,14 @@ import Polysemy.Conc (
   interpretEventsChan,
   interpretInterrupt,
   interpretRace,
+  interpretSync,
+  withAsync_,
   )
 import Polysemy.Error (errorToIOFinal)
+import Polysemy.Http (Manager)
 import Polysemy.Http.Interpreter.Manager (interpretManager)
 import qualified Polysemy.Log as Log
 import Polysemy.Log (Log, Severity (Info, Trace), interpretLogStdoutLevelConc)
-import Polysemy.Reader (runReader)
 import Polysemy.Time (MilliSeconds (MilliSeconds))
 import System.IO (hLookAhead)
 
@@ -28,16 +30,22 @@ import Helic.Config.File (findFileConfig)
 import Helic.Data.Config (Config (Config))
 import Helic.Data.Event (Event)
 import Helic.Data.ListConfig (ListConfig)
+import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
+import Helic.Data.NetConfig (NetConfig)
 import Helic.Data.XClipboardEvent (XClipboardEvent)
 import Helic.Data.YankConfig (YankConfig (YankConfig))
+import qualified Helic.Effect.Client as Client
+import Helic.Effect.Client (Client)
+import qualified Helic.Effect.History as History
 import Helic.Interpreter.AgentNet (interpretAgentNet)
 import Helic.Interpreter.AgentTmux (interpretAgentTmux)
 import Helic.Interpreter.AgentX (interpretAgentX)
 import Helic.Interpreter.Client (interpretClientNet)
+import Helic.Interpreter.History (interpretHistory)
 import Helic.Interpreter.InstanceName (interpretInstanceName)
 import Helic.Interpreter.XClipboard (interpretXClipboardGtk, listenXClipboard)
 import Helic.List (list)
-import Helic.Listen (listen)
+import Helic.Net.Api (serve)
 import Helic.Yank (yank)
 
 logError ::
@@ -95,7 +103,10 @@ listenApp (Config name tmux net maxHistory) =
   interpretAgentX $
   interpretAgentNet $
   interpretAgentTmux $
-  listen maxHistory
+  interpretHistory maxHistory $
+  interpretSync $
+  withAsync_ serve $
+  Conc.subscribeLoop History.receive
 
 yankApp ::
   Config ->
@@ -108,16 +119,31 @@ yankApp (Config name _ net _) yankConfig =
   interpretClientNet $
   yank yankConfig
 
+runClient ::
+  Members [Log, Error Text, Race, Embed IO] r =>
+  Maybe NetConfig ->
+  InterpretersFor [Client, Reader NetConfig, Manager] r
+runClient net =
+  interpretManager .
+  runReader (fromMaybe def net) .
+  interpretClientNet
+
 listApp ::
   Config ->
   ListConfig ->
   Sem IOStack ()
 listApp (Config _ _ net _) listConfig =
   runReader listConfig $
-  interpretManager $
-  runReader (fromMaybe def net) $
-  interpretClientNet $
+  runClient net $
   list
+
+loadApp ::
+  Config ->
+  LoadConfig ->
+  Sem IOStack ()
+loadApp (Config _ _ net _) (LoadConfig event) =
+  runClient net $
+  (void . fromEither =<< Client.load event)
 
 runCommand :: Config -> Command -> Sem IOStack ()
 runCommand config = \case

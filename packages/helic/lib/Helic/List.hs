@@ -4,6 +4,7 @@
 module Helic.List where
 
 import Chronos (Datetime (Datetime), SubsecondPrecision (SubsecondPrecisionFixed), builder_HMS, timeToDatetime)
+import qualified Data.Text as Text
 import Data.Text.Lazy.Builder (toLazyText)
 import qualified System.Console.Terminal.Size as TerminalSize
 import Text.Layout.Table (center, column, expandUntil, fixedCol, left, right, rowG, tableString, titlesH, unicodeRoundS)
@@ -15,6 +16,13 @@ import qualified Helic.Data.ListConfig as ListConfig
 import Helic.Data.ListConfig (ListConfig)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
+
+eventColumns :: Int -> Event -> [Text]
+eventColumns i Event {..} =
+  [show i, coerce sender, coerce source, toStrict (formatTime (timeToDatetime time)), Text.takeWhile ('\n' /=) content]
+  where
+    formatTime (Datetime _ tod) =
+      toLazyText (builder_HMS (SubsecondPrecisionFixed 0) (Just ':') tod)
 
 format :: Int -> [Event] -> String
 format width events =
@@ -28,10 +36,8 @@ format width events =
       column (expandUntil w) al def def
     titles =
       titlesH ["#", "Instance", "Agent", "Time", "Content"]
-    row (i, Event {..}) =
-      rowG (toString <$> [show i, coerce sender, coerce source, toStrict (formatTime (timeToDatetime time)), content])
-    formatTime (Datetime _ tod) =
-      toLazyText (builder_HMS (SubsecondPrecisionFixed 0) (Just ':') tod)
+    row (i, event) =
+      rowG (toString <$> eventColumns i event)
     contentWidth =
       max 20 (width - 40)
 

@@ -38,6 +38,7 @@ library
       Helic.Data.Host
       Helic.Data.InstanceName
       Helic.Data.ListConfig
+      Helic.Data.LoadConfig
       Helic.Data.NetConfig
       Helic.Data.Selection
       Helic.Data.TmuxConfig
@@ -45,12 +46,15 @@ library
       Helic.Data.YankConfig
       Helic.Effect.Agent
       Helic.Effect.Client
+      Helic.Effect.History
       Helic.Effect.XClipboard
       Helic.Gtk
+      Helic.Interpreter.Agent
       Helic.Interpreter.AgentNet
       Helic.Interpreter.AgentTmux
       Helic.Interpreter.AgentX
       Helic.Interpreter.Client
+      Helic.Interpreter.History
       Helic.Interpreter.InstanceName
       Helic.Interpreter.XClipboard
       Helic.List
@@ -253,9 +257,11 @@ test-suite helic-unit
   main-is: Main.hs
   other-modules:
       Helic.Test.ConfigFileTest
+      Helic.Test.Fixtures
       Helic.Test.InsertEventTest
       Helic.Test.ListenTest
       Helic.Test.ListTest
+      Helic.Test.LoadTest
       Paths_helic
   hs-source-dirs:
       test

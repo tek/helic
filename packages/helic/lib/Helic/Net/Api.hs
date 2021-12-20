@@ -1,45 +1,38 @@
 -- |HTTP API of the Daemon, Internal
 module Helic.Net.Api where
 
-import qualified Polysemy.Conc as Conc
-import Polysemy.Conc (Events, Interrupt, Sync)
+import Polysemy.Conc (Interrupt, Sync)
 import Polysemy.Log (Log)
-import Servant (Get, JSON, PostCreated, ReqBody, type (:<|>) ((:<|>)), type (:>))
+import Servant (Get, JSON, NoContent (NoContent), Post, PostCreated, ReqBody, type (:<|>) ((:<|>)), type (:>))
 import Servant.Server (Context (EmptyContext), ServerT)
 
-import Helic.Data.Event (Event (Event, sender, source))
-import Helic.Data.InstanceName (InstanceName)
+import Helic.Data.Event (Event)
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig)
-import Helic.Effect.Agent (agentIdNet)
+import qualified Helic.Effect.History as History
+import Helic.Effect.History (History)
 import Helic.Net.Server (ServerReady, runServerWithContext)
 
 -- |The Servant API of the daemon, providing endpoints for getting all events and creating one.
 type Api =
   "event" :> (
-    Get '[JSON] (Seq Event)
+    Get '[JSON] [Event]
     :<|>
-    ReqBody '[JSON] Event :> PostCreated '[JSON] ()
+    ReqBody '[JSON] Event :> PostCreated '[JSON] NoContent
+    :<|>
+    ReqBody '[JSON] Int :> Post '[JSON] (Maybe Event)
   )
-
--- |Publish a received event unless it was sent by the network agent of this instance.
-receiveEvent ::
-  Members [Events resource Event, Reader InstanceName] r =>
-  Event ->
-  Sem r ()
-receiveEvent e@Event {sender, source} = do
-  name <- ask
-  unless (name == sender && source == agentIdNet) do
-    Conc.publish e
 
 -- |The server implementation.
 server ::
-  Members [Events resource Event, AtomicState (Seq Event), Reader InstanceName] r =>
+  Member History r =>
   ServerT Api (Sem r)
 server =
-  atomicGet
+  History.get
   :<|>
-  receiveEvent
+  as NoContent . History.receive
+  :<|>
+  History.load
 
 -- |The default port, 9500.
 defaultPort :: Int
@@ -48,8 +41,7 @@ defaultPort =
 
 -- |Run the daemon API.
 serve ::
-  Members [Events resource Event, Reader NetConfig] r =>
-  Members [AtomicState (Seq Event), Reader InstanceName, Sync ServerReady, Log, Interrupt, Final IO] r =>
+  Members [History, Reader NetConfig, Sync ServerReady, Log, Interrupt, Final IO] r =>
   Sem r ()
 serve = do
   port <- asks NetConfig.port

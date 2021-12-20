@@ -10,7 +10,7 @@ import Polysemy.Time (MilliSeconds (MilliSeconds), convert, mkDatetime)
 import Torsor (add)
 
 import Helic.Data.Event (Event (Event))
-import Helic.Listen (appendIfValid)
+import Helic.Interpreter.History (appendIfValid)
 
 old :: Chronos.Time
 old =

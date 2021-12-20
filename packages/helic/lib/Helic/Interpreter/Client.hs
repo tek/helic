@@ -9,7 +9,7 @@ import Servant.Client (mkClientEnv, runClientM)
 import Helic.Data.Event (Event)
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig)
-import Helic.Effect.Client (Client (Get, Yank))
+import Helic.Effect.Client (Client (Get, Load, Yank))
 import qualified Helic.Net.Client as Api
 import Helic.Net.Client (localhost, localhostUrl, sendTo)
 
@@ -26,6 +26,10 @@ interpretClientNet =
       host <- localhost
       timeout <- asks NetConfig.timeout
       runError (sendTo timeout host event)
+    Load event -> do
+      env <- mkClientEnv <$> Manager.get <*> localhostUrl
+      result <- mapLeft show <$> embed (runClientM (Api.load event) env)
+      pure (result >>= maybeToRight "There is no event for that index")
 
 -- |Interpret 'Client' with a constant list of 'Event's and no capability to yank.
 interpretClientConst ::
@@ -35,3 +39,4 @@ interpretClientConst evs =
   interpret \case
     Get -> pure (Right evs)
     Yank _ -> pure (Left "const client cannot yank")
+    Load _ -> pure (Left "const client cannot load")

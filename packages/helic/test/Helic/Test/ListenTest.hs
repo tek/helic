@@ -1,7 +1,5 @@
 module Helic.Test.ListenTest where
 
-import qualified Chronos
-import Chronos (datetimeToTime)
 import Polysemy.Chronos (interpretTimeChronosConstant)
 import qualified Polysemy.Conc as Conc
 import Polysemy.Conc (
@@ -16,38 +14,23 @@ import Polysemy.Conc (
   )
 import qualified Polysemy.Conc.Queue as Queue
 import Polysemy.Log (interpretLogNull)
-import Polysemy.Reader (runReader)
-import Polysemy.Tagged (Tagged, untag)
-import Polysemy.Test (UnitTest, assertJust, runTestAuto)
-import Polysemy.Time (mkDatetime)
+import Polysemy.Test (UnitTest, assertJust, runTestAuto, assertEq)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (Event, content))
-import Helic.Data.InstanceName (InstanceName)
-import Helic.Effect.Agent (Agent (Update), AgentNet, AgentTmux, AgentX)
+import Helic.Effect.Agent (AgentNet, AgentTmux, AgentX)
+import Helic.Interpreter.Agent (interpretAgent)
+import Helic.Interpreter.History (interpretHistory)
 import Helic.Listen (listen)
-import Helic.Net.Api (receiveEvent)
-
-testTime :: Chronos.Time
-testTime =
-  datetimeToTime (mkDatetime 2030 1 1 12 0 0)
-
-interpretAgent ::
-  ∀ id r .
-  (Event -> Sem r ()) ->
-  InterpreterFor (Tagged id Agent) r
-interpretAgent handle sem =
-  interpreting (untag sem) \case
-    Update e ->
-      handle e
+import Helic.Test.Fixtures (testTime)
 
 handleNet ::
-  Members [Events resource Event, Reader InstanceName] r =>
+  Member (Events res Event) r =>
   Event ->
   Sem r ()
 handleNet (Event {..}) =
-  receiveEvent (Event "test" (AgentId "net") testTime content)
+  Conc.publish (Event "test" (AgentId "net") testTime content)
 
 handleLog ::
   Member (Queue Text) r =>
@@ -69,12 +52,14 @@ test_listen =
   runReader "test" $
   interpretAgent @AgentNet handleNet $
   interpretAgent @AgentTmux handleLog $
-  interpretAgent @AgentX (const unit) do
-    result <- withAsync_ (listen (Just 5)) do
+  interpretAgent @AgentX (const unit) $
+  interpretHistory (Just 5) do
+    result <- withAsync_ listen do
       Conc.subscribe do
         let
           pub n =
             Conc.publish =<< Event.now (AgentId "nvim") (show n)
         traverse_ pub ([1..10] :: [Int])
       traverse resultToMaybe <$> replicateM 10 Queue.read
+    assertEq Nothing . resultToMaybe =<< Queue.tryRead
     assertJust (show <$> ([1..10] :: [Int])) result

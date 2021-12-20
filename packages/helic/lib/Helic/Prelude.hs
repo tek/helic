@@ -73,7 +73,7 @@ import Polysemy.Error (Error, fromEither, fromExceptionVia, mapError, note, runE
 import Polysemy.Internal.CustomErrors (FirstOrder)
 import Polysemy.Internal.Kind (Append)
 import Polysemy.Internal.Tactics (liftT)
-import Polysemy.Reader (Reader, ask, asks)
+import Polysemy.Reader (Reader, ask, asks, runReader)
 import Polysemy.Resource (Resource, resourceToIOFinal, runResource)
 import Polysemy.State (State, evalState, get, gets, modify, modify', put, runState)
 import Relude hiding (
@@ -178,3 +178,12 @@ interpreting ::
 interpreting s h =
   interpret h s
 {-# inline interpreting #-}
+
+as ::
+  Functor m =>
+  a ->
+  m b ->
+  m a
+as =
+  (<$)
+{-# inline as #-}

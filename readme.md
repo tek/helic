@@ -15,13 +15,14 @@ If remote hosts are configured, each yank event is sent over the network to upda
 
 Several yank events are stored in memory in order to detect duplicates and cycles.
 
-The CLI understands three different commands:
+The CLI understands four different commands:
 
 |Command|Meaning|
 |---|---|
 |`hel listen`|Start the daemon. This is best done from a *systemd* user service.|
 |`hel yank`|Send standard input to the daemon as a manual yank event.|
 |`hel list`|Print the event history.|
+|`hel load`|Load an older event to the clipboard, given its index into the history.|
 
 # Installing and Running Helic
 
@@ -34,6 +35,7 @@ If *Nix* is installed and configured for use with *flakes*, the app can be run l
 $ nix run github:tek/helic -- listen
 $ echo 'yank me' | nix run github:tek/helic -- yank --agent cli
 $ nix run github:tek/helic -- list 100
+$ nix run github:tek/helic -- load 5
 ```
 
 ## NixOS
@@ -90,6 +92,7 @@ Global CLI options are specified *before* the command name, command-specific one
 |Global|`--config-file FILE`|Use the specified file path instead of the default locations.|
 |`listen`|`--agent NAME`|Used to avoid sending yanks back to the application that sent them.|
 |`list`|positional (`hel list 5`)|Limit the number of printed events.|
+|`load`|positional (`hel load 5`)|Choose the index of the event to be loaded.|
 
 # Configuring Helic
 

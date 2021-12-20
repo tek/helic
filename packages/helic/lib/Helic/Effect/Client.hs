@@ -11,6 +11,8 @@ data Client :: Effect where
   Get :: Client m (Either Text [Event])
   -- |Add a new event.
   Yank :: Event -> Client m (Either Text ())
+  -- |Broadcast an older event.
+  Load :: Int -> Client m (Either Text Event)
 
 makeSem_ ''Client
 
@@ -26,3 +28,10 @@ yank ::
   Member Client r =>
   Event ->
   Sem r (Either Text ())
+
+-- |Broadcast an older event.
+load ::
+  ∀ r .
+  Member Client r =>
+  Int ->
+  Sem r (Either Text Event)

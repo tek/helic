@@ -9,7 +9,7 @@ import qualified Polysemy.Http.Effect.Manager as Manager
 import qualified Polysemy.Log as Log
 import Polysemy.Log (Log)
 import Polysemy.Time (MilliSeconds (MilliSeconds))
-import Servant (type (:<|>) ((:<|>)))
+import Servant (NoContent, type (:<|>) ((:<|>)))
 import Servant.Client (BaseUrl, ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
 
 import Helic.Data.Event (Event)
@@ -18,9 +18,10 @@ import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig, Timeout)
 import Helic.Net.Api (Api, defaultPort)
 
-get :: ClientM (Seq Event)
-yank :: Event -> ClientM ()
-get :<|> yank = client (Proxy @Api)
+get :: ClientM [Event]
+yank :: Event -> ClientM NoContent
+load :: Int -> ClientM (Maybe Event)
+get :<|> yank :<|> load = client (Proxy @Api)
 
 sendTo ::
   Members [Manager, Log, Race, Error Text, Embed IO] r =>
@@ -39,7 +40,7 @@ sendTo configTimeout (Host addr) event = do
       mkClientEnv mgr url
     req =
       fmap (mapLeft show) <$> tryAny (runClientM (yank event) env)
-  fromEither =<< fromEither =<< Conc.timeoutAs_ (Left "timed out") timeout req
+  void . fromEither =<< fromEither =<< Conc.timeoutAs_ (Left "timed out") timeout req
 
 localhost ::
   Member (Reader NetConfig) r =>
