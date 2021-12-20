@@ -1,3 +1,5 @@
+{-# options_haddock prune #-}
+
 -- |List command logic, Internal
 module Helic.List where
 
@@ -35,6 +37,7 @@ format width events =
     contentWidth =
       max 20 (width - 40)
 
+-- |Fetch all events from the server, limit them to the configured number and format them in a nice table.
 buildList ::
   Members [Manager, Reader ListConfig, Reader NetConfig, Error Text, Embed IO] r =>
   Sem r String
