@@ -45,6 +45,12 @@ With this, a *systemd* user service will be started on login and the client will
 $ echo 'yank me' | hel yank
 ```
 
+After a rebuild, the service may not be started right away, so this command must be executed:
+
+```shell
+$ systemctl --user start helic
+```
+
 ## Without Nix
 
 Alternatively, the app can be installed using a *Haskell* package manager, like [Cabal]:
