@@ -3,13 +3,25 @@
 *Helic* is a tool for synchronizing clipboard contents across *X11*, *tmux* and network, consisting of a daemon
 listening for changes and a CLI client for use in programs like *Neovim*.
 
+*X11* has three separate copy buffers, called the *clipboard*, the *primary selection* and the *secondary selection*.
+Selections are used when text is selected with the mouse, while the clipboard is updated by `Ctrl-C`.
+
 When some text is copied or selected in *X11*, the daemon receives an event that it proceeds to broadcast to the
 configured targets.
 If the source was a selection, the *X11* clipboard is updated as well.
+
 The CLI program `hel` can be used to manually send text to the daemon, for example from *tmux* or *Neovim*.
 If remote hosts are configured, each yank event is sent over the network to update their clipboards.
 
-Several yank events are stored in memory in order to avoid duplicates and cycles.
+Several yank events are stored in memory in order to detect duplicates and cycles.
+
+The CLI understands three different commands:
+
+|Command|Meaning|
+|---|---|
+|`hel listen`|Start the daemon. This is best done from a *systemd* user service.|
+|`hel yank`|Send standard input to the daemon as a manual yank event.|
+|`hel list`|Print the event history.|
 
 # Installing and Running Helic
 
@@ -20,7 +32,8 @@ If *Nix* is installed and configured for use with *flakes*, the app can be run l
 
 ```shell
 $ nix run github:tek/helic -- listen
-$ echo 'yank me' | nix run github:tek/helic -- yank
+$ echo 'yank me' | nix run github:tek/helic -- yank --agent cli
+$ nix run github:tek/helic -- list 100
 ```
 
 ## NixOS
@@ -62,8 +75,7 @@ $ hel listen
 
 ## CLI
 
-If neither of the commands `listen` and `yank` have been specified explicitly, *Helic* decides which one to start by the
-presence of stdin data:
+If no command has been specified explicitly, *Helic* decides which one to start by the presence of stdin data:
 
 ```shell
 $ hel # start daemon
@@ -77,6 +89,7 @@ Global CLI options are specified *before* the command name, command-specific one
 |Global|`--verbose`|Increase the log level.|
 |Global|`--config-file FILE`|Use the specified file path instead of the default locations.|
 |`listen`|`--agent NAME`|Used to avoid sending yanks back to the application that sent them.|
+|`list`|positional (`hel list 5`)|Limit the number of printed events.|
 
 # Configuring Helic
 

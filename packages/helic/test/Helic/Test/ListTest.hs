@@ -1,32 +1,27 @@
-module Helic.Test.ListenTest where
+module Helic.Test.ListTest where
 
 import qualified Chronos
 import Chronos (datetimeToTime)
 import Polysemy.Chronos (interpretTimeChronosConstant)
-import qualified Polysemy.Conc as Conc
 import Polysemy.Conc (
   Events,
   Queue,
-  interpretAtomic,
-  interpretEventsChan,
-  interpretQueueTBM,
-  interpretRace,
-  resultToMaybe,
-  withAsync_,
   )
 import qualified Polysemy.Conc.Queue as Queue
-import Polysemy.Log (interpretLogNull)
+import Polysemy.Error (errorToIOFinal)
 import Polysemy.Reader (runReader)
 import Polysemy.Tagged (Tagged, untag)
-import Polysemy.Test (UnitTest, assertJust, runTestAuto)
+import Polysemy.Test (UnitTest, assertRight, runTestAuto)
 import Polysemy.Time (mkDatetime)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (Event, content))
 import Helic.Data.InstanceName (InstanceName)
-import Helic.Effect.Agent (Agent (Update), AgentNet, AgentTmux, AgentX)
-import Helic.Listen (listen)
+import Helic.Data.ListConfig (ListConfig (ListConfig))
+import Helic.Effect.Agent (Agent (Update))
+import Helic.Interpreter.Client (interpretClientConst)
+import Helic.List (buildList)
 import Helic.Net.Api (receiveEvent)
 
 testTime :: Chronos.Time
@@ -59,22 +54,9 @@ handleLog Event {content} =
 test_listen :: UnitTest
 test_listen =
   runTestAuto $
-  asyncToIOFinal $
-  interpretRace $
-  interpretLogNull $
   interpretTimeChronosConstant testTime $
-  interpretEventsChan $
-  interpretAtomic def $
-  interpretQueueTBM 64 $
   runReader "test" $
-  interpretAgent @AgentNet handleNet $
-  interpretAgent @AgentTmux handleLog $
-  interpretAgent @AgentX (const unit) do
-    result <- withAsync_ (listen (Just 5)) do
-      Conc.subscribe do
-        let
-          pub n =
-            Conc.publish =<< Event.now (AgentId "nvim") (show n)
-        traverse_ pub ([1..10] :: [Int])
-      traverse resultToMaybe <$> replicateM 10 Queue.read
-    assertJust (show <$> ([1..10] :: [Int])) result
+  runReader (ListConfig (Just 8)) do
+    events <- traverse (Event.now (AgentId "nvim") . show) ([1..10] :: [Int])
+    interpretClientConst events do
+      assertRight 873 . fmap length =<< errorToIOFinal buildList

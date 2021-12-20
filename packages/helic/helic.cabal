@@ -44,11 +44,13 @@ library
       Helic.Data.XClipboardEvent
       Helic.Data.YankConfig
       Helic.Effect.Agent
+      Helic.Effect.Client
       Helic.Effect.XClipboard
       Helic.Gtk
       Helic.Interpreter.AgentNet
       Helic.Interpreter.AgentTmux
       Helic.Interpreter.AgentX
+      Helic.Interpreter.Client
       Helic.Interpreter.InstanceName
       Helic.Interpreter.XClipboard
       Helic.List
@@ -253,6 +255,7 @@ test-suite helic-unit
       Helic.Test.ConfigFileTest
       Helic.Test.InsertEventTest
       Helic.Test.ListenTest
+      Helic.Test.ListTest
       Paths_helic
   hs-source-dirs:
       test
