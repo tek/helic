@@ -2,20 +2,23 @@ module Helic.Test.ListenTest where
 
 import qualified Chronos
 import Chronos (datetimeToTime)
-import Polysemy.Chronos (interpretTimeChronos)
+import Polysemy.Chronos (interpretTimeChronosConstant)
 import qualified Polysemy.Conc as Conc
-import Polysemy.Conc (Queue, interpretAtomic, interpretEventsChan, interpretQueueTBM, interpretRace, withAsync_)
+import Polysemy.Conc (Events, Queue, interpretAtomic, interpretEventsChan, interpretQueueTBM, interpretRace, withAsync_, resultToMaybe)
 import qualified Polysemy.Conc.Queue as Queue
 import Polysemy.Log (interpretLogNull)
 import Polysemy.Tagged (Tagged, untag)
-import Polysemy.Test (UnitTest, runTestAuto)
-import Polysemy.Time (mkDatetime, MilliSeconds (MilliSeconds))
+import Polysemy.Test (UnitTest, runTestAuto, assertJust)
+import Polysemy.Time (mkDatetime)
 
 import Helic.Data.AgentId (AgentId (AgentId))
-import Helic.Data.Event (Event (Event))
-import Helic.Effect.Agent (Agent (Update), AgentNet, AgentTmux, AgentX, agentIdNet, agentIdTmux, agentIdX)
+import Helic.Data.Event (Event (Event, content))
+import Helic.Effect.Agent (Agent (Update), AgentNet, AgentTmux, AgentX)
 import Helic.Listen (listen)
-import qualified Polysemy.Time as Time
+import Helic.Net.Api (receiveEvent)
+import Helic.Data.InstanceName (InstanceName)
+import qualified Helic.Data.Event as Event
+import Polysemy.Reader (runReader)
 
 testTime :: Chronos.Time
 testTime =
@@ -25,29 +28,28 @@ ev :: Text -> Event
 ev =
     Event "test" (AgentId "nvim") testTime
 
-interpretAgentQueue ::
+interpretAgent ::
   ∀ id r .
-  Member (Queue (AgentId, Event)) r =>
-  AgentId ->
   (Event -> Sem r ()) ->
   InterpreterFor (Tagged id Agent) r
-interpretAgentQueue agentId handle sem =
+interpretAgent handle sem =
   interpreting (untag sem) \case
-    Update e -> do
+    Update e ->
       handle e
-      Queue.write (agentId, e)
 
-handleNet :: Event -> Sem r ()
-handleNet =
-  undefined
+handleNet ::
+  Members [Events resource Event, Reader InstanceName] r =>
+  Event ->
+  Sem r ()
+handleNet (Event {..}) =
+  receiveEvent (Event "test" (AgentId "net") testTime content)
 
-handleTmux :: Event -> Sem r ()
-handleTmux =
-  undefined
-
-handleX :: Event -> Sem r ()
-handleX =
-  undefined
+handleLog ::
+  Member (Queue Text) r =>
+  Event ->
+  Sem r ()
+handleLog Event {content} =
+  Queue.write content
 
 test_listen :: UnitTest
 test_listen =
@@ -55,19 +57,20 @@ test_listen =
   asyncToIOFinal $
   interpretRace $
   interpretLogNull $
-  interpretTimeChronos $
+  interpretTimeChronosConstant testTime $
   interpretEventsChan $
   interpretAtomic def $
   interpretQueueTBM 64 $
-  interpretAgentQueue @AgentNet agentIdNet handleNet $
-  interpretAgentQueue @AgentTmux agentIdTmux handleTmux $
-  interpretAgentQueue @AgentX agentIdX handleX do
-    withAsync_ (listen (Just 5)) do
-      Conc.publish (ev "1")
-      Conc.publish (ev "2")
-      Conc.publish (ev "3")
-      Conc.publish (ev "4")
-      Conc.publish (ev "5")
-      Conc.publish (ev "6")
-      Time.sleep (MilliSeconds 100)
-      dbgs =<< atomicGet
+  interpretQueueTBM 64 $
+  runReader "test" $
+  interpretAgent @AgentNet handleNet $
+  interpretAgent @AgentTmux handleLog $
+  interpretAgent @AgentX (const unit) do
+    result <- withAsync_ (listen (Just 5)) do
+      Conc.subscribe do
+        let
+          pub n =
+            Conc.publish =<< Event.now (AgentId "nvim") (show n)
+        traverse_ pub ([1..10] :: [Int])
+      traverse resultToMaybe <$> replicateM 10 Queue.read
+    assertJust (show <$> ([1..10] :: [Int])) result
