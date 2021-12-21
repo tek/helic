@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           helic
-version:        0.2.0.0
+version:        0.3.0.0
 synopsis:       Clipboard Manager
 description:    See <https://hackage.haskell.org/package/helic/docs/Helic.html>
 category:       Clipboard
