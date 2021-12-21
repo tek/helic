@@ -7,7 +7,6 @@ import qualified Polysemy.Conc as Conc
 import Polysemy.Conc (Events, withAsync_)
 import qualified Polysemy.Log as Log
 import Polysemy.Log (Log)
-import Polysemy.Reader (runReader)
 import Polysemy.Resource (bracket)
 
 import qualified Helic.Data.GtkState as GtkState

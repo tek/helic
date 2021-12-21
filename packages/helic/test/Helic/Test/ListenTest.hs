@@ -1,5 +1,6 @@
 module Helic.Test.ListenTest where
 
+import qualified Data.Set as Set
 import Polysemy.Chronos (interpretTimeChronosConstant)
 import qualified Polysemy.Conc as Conc
 import Polysemy.Conc (
@@ -9,12 +10,12 @@ import Polysemy.Conc (
   interpretEventsChan,
   interpretQueueTBM,
   interpretRace,
+  interpretSync,
   resultToMaybe,
-  withAsync_,
   )
 import qualified Polysemy.Conc.Queue as Queue
 import Polysemy.Log (interpretLogNull)
-import Polysemy.Test (UnitTest, assertJust, runTestAuto, assertEq)
+import Polysemy.Test (UnitTest, assertEq, assertJust, runTestAuto)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
@@ -22,7 +23,7 @@ import Helic.Data.Event (Event (Event, content))
 import Helic.Effect.Agent (AgentNet, AgentTmux, AgentX)
 import Helic.Interpreter.Agent (interpretAgent)
 import Helic.Interpreter.History (interpretHistory)
-import Helic.Listen (listen)
+import Helic.Listen (withListen)
 import Helic.Test.Fixtures (testTime)
 
 handleNet ::
@@ -49,17 +50,17 @@ test_listen =
   interpretEventsChan $
   interpretAtomic def $
   interpretQueueTBM 64 $
+  interpretSync $
   runReader "test" $
   interpretAgent @AgentNet handleNet $
   interpretAgent @AgentTmux handleLog $
   interpretAgent @AgentX (const unit) $
   interpretHistory (Just 5) do
-    result <- withAsync_ listen do
-      Conc.subscribe do
-        let
-          pub n =
-            Conc.publish =<< Event.now (AgentId "nvim") (show n)
-        traverse_ pub ([1..10] :: [Int])
+    result <- withListen do
+      let
+        pub n =
+          Conc.publish =<< Event.now (AgentId "nvim") (show n)
+      traverse_ pub ([1..10] :: [Int])
       traverse resultToMaybe <$> replicateM 10 Queue.read
     assertEq Nothing . resultToMaybe =<< Queue.tryRead
-    assertJust (show <$> ([1..10] :: [Int])) result
+    assertJust (Set.map show ([1..10] :: Set Int)) (Set.fromList <$> result)

@@ -17,9 +17,24 @@ import Helic.Data.ListConfig (ListConfig)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 
-eventColumns :: Int -> Event -> [Text]
-eventColumns i Event {..} =
-  [show i, coerce sender, coerce source, toStrict (formatTime (timeToDatetime time)), Text.takeWhile ('\n' /=) content]
+truncateLines :: Int -> Text -> Text
+truncateLines maxWidth a =
+  case Text.lines a of
+    [] ->
+      a
+    [firstLine] ->
+      firstLine
+    firstLine : (length -> count) ->
+      let
+        lineIndicator =
+          [exon| [#{show (count + 1)} lines]|]
+        maxlen =
+          maxWidth - Text.length lineIndicator
+      in [exon|#{Text.take maxlen firstLine} #{lineIndicator}|]
+
+eventColumns :: Int -> Int -> Event -> [Text]
+eventColumns maxWidth i Event {..} =
+  [show i, coerce sender, coerce source, toStrict (formatTime (timeToDatetime time)), truncateLines maxWidth content]
   where
     formatTime (Datetime _ tod) =
       toLazyText (builder_HMS (SubsecondPrecisionFixed 0) (Just ':') tod)
@@ -37,9 +52,9 @@ format width events =
     titles =
       titlesH ["#", "Instance", "Agent", "Time", "Content"]
     row (i, event) =
-      rowG (toString <$> eventColumns i event)
+      rowG (toString <$> eventColumns contentWidth i event)
     contentWidth =
-      max 20 (width - 40)
+      min 100 (max 20 (width - 40))
 
 -- |Fetch all events from the server, limit them to the configured number and format them in a nice table.
 buildList ::

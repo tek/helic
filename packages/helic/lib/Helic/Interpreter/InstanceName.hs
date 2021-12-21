@@ -3,7 +3,6 @@ module Helic.Interpreter.InstanceName where
 
 import Network.HostName (getHostName)
 import qualified Polysemy.Error as Polysemy
-import Polysemy.Reader (runReader)
 
 import Helic.Data.InstanceName (InstanceName (InstanceName))
 
