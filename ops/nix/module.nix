@@ -57,7 +57,7 @@ in {
     environment.etc."helic.yaml".text = ''
     ${if cfg.name == null then "" else "name: ${cfg.name}"}
     maxHistory: ${toString cfg.maxHistory}
-    ${if cfg.verbose == null then "" else "verbose: ${cfg.verbose}"}
+    ${if cfg.verbose == null then "" else "verbose: ${toString cfg.verbose}"}
     tmux:
       enable: ${if cfg.tmux.enable then "true" else "false"}
       ${if cfg.tmux.enable then "exe: ${cfg.tmux.package}/bin/tmux" else ""}
