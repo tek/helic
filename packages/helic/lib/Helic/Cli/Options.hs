@@ -25,6 +25,7 @@ import Options.Applicative.Types (readerAsk)
 import Path (Abs, File, Path, parseAbsFile)
 
 import Helic.Data.ListConfig (ListConfig (ListConfig))
+import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
 import Helic.Data.YankConfig (YankConfig (YankConfig))
 
 data Conf =
@@ -40,6 +41,8 @@ data Command =
   Yank YankConfig
   |
   List ListConfig
+  |
+  Load LoadConfig
   deriving stock (Eq, Show)
 
 filePathOption :: ReadM (Path Abs File)
@@ -73,12 +76,21 @@ listCommand :: Mod CommandFields Command
 listCommand =
   command "list" (List <$> info listParser (progDesc "List clipboard events"))
 
+loadParser :: Parser LoadConfig
+loadParser =
+  LoadConfig <$> argument auto (help "Index of the event")
+
+loadCommand :: Mod CommandFields Command
+loadCommand =
+  command "load" (Load <$> info loadParser (progDesc "Load a history event"))
+
 commands :: [Mod CommandFields Command]
 commands =
   [
     listenCommand,
     yankCommand,
-    listCommand
+    listCommand,
+    loadCommand
   ]
 
 parser :: Parser (Conf, Maybe Command)

@@ -25,7 +25,7 @@ import Polysemy.Log (Log, Severity (Info, Trace), interpretLogStdoutLevelConc)
 import Polysemy.Time (MilliSeconds (MilliSeconds))
 import System.IO (hLookAhead)
 
-import Helic.Cli.Options (Command (List, Listen, Yank), Conf (Conf), parser)
+import Helic.Cli.Options (Command (List, Listen, Load, Yank), Conf (Conf), parser)
 import Helic.Config.File (findFileConfig)
 import Helic.Data.Config (Config (Config))
 import Helic.Data.Event (Event)
@@ -153,6 +153,8 @@ runCommand config = \case
     yankApp config yankConf
   List showConf ->
     listApp config showConf
+  Load loadConf ->
+    loadApp config loadConf
 
 defaultCommand :: Sem IOStack Command
 defaultCommand = do
