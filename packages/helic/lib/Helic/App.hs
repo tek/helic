@@ -1,3 +1,6 @@
+{-# options_haddock prune #-}
+
+-- |App entry points, Internal
 module Helic.App where
 
 import Polysemy.Chronos (ChronosTime)
