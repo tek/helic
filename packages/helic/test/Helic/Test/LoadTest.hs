@@ -37,3 +37,4 @@ test_load =
     ev5 <- event 6
     assertJust ev5 =<< History.load 4
     assertEq Nothing =<< History.load 11
+    assertEq (show <$> ([1..5] ++ [7..10] ++ [6 :: Int])) =<< fmap Event.content <$> History.get

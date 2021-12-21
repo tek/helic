@@ -134,10 +134,11 @@ loadEvent ::
   Sem r (Maybe Event)
 loadEvent index = do
   now <- Time.now
-  atomicState' \ s ->
-    case (s !? (length s - index - 1)) of
+  atomicState' \ s -> do
+    let rindex = length s - index - 1
+    case (s !? rindex) of
       Just event ->
-        (Seq.deleteAt index s |> event { time = now }, Just event)
+        (Seq.deleteAt rindex s |> event { time = now }, Just event)
       Nothing ->
         (s, Nothing)
 
