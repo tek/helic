@@ -3,7 +3,7 @@ module Helic.Net.Api where
 
 import Polysemy.Conc (Interrupt, Sync)
 import Polysemy.Log (Log)
-import Servant (Get, JSON, NoContent (NoContent), Post, PostCreated, ReqBody, type (:<|>) ((:<|>)), type (:>))
+import Servant (Get, JSON, NoContent (NoContent), PostCreated, PutAccepted, ReqBody, type (:<|>) ((:<|>)), type (:>))
 import Servant.Server (Context (EmptyContext), ServerT)
 
 import Helic.Data.Event (Event)
@@ -20,7 +20,7 @@ type Api =
     :<|>
     ReqBody '[JSON] Event :> PostCreated '[JSON] NoContent
     :<|>
-    ReqBody '[JSON] Int :> Post '[JSON] (Maybe Event)
+    ReqBody '[JSON] Int :> PutAccepted '[JSON] (Maybe Event)
   )
 
 -- |The server implementation.
