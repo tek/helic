@@ -30,7 +30,7 @@ truncateLines maxWidth a =
           [exon| [#{show (count + 1)} lines]|]
         maxlen =
           maxWidth - Text.length lineIndicator
-      in [exon|#{Text.take maxlen firstLine} #{lineIndicator}|]
+      in [exon|#{Text.take maxlen firstLine}#{lineIndicator}|]
 
 eventColumns :: Int -> Int -> Event -> [Text]
 eventColumns maxWidth i Event {..} =
@@ -64,8 +64,10 @@ buildList = do
   history <- fromEither =<< Client.get
   limit <- asks ListConfig.limit
   let
+    dropper l =
+      drop (length history - l)
     events =
-      maybe id take limit (reverse (toList history))
+      maybe id dropper limit (toList history)
   width <- fromMaybe 80 . fmap TerminalSize.width <$> embed TerminalSize.size
   pure (format width events)
 
