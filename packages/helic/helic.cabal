@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Helic
+      Helic.App
       Helic.Cli
       Helic.Cli.Options
       Helic.Config.File

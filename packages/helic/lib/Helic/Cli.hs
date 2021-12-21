@@ -4,76 +4,49 @@
 module Helic.Cli where
 
 import Options.Applicative (customExecParser, fullDesc, header, helper, info, prefs, showHelpOnEmpty, showHelpOnError)
-import Polysemy (insertAt)
-import Polysemy.Chronos (ChronosTime, interpretTimeChronos)
+import Polysemy.Chronos (interpretTimeChronos)
 import qualified Polysemy.Conc as Conc
 import Polysemy.Conc (
-  Critical,
-  Interrupt,
-  interpretAtomic,
   interpretCritical,
-  interpretEventsChan,
   interpretInterrupt,
   interpretRace,
-  interpretSync,
-  withAsync_,
   )
 import Polysemy.Error (errorToIOFinal)
-import Polysemy.Http (Manager)
-import Polysemy.Http.Interpreter.Manager (interpretManager)
-import qualified Polysemy.Log as Log
-import Polysemy.Log (Log, Severity (Info, Trace), interpretLogStdoutLevelConc)
-import Polysemy.Time (MilliSeconds (MilliSeconds))
+import Polysemy.Log (
+  Log,
+  LogEntry,
+  LogMessage,
+  Logger,
+  Severity (Info, Trace),
+  formatLogEntry,
+  interceptDataLogConc,
+  interpretDataLogStdoutWith,
+  interpretLogDataLog,
+  setLogLevel,
+  )
+import qualified Polysemy.Log.Data.DataLog as DataLog
+import Polysemy.Time (GhcTime, MilliSeconds (MilliSeconds), interpretTimeGhc)
 import System.IO (hLookAhead)
 
+import Helic.App (AppStack, IOStack, listApp, listenApp, loadApp, yankApp)
 import Helic.Cli.Options (Command (List, Listen, Load, Yank), Conf (Conf), parser)
 import Helic.Config.File (findFileConfig)
 import qualified Helic.Data.Config as Config
-import Helic.Data.Config (Config (Config))
-import Helic.Data.Event (Event)
-import Helic.Data.ListConfig (ListConfig)
-import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
-import Helic.Data.NetConfig (NetConfig)
-import Helic.Data.XClipboardEvent (XClipboardEvent)
+import Helic.Data.Config (Config)
 import Helic.Data.YankConfig (YankConfig (YankConfig))
-import qualified Helic.Effect.Client as Client
-import Helic.Effect.Client (Client)
-import qualified Helic.Effect.History as History
-import Helic.Interpreter.AgentNet (interpretAgentNet)
-import Helic.Interpreter.AgentTmux (interpretAgentTmux)
-import Helic.Interpreter.AgentX (interpretAgentX)
-import Helic.Interpreter.Client (interpretClientNet)
-import Helic.Interpreter.History (interpretHistory)
-import Helic.Interpreter.InstanceName (interpretInstanceName)
-import Helic.Interpreter.XClipboard (interpretXClipboardGtk, listenXClipboard)
-import Helic.List (list)
-import Helic.Net.Api (serve)
-import Helic.Yank (yank)
 
 logError ::
-  Members [Log, Final IO] r =>
+  Members [Logger, GhcTime, Final IO] r =>
   Sem (Error Text : r) () ->
   Sem r ()
 logError =
-  traverseLeft Log.error <=< errorToIOFinal
+  traverseLeft DataLog.error <=< errorToIOFinal
 
-type IOStack =
-  [
-    Interrupt,
-    Critical,
-    ChronosTime,
-    Race,
-    Async,
-    Resource,
-    Embed IO,
-    Final IO
-  ]
-
-type CommonStack =
-  [
-    Error Text,
-    Log
-  ] ++ IOStack
+interpretLog ::
+  Maybe Bool ->
+  InterpreterFor Log IOStack
+interpretLog (fromMaybe False -> verbose) =
+  setLogLevel (if verbose then Just Trace else Just Info) . interpretLogDataLog
 
 runIO ::
   Sem IOStack () ->
@@ -84,76 +57,15 @@ runIO =
   resourceToIOFinal .
   asyncToIOFinal .
   interpretRace .
+  interpretTimeGhc .
   interpretTimeChronos .
   interpretCritical .
-  interpretInterrupt
+  interpretInterrupt .
+  interpretDataLogStdoutWith formatLogEntry .
+  interceptDataLogConc @(LogEntry LogMessage) 64 .
+  logError
 
-interpretLog ::
-  Maybe Bool ->
-  Sem CommonStack () ->
-  Sem IOStack ()
-interpretLog (fromMaybe False -> verbose) =
-  interpretLogStdoutLevelConc (if verbose then (Just Trace) else Just Info) . logError
-
-listenApp ::
-  Config ->
-  Sem CommonStack ()
-listenApp (Config name tmux net maxHistory _) =
-  runReader (fromMaybe def tmux) $
-  runReader (fromMaybe def net) $
-  interpretEventsChan @XClipboardEvent $
-  interpretEventsChan @Event $
-  interpretAtomic mempty $
-  interpretInstanceName name $
-  interpretManager $
-  listenXClipboard $
-  interpretXClipboardGtk $
-  interpretAgentX $
-  interpretAgentNet $
-  interpretAgentTmux $
-  interpretHistory maxHistory $
-  interpretSync $
-  withAsync_ serve $
-  Conc.subscribeLoop History.receive
-
-yankApp ::
-  Config ->
-  YankConfig ->
-  Sem CommonStack ()
-yankApp (Config name _ net _ _) yankConfig =
-  interpretManager $
-  interpretInstanceName name $
-  runReader (fromMaybe def net) $
-  interpretClientNet $
-  yank yankConfig
-
-runClient ::
-  Members [Log, Error Text, Race, Embed IO] r =>
-  Maybe NetConfig ->
-  InterpretersFor [Client, Reader NetConfig, Manager] r
-runClient net =
-  interpretManager .
-  runReader (fromMaybe def net) .
-  interpretClientNet
-
-listApp ::
-  Config ->
-  ListConfig ->
-  Sem CommonStack ()
-listApp (Config _ _ net _ _) listConfig =
-  runReader listConfig $
-  runClient net $
-  list
-
-loadApp ::
-  Config ->
-  LoadConfig ->
-  Sem CommonStack ()
-loadApp (Config _ _ net _ _) (LoadConfig event) =
-  runClient net $
-  (void . fromEither =<< Client.load event)
-
-runCommand :: Config -> Command -> Sem CommonStack ()
+runCommand :: Config -> Command -> Sem AppStack ()
 runCommand config = \case
   Listen ->
     listenApp config
@@ -172,11 +84,10 @@ defaultCommand = do
 
 withCliOptions :: Conf -> Maybe Command -> IO ()
 withCliOptions (Conf cliVerbose file) cmd =
-  runIO $ interpretLog cliVerbose do
-    config <- findFileConfig file
-    insertAt @0 do
-      cmd' <- maybe defaultCommand pure cmd
-      interpretLog (cliVerbose <|> Config.verbose config) (runCommand config cmd')
+  runIO do
+    config <- interpretLog cliVerbose (findFileConfig file)
+    cmd' <- maybe defaultCommand pure cmd
+    interpretLog (cliVerbose <|> Config.verbose config) (runCommand config cmd')
 
 app :: IO ()
 app = do

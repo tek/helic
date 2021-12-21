@@ -1,8 +1,10 @@
 {
   description = "Clipboard Manager";
 
-  inputs.hix.url = github:tek/hix;
-  inputs.polysemy-conc.url = github:tek/polysemy-conc;
+  inputs = {
+    hix.url = github:tek/hix;
+    polysemy-conc.url = github:tek/polysemy-conc;
+  };
 
   outputs = { self, hix, polysemy-conc, ... }:
   let
@@ -17,7 +19,7 @@
       helic = transform_ (d: d.overrideAttrs (old: { buildInputs = old.buildInputs ++ gtkDeps pkgs; }));
       polysemy-chronos = hackage "0.2.0.1" "15j7x4jvigqji7gc6dr4fjlsv912sxzvfyb3jvll09p5j3rk4qc2";
       polysemy-conc = hackage "0.5.1.1" "1gqyskqkdavbzpqvlhxf3f5j130w06wc7cw8kxn2cayavzd9zl9b";
-      polysemy-log = hackage "0.4.0.0" "1r9f925884ay06w44r1fvp8bh5nm642g49np2vybz8hjiia8ghdx";
+      polysemy-log = hackage "0.4.2.0" "03bdv0z5zxpgvzkc7w0z00ygwi6kbmpiajx7189vyf8a9bypllbf";
       polysemy-process = hackage "0.5.1.1" "1yjqb8bccznvxihyi8lscn4nbfc7arazrrbh0zyl3vw6f99zj2cs";
       polysemy-http = hackage "0.5.0.0" "12kzq6910qwj7n1rwym3zibjm5cv7llfgk9iagcwd16vfysag6wp";
     };
