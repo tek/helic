@@ -39,8 +39,8 @@ eventColumns maxWidth i Event {..} =
     formatTime (Datetime _ tod) =
       toLazyText (builder_HMS (SubsecondPrecisionFixed 0) (Just ':') tod)
 
-format :: Int -> [Event] -> String
-format width events =
+format :: Int -> NonEmpty Event -> String
+format width (toList -> events) =
   tableString cols unicodeRoundS titles (row <$> zip [lastIndex,lastIndex-1..0] events)
   where
     lastIndex =
@@ -69,7 +69,7 @@ buildList = do
     events =
       maybe id dropper limit (toList history)
   width <- fromMaybe 80 . fmap TerminalSize.width <$> embed TerminalSize.size
-  pure (format width events)
+  pure (maybe "No events yet!" (format width) (nonEmpty events))
 
 -- |Print a number of events to stdout.
 list ::
