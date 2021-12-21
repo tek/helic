@@ -20,11 +20,7 @@ in {
       default = 100;
       description = "The maximum number of yanks to store in memory.";
     };
-    verbose = mkOption {
-      type = types.nullOr types.bool;
-      default = null;
-      description = "Increase the log level.";
-    };
+    verbose = mkEnableOption "Increase the log level.";
     net = {
       port = mkOption {
         type = types.port;
@@ -57,7 +53,7 @@ in {
     environment.etc."helic.yaml".text = ''
     ${if cfg.name == null then "" else "name: ${cfg.name}"}
     maxHistory: ${toString cfg.maxHistory}
-    ${if cfg.verbose == null then "" else "verbose: ${toString cfg.verbose}"}
+    ${if cfg.verbose == null then "" else "verbose: ${if cfg.verbose then "true" else "false"}"}
     tmux:
       enable: ${if cfg.tmux.enable then "true" else "false"}
       ${if cfg.tmux.enable then "exe: ${cfg.tmux.package}/bin/tmux" else ""}
