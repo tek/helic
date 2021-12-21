@@ -10,7 +10,8 @@ data Config =
     name :: Maybe Text,
     tmux :: Maybe TmuxConfig,
     net :: Maybe NetConfig,
-    maxHistory :: Maybe Int
+    maxHistory :: Maybe Int,
+    verbose :: Maybe Bool
   }
   deriving stock (Eq, Show, Generic)
   deriving anyclass (Default)

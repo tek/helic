@@ -15,6 +15,16 @@ in {
       default = null;
       description = "The instance name used for identifying cycles. Defaults to the host name.";
     };
+    maxHistory = mkOption {
+      type = types.nullOr types.ints.positive;
+      default = 100;
+      description = "The maximum number of yanks to store in memory.";
+    };
+    verbose = mkOption {
+      type = types.nullOr types.bool;
+      default = null;
+      description = "Increase the log level.";
+    };
     net = {
       port = mkOption {
         type = types.port;
@@ -41,16 +51,13 @@ in {
         description = "The package to use for tmux. Defaults to `pkgs.tmux`.";
       };
     };
-    maxHistory = mkOption {
-      type = types.nullOr types.ints.positive;
-      default = 100;
-      description = "The maximum number of yanks to store in memory.";
-    };
   };
   config = mkIf cfg.enable {
     environment.systemPackages = [cfg.package];
     environment.etc."helic.yaml".text = ''
     ${if cfg.name == null then "" else "name: ${cfg.name}"}
+    maxHistory: ${toString cfg.maxHistory}
+    ${if cfg.verbose == null then "" else "verbose: ${cfg.verbose}"}
     tmux:
       enable: ${if cfg.tmux.enable then "true" else "false"}
       ${if cfg.tmux.enable then "exe: ${cfg.tmux.package}/bin/tmux" else ""}
@@ -58,7 +65,6 @@ in {
       port: ${toString cfg.net.port}
       hosts: [${concatMapStringsSep ", " (h: "'${h}'") cfg.net.hosts}]
       ${if cfg.net.timeout == null then "" else "timeout: ${toString cfg.net.timeout}"}
-    maxHistory: ${toString cfg.maxHistory}
     '';
     systemd.user.services.helic = {
       description = "Clipboard Manager";

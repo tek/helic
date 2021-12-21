@@ -30,7 +30,7 @@ import Helic.Data.YankConfig (YankConfig (YankConfig))
 
 data Conf =
   Conf {
-    verbose :: Bool,
+    verbose :: Maybe Bool,
     configFile :: Maybe (Path Abs File)
   }
   deriving stock (Eq, Show)
@@ -52,7 +52,7 @@ filePathOption = do
 
 confParser :: Parser Conf
 confParser = do
-  verbose <- switch (long "verbose")
+  verbose <- optional (switch (long "verbose"))
   configFile <- optional (option filePathOption (long "config-file"))
   pure (Conf verbose configFile)
 

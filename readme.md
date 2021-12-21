@@ -107,6 +107,7 @@ An example config file looks like this:
 ```yaml
 name: myhost
 maxHistory: 1000
+verbose: true
 net:
   port: 10001
   hosts:
@@ -126,6 +127,7 @@ For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
     enable = true;
     name = "myhost";
     maxHistory = 1000;
+    verbose = true;
     net = {
       port = 10001;
       hosts = ["remote1:1000" "remote2:2000"];
@@ -145,6 +147,7 @@ The meaning of these options is:
 |---|---|---|
 |`name`|Host name|An identifier for the host, used for filtering duplicates.|
 |`maxHistory`|100|The number of yanks that should be kept.|
+|`verbose`||Increase the log level.|
 |`net.port`|`9500`|The HTTP port the daemon listens to for both remote sync and `hel yank`.|
 |`net.hosts`|`[]`|The addresses (with port) of the hosts to which this instance should broadcast yank events.|
 |`net.timeout`|`300`|The timeout in milliseconds for requests to remote hosts.|

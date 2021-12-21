@@ -4,6 +4,7 @@
 module Helic.Cli where
 
 import Options.Applicative (customExecParser, fullDesc, header, helper, info, prefs, showHelpOnEmpty, showHelpOnError)
+import Polysemy (insertAt)
 import Polysemy.Chronos (ChronosTime, interpretTimeChronos)
 import qualified Polysemy.Conc as Conc
 import Polysemy.Conc (
@@ -27,6 +28,7 @@ import System.IO (hLookAhead)
 
 import Helic.Cli.Options (Command (List, Listen, Load, Yank), Conf (Conf), parser)
 import Helic.Config.File (findFileConfig)
+import qualified Helic.Data.Config as Config
 import Helic.Data.Config (Config (Config))
 import Helic.Data.Event (Event)
 import Helic.Data.ListConfig (ListConfig)
@@ -52,17 +54,13 @@ logError ::
   Members [Log, Final IO] r =>
   Sem (Error Text : r) () ->
   Sem r ()
-logError sem =
-  errorToIOFinal sem >>= \case
-    Right () -> unit
-    Left err -> Log.error err
+logError =
+  traverseLeft Log.error <=< errorToIOFinal
 
 type IOStack =
   [
-    Error Text,
     Interrupt,
     Critical,
-    Log,
     ChronosTime,
     Race,
     Async,
@@ -71,26 +69,36 @@ type IOStack =
     Final IO
   ]
 
+type CommonStack =
+  [
+    Error Text,
+    Log
+  ] ++ IOStack
+
 runIO ::
-  Bool ->
   Sem IOStack () ->
   IO ()
-runIO verbose =
+runIO =
   runFinal .
   embedToFinal .
   resourceToIOFinal .
   asyncToIOFinal .
   interpretRace .
   interpretTimeChronos .
-  interpretLogStdoutLevelConc (if verbose then (Just Trace) else Just Info) .
   interpretCritical .
-  interpretInterrupt .
-  logError
+  interpretInterrupt
+
+interpretLog ::
+  Maybe Bool ->
+  Sem CommonStack () ->
+  Sem IOStack ()
+interpretLog (fromMaybe False -> verbose) =
+  interpretLogStdoutLevelConc (if verbose then (Just Trace) else Just Info) . logError
 
 listenApp ::
   Config ->
-  Sem IOStack ()
-listenApp (Config name tmux net maxHistory) =
+  Sem CommonStack ()
+listenApp (Config name tmux net maxHistory _) =
   runReader (fromMaybe def tmux) $
   runReader (fromMaybe def net) $
   interpretEventsChan @XClipboardEvent $
@@ -111,8 +119,8 @@ listenApp (Config name tmux net maxHistory) =
 yankApp ::
   Config ->
   YankConfig ->
-  Sem IOStack ()
-yankApp (Config name _ net _) yankConfig =
+  Sem CommonStack ()
+yankApp (Config name _ net _ _) yankConfig =
   interpretManager $
   interpretInstanceName name $
   runReader (fromMaybe def net) $
@@ -131,8 +139,8 @@ runClient net =
 listApp ::
   Config ->
   ListConfig ->
-  Sem IOStack ()
-listApp (Config _ _ net _) listConfig =
+  Sem CommonStack ()
+listApp (Config _ _ net _ _) listConfig =
   runReader listConfig $
   runClient net $
   list
@@ -140,12 +148,12 @@ listApp (Config _ _ net _) listConfig =
 loadApp ::
   Config ->
   LoadConfig ->
-  Sem IOStack ()
-loadApp (Config _ _ net _) (LoadConfig event) =
+  Sem CommonStack ()
+loadApp (Config _ _ net _ _) (LoadConfig event) =
   runClient net $
   (void . fromEither =<< Client.load event)
 
-runCommand :: Config -> Command -> Sem IOStack ()
+runCommand :: Config -> Command -> Sem CommonStack ()
 runCommand config = \case
   Listen ->
     listenApp config
@@ -163,10 +171,12 @@ defaultCommand = do
     _ -> Listen
 
 withCliOptions :: Conf -> Maybe Command -> IO ()
-withCliOptions (Conf verbose file) cmd =
-  runIO verbose do
+withCliOptions (Conf cliVerbose file) cmd =
+  runIO $ interpretLog cliVerbose do
     config <- findFileConfig file
-    runCommand config =<< maybe defaultCommand pure cmd
+    insertAt @0 do
+      cmd' <- maybe defaultCommand pure cmd
+      interpretLog (cliVerbose <|> Config.verbose config) (runCommand config cmd')
 
 app :: IO ()
 app = do
