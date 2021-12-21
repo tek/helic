@@ -1,4 +1,6 @@
 name: name
+maxHistory: 1000
+verbose: false
 tmux:
   enable: true
   exe: /bin/tmux
@@ -6,5 +8,3 @@ net:
   port: 10001
   hosts: ["remote:1000"]
   timeout: 5
-maxHistory:
-  1000

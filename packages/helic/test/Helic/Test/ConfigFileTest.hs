@@ -12,7 +12,7 @@ import Helic.Data.TmuxConfig (TmuxConfig (TmuxConfig))
 
 target :: Config
 target =
-  Config (Just "name") (Just tmux) (Just net) (Just 1000)
+  Config (Just "name") (Just tmux) (Just net) (Just 1000) (Just False)
   where
     tmux =
       TmuxConfig (Just True) (Just [absfile|/bin/tmux|])
