@@ -20,7 +20,7 @@ eventContents =
     "extra",
     "extra",
     "single line",
-    "single line with newline\n",
+    "\n\r\r\nsingle line with newline\n",
     "three lines 1\nthree lines 2\nthree lines 3"
   ]
 

@@ -19,7 +19,7 @@ import Helic.Effect.Client (Client)
 
 truncateLines :: Int -> Text -> Text
 truncateLines maxWidth a =
-  case Text.lines a of
+  case Text.lines (Text.dropWhile (\ c -> '\n' == c || '\r' == c) a) of
     [] ->
       a
     [firstLine] ->
