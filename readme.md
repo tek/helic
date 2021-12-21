@@ -24,6 +24,22 @@ The CLI understands four different commands:
 |`hel list`|Print the event history.|
 |`hel load`|Load an older event to the clipboard, given its index into the history.|
 
+The `list` command will print a table like this:
+
+```
+╭───┬──────────┬───────┬──────────┬──────────────────────────╮
+│ # │ Instance │ Agent │   Time   │         Content          │
+╞═══╪══════════╪═══════╪══════════╪══════════════════════════╡
+│ 2 │   test   │ nvim  │ 12:00:00 │ single line              │
+├───┼──────────┼───────┼──────────┼──────────────────────────┤
+│ 1 │   test   │ nvim  │ 12:00:00 │ single line with newline │
+├───┼──────────┼───────┼──────────┼──────────────────────────┤
+│ 0 │   test   │ nvim  │ 12:00:00 │ three lines 1 [3 lines]  │
+╰───┴──────────┴───────┴──────────┴──────────────────────────╯
+```
+
+The index in the first column, with 0 being the latest event, can be used with `hel load`.
+
 # Installing and Running Helic
 
 ## Nix
