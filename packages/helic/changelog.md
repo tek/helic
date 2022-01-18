@@ -1,5 +1,9 @@
 # Unreleased
 
+# 0.3.1.0
+
+* Sanitize newlines when inserting events
+
 # 0.3.0.0
 
 * Add the `load` command that sets the clipboard to an event from the history.

@@ -17,12 +17,13 @@ import Polysemy.Time.Diff (diff)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
-import Helic.Data.Event (Event (Event, time))
+import Helic.Data.Event (Event (Event, time, content))
 import Helic.Data.InstanceName (InstanceName)
 import qualified Helic.Effect.Agent as Agent
 import Helic.Effect.Agent (Agent, AgentName, AgentNet, AgentTag, AgentTmux, AgentX, Agents, agentIdNet, agentName)
 import qualified Helic.Effect.History as History
 import Helic.Effect.History (History)
+import qualified Data.Text as Text
 
 -- |Send an event to an agent unless it was published by that agent.
 runAgent ::
@@ -60,6 +61,14 @@ inRecent now (Event _ _ _ c) =
     newer (Event _ _ t _) =
       diff now t <= convert (Seconds 1)
 
+sanitizeNewlines :: Text -> Text
+sanitizeNewlines =
+  Text.replace "\r" "\n" . Text.replace "\r\n" "\n"
+
+sanitize :: Event -> Event
+sanitize e@Event {content} =
+  e { content = sanitizeNewlines content }
+
 -- |Append an event to the history unless the newest event contains the same text or there was an event within the last
 -- second that contained the same text, to avoid clobbering due to cycles induced by external programs.
 appendIfValid ::
@@ -67,7 +76,7 @@ appendIfValid ::
   Event ->
   Seq Event ->
   Maybe (Seq Event)
-appendIfValid now e = \case
+appendIfValid now (sanitize -> e) = \case
   Seq.Empty ->
     Just (Seq.singleton e)
   _ :|> Event _ _ _ newest | newest == Event.content e ->
