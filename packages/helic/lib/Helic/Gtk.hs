@@ -4,12 +4,12 @@
 module Helic.Gtk where
 
 import qualified Control.Exception as Base
+import Control.Monad.IO.Class (MonadIO)
 import qualified GI.GLib as Glib
 import qualified GI.Gdk as Gdk
 import GI.Gdk (Display)
 import qualified GI.Gtk as GI
-import Polysemy.Final (embedFinal, withWeavingToFinal)
-import Polysemy.Log (Log)
+import Polysemy.Final (withWeavingToFinal)
 
 import qualified Helic.Data.GtkState as GtkState
 import Helic.Data.GtkState (GtkState)
@@ -21,11 +21,11 @@ gtkUi ::
   IO a ->
   Sem r a
 gtkUi ma = do
-  result <- newEmptyMVar
+  result <- embed newEmptyMVar
   _ <- Gdk.threadsAddIdle Glib.PRIORITY_DEFAULT do
     a <- ma
     False <$ putMVar result a
-  takeMVar result
+  embed (takeMVar result)
 
 gtkUiSem ::
   Member (Final IO) r =>

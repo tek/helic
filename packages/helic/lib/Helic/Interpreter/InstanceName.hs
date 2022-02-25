@@ -1,6 +1,7 @@
 -- |Reader Interpreter for InstanceName, Internal
 module Helic.Interpreter.InstanceName where
 
+import Exon (exon)
 import Network.HostName (getHostName)
 import qualified Polysemy.Error as Polysemy
 

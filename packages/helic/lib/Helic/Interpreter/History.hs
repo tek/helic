@@ -6,24 +6,22 @@ module Helic.Interpreter.History where
 import qualified Chronos
 import qualified Data.Sequence as Seq
 import Data.Sequence (Seq ((:|>)), (!?), (|>))
-import Polysemy.AtomicState (atomicState')
+import qualified Data.Text as Text
+import Exon (exon)
 import Polysemy.Chronos (ChronosTime)
 import qualified Polysemy.Log as Log
-import Polysemy.Log (Log)
-import Polysemy.Tagged (Tagged, tag)
 import qualified Polysemy.Time as Time
 import Polysemy.Time (Seconds (Seconds), convert)
 import Polysemy.Time.Diff (diff)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
-import Helic.Data.Event (Event (Event, time, content))
+import Helic.Data.Event (Event (Event, content, time))
 import Helic.Data.InstanceName (InstanceName)
 import qualified Helic.Effect.Agent as Agent
 import Helic.Effect.Agent (Agent, AgentName, AgentNet, AgentTag, AgentTmux, AgentX, Agents, agentIdNet, agentName)
 import qualified Helic.Effect.History as History
 import Helic.Effect.History (History)
-import qualified Data.Text as Text
 
 -- |Send an event to an agent unless it was published by that agent.
 runAgent ::
@@ -76,10 +74,10 @@ appendIfValid ::
   Event ->
   Seq Event ->
   Maybe (Seq Event)
-appendIfValid now (sanitize -> e) = \case
+appendIfValid now (sanitize -> e@Event {content}) = \case
   Seq.Empty ->
     Just (Seq.singleton e)
-  _ :|> Event _ _ _ newest | newest == Event.content e ->
+  _ :|> Event _ _ _ newest | newest == content ->
     Nothing
   hist | inRecent now e hist ->
     Nothing

@@ -1,6 +1,9 @@
 {-# options_haddock prune #-}
+
 -- |NetConfig Data Type, Internal
 module Helic.Data.NetConfig where
+
+import Polysemy.Time.Json (json)
 
 import Helic.Data.Host (Host)
 
@@ -9,7 +12,7 @@ newtype Timeout =
   deriving stock (Eq, Show, Generic)
   deriving newtype (Num, Real, Enum, Integral, Ord)
 
-defaultJson ''Timeout
+json ''Timeout
 
 data NetConfig =
   NetConfig {
@@ -20,4 +23,4 @@ data NetConfig =
   deriving stock (Eq, Show, Generic)
   deriving anyclass (Default)
 
-defaultJson ''NetConfig
+json ''NetConfig

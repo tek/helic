@@ -1,8 +1,6 @@
 -- |HTTP API of the Daemon, Internal
 module Helic.Net.Api where
 
-import Polysemy.Conc (Interrupt, Sync)
-import Polysemy.Log (Log)
 import Servant (Get, JSON, NoContent (NoContent), PostCreated, PutAccepted, ReqBody, type (:<|>) ((:<|>)), type (:>))
 import Servant.Server (Context (EmptyContext), ServerT)
 
@@ -30,7 +28,7 @@ server ::
 server =
   History.get
   :<|>
-  as NoContent . History.receive
+  (NoContent <$) . History.receive
   :<|>
   History.load
 

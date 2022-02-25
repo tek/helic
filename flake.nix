@@ -3,29 +3,30 @@
 
   inputs = {
     hix.url = github:tek/hix;
+    incipit.url = github:tek/incipit;
+    polysemy-resume.url = github:tek/polysemy-resume;
     polysemy-conc.url = github:tek/polysemy-conc;
   };
 
-  outputs = { self, hix, polysemy-conc, ... }:
+  outputs = { self, hix, incipit, polysemy-conc, polysemy-resume, ... }:
   let
     gtkDeps = pkgs: with pkgs; [
       pkgconfig
       gobject-introspection
     ];
 
-    all = { transform_, pkgs, unbreak, hackage, ... }: {
-      exon = hackage "0.2.0.1" "0hs0xrh1v64l1n4zqx3rqfjdh6czxm7av85kj1awya9zxcfcy5cl";
+    all = { transform_, pkgs, unbreak, hackage, source, ... }: {
+      exon = hackage "0.3.0.0" "0jgpj8818nhwmb3271ixid38mx11illlslyi69s4m0ws138v6i18";
       flatparse = unbreak;
       helic = transform_ (d: d.overrideAttrs (old: { buildInputs = old.buildInputs ++ gtkDeps pkgs; }));
-      polysemy-chronos = hackage "0.2.0.1" "15j7x4jvigqji7gc6dr4fjlsv912sxzvfyb3jvll09p5j3rk4qc2";
-      polysemy-conc = hackage "0.5.1.1" "1gqyskqkdavbzpqvlhxf3f5j130w06wc7cw8kxn2cayavzd9zl9b";
-      polysemy-log = hackage "0.4.2.0" "03bdv0z5zxpgvzkc7w0z00ygwi6kbmpiajx7189vyf8a9bypllbf";
-      polysemy-process = hackage "0.5.1.1" "1yjqb8bccznvxihyi8lscn4nbfc7arazrrbh0zyl3vw6f99zj2cs";
-      polysemy-http = hackage "0.5.0.0" "12kzq6910qwj7n1rwym3zibjm5cv7llfgk9iagcwd16vfysag6wp";
+      polysemy-chronos = hackage "0.3.0.0" "0y53558xmwmfaa0jcfv10hi9rsn2gizyfsry681m29rina78g5hl";
+      polysemy-http = hackage "0.6.0.0" "02jr278vyqa3sky22z2ywzkd6g339acvlwjq4b6svm7lfpw7nfab";
+      polysemy-resume = source.package polysemy-resume "resume";
+      polysemy-conc = source.package polysemy-conc "conc";
+      polysemy-process = source.package polysemy-conc "process";
     };
 
-    ghc901 = { hackage, ... }: {
-      relude = hackage "1.0.0.1" "164p21334c3pyfzs839cv90438naxq9pmpyvy87113mwy51gm6xn";
+    ghc902 = { hackage, ... }: {
     };
 
     dev = { hackage, ... }: {
@@ -33,26 +34,30 @@
       polysemy-plugin = hackage "0.4.3.0" "1r7j1ffsd6z2q2fgpg78brl2gb0dg8r5ywfiwdrsjd2fxkinjcg1";
     };
 
-    outputs = hix.flake {
+    outputs = hix.lib.flake ({ config, ... }: {
       base = ./.;
-      deps = [polysemy-conc];
       packages.helic = ./packages/helic;
-      overrides = { inherit all ghc901 dev; };
-      compatVersions = ["901"];
-      ghci.extraArgs = ["-fplugin=Polysemy.Plugin"];
-      versionFile = "ops/hpack/shared/meta.yaml";
-      shellConfig = { pkgs, ...}: {
-        buildInputs = gtkDeps pkgs;
+      overrides = { inherit all ghc902 dev; };
+      deps = [incipit];
+      devGhc.compiler = "ghc8107";
+      compat.enable = false;
+      ghci = {
+        args = ["-fplugin=Polysemy.Plugin"];
+        preludePackage = "incipit";
+      };
+      hackage.versionFile = "ops/hpack/shared/meta.yaml";
+      ghcid.shellConfig = {
+        buildInputs = gtkDeps config.devGhc.pkgs;
         haskellPackages = g: [g.hsc2hs];
       };
-      modify = _: outputs: rec {
+      output.amend = _: outputs: rec {
         apps.hel = {
           type = "app";
           program = "${outputs.packages.helic}/bin/hel";
         };
         defaultApp = apps.hel;
       };
-    };
+    });
 
   in outputs // { nixosModule = import ./ops/nix/module.nix self; };
 }

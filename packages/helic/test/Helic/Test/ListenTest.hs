@@ -4,8 +4,6 @@ import qualified Data.Set as Set
 import Polysemy.Chronos (interpretTimeChronosConstant)
 import qualified Polysemy.Conc as Conc
 import Polysemy.Conc (
-  Events,
-  Queue,
   interpretAtomic,
   interpretEventsChan,
   interpretQueueTBM,

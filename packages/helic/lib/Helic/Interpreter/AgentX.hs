@@ -1,10 +1,9 @@
 -- |Agent Interpreter for X11, Internal
 module Helic.Interpreter.AgentX where
 
+import qualified Conc
+import Conc (withAsync_)
 import Polysemy.Chronos (ChronosTime)
-import qualified Polysemy.Conc as Conc
-import Polysemy.Conc (EventConsumer, Events, withAsync_)
-import Polysemy.Tagged (Tagged, untag)
 
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (Event))
@@ -13,6 +12,7 @@ import Helic.Data.XClipboardEvent (XClipboardEvent (XClipboardEvent))
 import Helic.Effect.Agent (Agent (Update), AgentX, agentIdX)
 import qualified Helic.Effect.XClipboard as XClipboard
 import Helic.Effect.XClipboard (XClipboard)
+import Helic.Interpreter (interpreting)
 
 -- |Listen for 'XClipboardEvent's and publish them as 'Event's.
 transformXEvents ::

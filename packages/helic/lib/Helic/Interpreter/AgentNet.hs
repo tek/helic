@@ -1,15 +1,13 @@
 -- |Agent Interpreter for Network, Internal
 module Helic.Interpreter.AgentNet where
 
-import Polysemy.Conc (Interrupt)
 import Polysemy.Http (Manager)
 import qualified Polysemy.Log as Log
-import Polysemy.Log (Log)
-import Polysemy.Tagged (Tagged, untag)
 
 import Helic.Data.Event (Event (source))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Effect.Agent (Agent (Update), AgentNet, agentIdNet)
+import Helic.Interpreter (interpreting)
 import Helic.Net.Client (sendTo)
 
 -- |Interpret 'Agent' using remote hosts as targets.
@@ -24,4 +22,4 @@ interpretAgentNet sem =
     Update e -> do
       NetConfig _ timeout hosts <- ask
       for_ (fold hosts) \ host ->
-        traverseLeft Log.debug =<< runError (sendTo timeout host e { source = agentIdNet })
+        either Log.debug pure =<< runError (sendTo timeout host e { source = agentIdNet })

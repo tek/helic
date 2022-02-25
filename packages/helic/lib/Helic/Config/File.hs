@@ -4,10 +4,10 @@
 module Helic.Config.File where
 
 import Data.Yaml (decodeFileEither, prettyPrintParseException)
+import Exon (exon)
 import Path (Abs, File, Path, Rel, absfile, relfile, toFilePath, (</>))
 import Path.IO (XdgDirectory (XdgConfig), doesFileExist, getXdgDir)
 import qualified Polysemy.Log as Log
-import Polysemy.Log (Log)
 
 import Helic.Data.Config (Config)
 
@@ -17,7 +17,7 @@ parseFileConfig ::
   Sem r Config
 parseFileConfig (toFilePath -> path) = do
   Log.debug [exon|Reading config file #{toText path}|]
-  fromEither =<< mapLeft formatError <$> embed (decodeFileEither path)
+  fromEither =<< first formatError <$> embed (decodeFileEither path)
   where
     formatError exc =
       toText [exon|invalid config file: #{prettyPrintParseException exc}|]

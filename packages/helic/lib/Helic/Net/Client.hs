@@ -3,11 +3,11 @@
 -- |HTTP Client, Internal
 module Helic.Net.Client where
 
+import Exon (exon)
 import qualified Polysemy.Conc as Conc
 import Polysemy.Http (Manager)
 import qualified Polysemy.Http.Effect.Manager as Manager
 import qualified Polysemy.Log as Log
-import Polysemy.Log (Log)
 import Polysemy.Time (MilliSeconds (MilliSeconds))
 import Servant (NoContent, type (:<|>) ((:<|>)))
 import Servant.Client (BaseUrl, ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
@@ -39,7 +39,7 @@ sendTo configTimeout (Host addr) event = do
     env =
       mkClientEnv mgr url
     req =
-      fmap (mapLeft show) <$> tryAny (runClientM (yank event) env)
+      fmap (first show) <$> tryAny (runClientM (yank event) env)
   void . fromEither =<< fromEither =<< Conc.timeoutAs_ (Left "timed out") timeout req
 
 localhost ::

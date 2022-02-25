@@ -1,17 +1,19 @@
 -- |Agent Interpreter for Tmux, Internal
 module Helic.Interpreter.AgentTmux where
 
+import Exon (exon)
+import qualified Log
 import Path (Abs, File, Path, toFilePath)
-import Polysemy.Log (Log)
-import Polysemy.Process.Interpreter.ProcessIOE (interpretProcessIOE)
-import Polysemy.Tagged (Tagged, untag)
 import qualified System.Process.Typed as Process
 import System.Process.Typed (ProcessConfig)
 
 import qualified Helic.Data.TmuxConfig as TmuxConfig
 import Helic.Data.TmuxConfig (TmuxConfig)
 import Helic.Effect.Agent (Agent (Update), AgentTmux)
+import Helic.Interpreter (interpreting)
 import Helic.Tmux (sendToTmux)
+import Polysemy.Process (interpretProcessByteStringNative)
+import Polysemy.Process.Data.ProcessError (ProcessError)
 
 -- |Process definition for running `tmux load-buffer -`.
 tmuxProc ::
@@ -36,8 +38,9 @@ interpretAgentTmux ::
   InterpreterFor (Tagged AgentTmux Agent) r
 interpretAgentTmux sem = do
   exe <- asks TmuxConfig.exe
-  interpretProcessIOE True 64 (tmuxProc exe) $
+  interpretProcessByteStringNative True 64 (tmuxProc exe) $
     interpreting (raiseUnder (untag sem)) \case
-      Update e ->
+      Update event ->
         whenM enableTmux do
-          sendToTmux e
+          sendToTmux event !! \ (e :: ProcessError) ->
+            Log.error [exon|Sending to tmux: #{show e}|]

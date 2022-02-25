@@ -1,3 +1,5 @@
+{-# options_ghc -Wno-unused-imports #-}
+
 module Helic.Test.ConfigFileTest where
 
 import Path (Abs, File, Rel, absfile, relfile)

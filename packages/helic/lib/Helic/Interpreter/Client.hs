@@ -3,7 +3,6 @@ module Helic.Interpreter.Client where
 
 import Polysemy.Http (Manager)
 import qualified Polysemy.Http.Effect.Manager as Manager
-import Polysemy.Log (Log)
 import Servant.Client (mkClientEnv, runClientM)
 
 import Helic.Data.Event (Event)
@@ -28,7 +27,7 @@ interpretClientNet =
       runError (sendTo timeout host event)
     Load event -> do
       env <- mkClientEnv <$> Manager.get <*> localhostUrl
-      result <- mapLeft show <$> embed (runClientM (Api.load event) env)
+      result <- first show <$> embed (runClientM (Api.load event) env)
       pure (result >>= maybeToRight "There is no event for that index")
 
 -- |Interpret 'Client' with a constant list of 'Event's and no capability to yank.

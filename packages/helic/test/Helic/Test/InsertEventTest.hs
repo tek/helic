@@ -3,6 +3,7 @@ module Helic.Test.InsertEventTest where
 import qualified Chronos
 import Chronos (datetimeToTime)
 import Data.Sequence ((|>))
+import Exon (exon)
 import Polysemy.Chronos (interpretTimeChronosConstant)
 import Polysemy.Test (UnitTest, assertJust, runTestAuto, (===))
 import qualified Polysemy.Time as Time

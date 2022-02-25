@@ -11,9 +11,7 @@ import Polysemy.Conc (
   interpretInterrupt,
   interpretRace,
   )
-import Polysemy.Error (errorToIOFinal)
 import Polysemy.Log (
-  Log,
   LogEntry,
   LogMessage,
   Logger,
@@ -26,7 +24,7 @@ import Polysemy.Log (
   )
 import qualified Polysemy.Log.Data.DataLog as DataLog
 import Polysemy.Time (GhcTime, MilliSeconds (MilliSeconds), interpretTimeGhc)
-import System.IO (hLookAhead)
+import System.IO (hLookAhead, stdin)
 
 import Helic.App (AppStack, IOStack, listApp, listenApp, loadApp, yankApp)
 import Helic.Cli.Options (Command (List, Listen, Load, Yank), Conf (Conf), parser)
@@ -40,7 +38,7 @@ logError ::
   Sem (Error Text : r) () ->
   Sem r ()
 logError =
-  traverseLeft DataLog.error <=< errorToIOFinal
+  either DataLog.error pure <=< errorToIOFinal
 
 interpretLog ::
   Maybe Bool ->

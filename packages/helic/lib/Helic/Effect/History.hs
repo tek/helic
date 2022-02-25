@@ -1,7 +1,6 @@
 -- |History Effect, Internal
 module Helic.Effect.History where
 
-import Polysemy (makeSem_)
 import Helic.Data.Event (Event)
 
 -- |The core actions of the 'Event' history.

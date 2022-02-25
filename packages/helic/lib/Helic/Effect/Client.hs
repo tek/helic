@@ -1,8 +1,6 @@
 -- |Client Effect, Internal
 module Helic.Effect.Client where
 
-import Polysemy (makeSem_)
-
 import Helic.Data.Event (Event)
 
 -- |An abstraction of the API, used by the @list@ command.

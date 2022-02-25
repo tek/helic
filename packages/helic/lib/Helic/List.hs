@@ -6,6 +6,7 @@ module Helic.List where
 import Chronos (Datetime (Datetime), SubsecondPrecision (SubsecondPrecisionFixed), builder_HMS, timeToDatetime)
 import qualified Data.Text as Text
 import Data.Text.Lazy.Builder (toLazyText)
+import Exon (exon)
 import qualified System.Console.Terminal.Size as TerminalSize
 import Text.Layout.Table (center, column, expandUntil, fixedCol, left, right, rowG, tableString, titlesH, unicodeRoundS)
 
@@ -76,4 +77,4 @@ list ::
   Members [Reader ListConfig, Client, Error Text, Embed IO] r =>
   Sem r ()
 list =
-  putStrLn =<< buildList
+  embed . putStrLn =<< buildList

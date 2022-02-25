@@ -32,6 +32,7 @@ module Helic (
 
 ) where
 
+import Prelude hiding (listen)
 import Helic.Data.Event (Event)
 import Helic.Effect.Agent (Agent, AgentTag, Agents)
 import Helic.Effect.XClipboard (XClipboard)

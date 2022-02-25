@@ -16,36 +16,29 @@ dependencies:
 
 library:
   source-dirs: lib
-  other-modules:
-    - Prelude
-  generated-other-modules:
-    - Paths_helic
   dependencies:
-    - aeson >= 1.4
     - chronos >= 1.1.1
-    - containers
-    - data-default >= 0.2
     - either >= 5
-    - exon >= 0.2.0.1
+    - exon >= 0.3
     - gi-gdk >= 3
     - gi-glib >= 2
     - gi-gtk >= 3
     - hostname >= 1
     - http-client >= 0.5.14
     - http-client-tls >= 0.3.1
+    - incipit >= 0.1.0.3
     - optparse-applicative >= 0.16
     - path >= 0.8
     - path-io >= 1.6
     - polysemy >= 1.6
-    - polysemy-conc >= 0.5
-    - polysemy-chronos >= 0.2.0.1
-    - polysemy-http >= 0.5
-    - polysemy-log >= 0.4
+    - polysemy-conc >= 0.6
+    - polysemy-chronos >= 0.3
+    - polysemy-http >= 0.6
+    - polysemy-log >= 0.5
     - polysemy-plugin >= 0.4
-    - polysemy-process >= 0.5
-    - polysemy-resume >= 0.2
-    - polysemy-time >= 0.1.4
-    - relude >= 0.7
+    - polysemy-process >= 0.6
+    # - polysemy-resume >= 0.2
+    - polysemy-time >= 0.3
     - servant >= 0.18
     - servant-client >= 0.18
     - servant-client-core >= 0.18
@@ -53,12 +46,16 @@ library:
     - table-layout >= 0.9
     - template-haskell
     - terminal-size >= 0.3.2.1
-    - text
+    - transformers
     - typed-process >= 0.2.6
     - wai-extra >= 3.1
     - warp >= 3.3
     - unix
     - yaml >= 0.11
+  when:
+    condition: false
+    generated-other-modules:
+      - Paths_helic
 
 executables:
   hel:
@@ -69,21 +66,22 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - name: helic
-        mixin:
-          - hiding (Helic.Prelude)
-          - (Helic.Prelude as Prelude)
+      - helic
+      - incipit
       - polysemy
       - polysemy-plugin
+    when:
+      condition: false
+      generated-other-modules:
+        - Paths_helic
 
 tests:
   helic-unit:
     <<: !include shared/test.yaml
     dependencies:
-      - name: helic
-        mixin:
-          - hiding (Helic.Prelude)
-          - (Helic.Prelude as Prelude)
+      - exon
+      - helic
+      - incipit
       - chronos
       - containers
       - path
@@ -96,6 +94,10 @@ tests:
       - polysemy-time
       - tasty
       - torsor
+    when:
+      condition: false
+      generated-other-modules:
+        - Paths_helic
 
 ghc-options:
   - -Wall

@@ -1,8 +1,10 @@
 {-# options_haddock prune #-}
+
 -- |TmuxConfig Data Type, Internal
 module Helic.Data.TmuxConfig where
 
 import Path (Abs, File, Path)
+import Polysemy.Time.Json (json)
 
 data TmuxConfig =
   TmuxConfig {
@@ -12,4 +14,4 @@ data TmuxConfig =
   deriving stock (Eq, Show, Generic)
   deriving anyclass (Default)
 
-defaultJson ''TmuxConfig
+json ''TmuxConfig

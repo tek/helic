@@ -1,7 +1,7 @@
 module Helic.Test.ListTest where
 
+import Exon(exon)
 import Polysemy.Chronos (interpretTimeChronosConstant)
-import Polysemy.Error (errorToIOFinal)
 import Polysemy.Test (UnitTest, assertRight, runTestAuto)
 
 import Helic.Data.AgentId (AgentId (AgentId))

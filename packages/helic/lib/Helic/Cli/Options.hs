@@ -3,6 +3,7 @@
 -- |CLI Options, Internal
 module Helic.Cli.Options where
 
+import Exon (exon)
 import Options.Applicative (
   CommandFields,
   Mod,
@@ -23,6 +24,7 @@ import Options.Applicative (
   )
 import Options.Applicative.Types (readerAsk)
 import Path (Abs, File, Path, parseAbsFile)
+import Prelude hiding (Mod)
 
 import Helic.Data.ListConfig (ListConfig (ListConfig))
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))

@@ -1,13 +1,12 @@
 -- |XClipboard Interpreter, Internal
 module Helic.Interpreter.XClipboard where
 
+import Exon (exon)
 import qualified GI.Gdk as Gdk
 import qualified GI.Gtk as GI
 import qualified Polysemy.Conc as Conc
-import Polysemy.Conc (Events, withAsync_)
+import Polysemy.Conc (withAsync_)
 import qualified Polysemy.Log as Log
-import Polysemy.Log (Log)
-import Polysemy.Resource (bracket)
 
 import qualified Helic.Data.GtkState as GtkState
 import Helic.Data.GtkState (GtkState (GtkState))

@@ -1,7 +1,10 @@
 {-# options_haddock prune #-}
+
 -- |HTTP Server Plumbing, Internal
 module Helic.Net.Server where
 
+import Control.Monad.Trans.Except (ExceptT (ExceptT))
+import Exon (exon)
 import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Handler.Warp (
   defaultSettings,
@@ -12,12 +15,10 @@ import Network.Wai.Handler.Warp (
   setPort,
   )
 import Network.Wai.Middleware.RequestLogger (logStdout)
-import Polysemy.Conc (Interrupt, Sync)
 import qualified Polysemy.Conc.Effect.Interrupt as Interrupt
 import qualified Polysemy.Conc.Effect.Sync as Sync
 import Polysemy.Final (withWeavingToFinal)
 import qualified Polysemy.Log as Log
-import Polysemy.Log (Log)
 import Servant (
   Context,
   DefaultErrorFormatters,

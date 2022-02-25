@@ -4,6 +4,7 @@ module Helic.Data.Event where
 import qualified Chronos
 import Polysemy.Chronos (ChronosTime)
 import qualified Polysemy.Time as Time
+import Polysemy.Time.Json (json)
 
 import Helic.Data.AgentId (AgentId)
 import Helic.Data.InstanceName (InstanceName)
@@ -22,7 +23,7 @@ data Event =
   }
   deriving stock (Eq, Show)
 
-defaultJson ''Event
+json ''Event
 
 -- |Construct an event for the current host and time.
 now ::

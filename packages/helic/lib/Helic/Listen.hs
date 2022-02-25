@@ -4,8 +4,9 @@
 module Helic.Listen where
 
 import qualified Polysemy.Conc as Conc
-import Polysemy.Conc (EventConsumer, Sync, interpretSync, withAsync_)
+import Polysemy.Conc (interpretSync, withAsync_)
 import qualified Polysemy.Conc.Sync as Sync
+import Prelude hiding (listen)
 
 import Helic.Data.Event (Event)
 import qualified Helic.Effect.History as History

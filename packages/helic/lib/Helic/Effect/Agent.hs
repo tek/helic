@@ -2,9 +2,6 @@
 -- |The Agent Effect
 module Helic.Effect.Agent where
 
-import GHC.TypeLits (KnownSymbol, symbolVal)
-import Polysemy.Tagged (Tagged)
-
 import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.Event (Event)
 

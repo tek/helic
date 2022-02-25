@@ -3,22 +3,18 @@
 -- |App entry points, Internal
 module Helic.App where
 
-import Polysemy.Chronos (ChronosTime)
-import qualified Polysemy.Conc as Conc
-import Polysemy.Conc (
+import Conc (
   Critical,
-  Interrupt,
   interpretAtomic,
   interpretEventsChan,
   interpretSync,
   withAsync_,
   )
+import Polysemy.Chronos (ChronosTime)
+import qualified Polysemy.Conc as Conc
 import Polysemy.Http (Manager)
 import Polysemy.Http.Interpreter.Manager (interpretManager)
-import Polysemy.Log (
-  Log,
-  Logger,
-  )
+import Polysemy.Log (Logger)
 import Polysemy.Time (GhcTime)
 
 import Helic.Data.Config (Config (Config))
