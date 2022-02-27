@@ -47,15 +47,23 @@ library
       Helic.Data.YankConfig
       Helic.Effect.Agent
       Helic.Effect.Client
+      Helic.Effect.Gtk
+      Helic.Effect.GtkClipboard
+      Helic.Effect.GtkMain
       Helic.Effect.History
       Helic.Effect.XClipboard
       Helic.Gtk
+      Helic.GtkClipboard
+      Helic.GtkMain
       Helic.Interpreter
       Helic.Interpreter.Agent
       Helic.Interpreter.AgentNet
       Helic.Interpreter.AgentTmux
       Helic.Interpreter.AgentX
       Helic.Interpreter.Client
+      Helic.Interpreter.Gtk
+      Helic.Interpreter.GtkClipboard
+      Helic.Interpreter.GtkMain
       Helic.Interpreter.History
       Helic.Interpreter.InstanceName
       Helic.Interpreter.XClipboard
@@ -64,6 +72,7 @@ library
       Helic.Net.Api
       Helic.Net.Client
       Helic.Net.Server
+      Helic.Stop
       Helic.Tmux
       Helic.Yank
   hs-source-dirs:
@@ -130,7 +139,6 @@ library
   build-depends:
       base ==4.*
     , chronos >=1.1.1
-    , either >=5
     , exon >=0.3
     , gi-gdk >=3
     , gi-glib >=2
@@ -244,8 +252,10 @@ test-suite helic-unit
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Helic.Dev
       Helic.Test.ConfigFileTest
       Helic.Test.Fixtures
+      Helic.Test.GtkMainTest
       Helic.Test.InsertEventTest
       Helic.Test.ListenTest
       Helic.Test.ListTest

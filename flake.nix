@@ -10,6 +10,8 @@
 
   outputs = { self, hix, incipit, polysemy-conc, polysemy-resume, ... }:
   let
+    inherit (incipit.inputs.polysemy-conc.inputs) polysemy-time;
+
     gtkDeps = pkgs: with pkgs; [
       pkgconfig
       gobject-introspection
@@ -19,7 +21,7 @@
       exon = hackage "0.3.0.0" "0jgpj8818nhwmb3271ixid38mx11illlslyi69s4m0ws138v6i18";
       flatparse = unbreak;
       helic = transform_ (d: d.overrideAttrs (old: { buildInputs = old.buildInputs ++ gtkDeps pkgs; }));
-      polysemy-chronos = hackage "0.3.0.0" "0y53558xmwmfaa0jcfv10hi9rsn2gizyfsry681m29rina78g5hl";
+      polysemy-chronos = source.package polysemy-time "chronos";
       polysemy-http = hackage "0.6.0.0" "02jr278vyqa3sky22z2ywzkd6g339acvlwjq4b6svm7lfpw7nfab";
       polysemy-resume = source.package polysemy-resume "resume";
       polysemy-conc = source.package polysemy-conc "conc";
@@ -38,7 +40,7 @@
       base = ./.;
       packages.helic = ./packages/helic;
       overrides = { inherit all ghc902 dev; };
-      deps = [incipit];
+      deps = [incipit polysemy-conc];
       devGhc.compiler = "ghc8107";
       compat.enable = false;
       ghci = {

@@ -1,21 +1,16 @@
 {-# options_haddock prune #-}
 
--- |App entry points, Internal
+-- |App entry points.
+-- Internal.
 module Helic.App where
 
-import Conc (
-  Critical,
-  interpretAtomic,
-  interpretEventsChan,
-  interpretSync,
-  withAsync_,
-  )
+import Conc (Critical, interpretAtomic, interpretEventsChan, interpretSync, withAsync_)
 import Polysemy.Chronos (ChronosTime)
 import qualified Polysemy.Conc as Conc
 import Polysemy.Http (Manager)
 import Polysemy.Http.Interpreter.Manager (interpretManager)
 import Polysemy.Log (Logger)
-import Polysemy.Time (GhcTime)
+import Polysemy.Time (GhcTime, MilliSeconds (MilliSeconds), Seconds (Seconds))
 
 import Helic.Data.Config (Config (Config))
 import Helic.Data.Event (Event)
@@ -27,13 +22,18 @@ import Helic.Data.YankConfig (YankConfig)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 import qualified Helic.Effect.History as History
+import Helic.GtkClipboard (subscribeEvents)
+import Helic.GtkMain (gtkMainLoop)
 import Helic.Interpreter.AgentNet (interpretAgentNet)
 import Helic.Interpreter.AgentTmux (interpretAgentTmux)
 import Helic.Interpreter.AgentX (interpretAgentX)
 import Helic.Interpreter.Client (interpretClientNet)
+import Helic.Interpreter.Gtk (interpretGtk)
+import Helic.Interpreter.GtkClipboard (interpretGtkClipboard)
+import Helic.Interpreter.GtkMain (interpretGtkMain)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Interpreter.InstanceName (interpretInstanceName)
-import Helic.Interpreter.XClipboard (interpretXClipboardGtk, listenXClipboard)
+import Helic.Interpreter.XClipboard (interpretXClipboardGtk)
 import Helic.List (list)
 import Helic.Net.Api (serve)
 import Helic.Yank (yank)
@@ -67,7 +67,10 @@ listenApp (Config name tmux net maxHistory _) =
   interpretAtomic mempty $
   interpretInstanceName name $
   interpretManager $
-  listenXClipboard $
+  interpretGtk $
+  interpretGtkMain (MilliSeconds 500) (Seconds 10) $
+  interpretGtkClipboard $
+  gtkMainLoop subscribeEvents $
   interpretXClipboardGtk $
   interpretAgentX $
   interpretAgentNet $

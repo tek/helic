@@ -1,8 +1,10 @@
--- |Interpretation combinators, Internal
+-- |Interpretation combinators.
+-- Internal.
 module Helic.Interpreter where
 
 import Polysemy.Internal.CustomErrors (FirstOrder)
 
+-- |Flipped version of 'interpret'.
 interpreting ::
   ∀ e r a .
   FirstOrder e "interpret" =>

@@ -1,4 +1,5 @@
 {-# options_haddock prune #-}
+
 -- |GtkState Data Type, Internal
 module Helic.Data.GtkState where
 

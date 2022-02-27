@@ -1,5 +1,6 @@
 {-# options_haddock prune #-}
--- |The Agent Effect
+
+-- |The 'Agent' effect abstracts a clipboard synchronization target.
 module Helic.Effect.Agent where
 
 import Helic.Data.AgentId (AgentId (AgentId))

@@ -1,6 +1,7 @@
 module Main where
 
 import Helic.Test.ConfigFileTest (test_readConfigFile)
+import Helic.Test.GtkMainTest (test_gtkMain)
 import Helic.Test.InsertEventTest (test_insertEvent)
 import Helic.Test.ListTest (test_list)
 import Helic.Test.ListenTest (test_listen)
@@ -15,7 +16,8 @@ tests =
     unitTest "parse a config file" test_readConfigFile,
     unitTest "listen for events, filter duplicates from network feedback" test_listen,
     unitTest "print the history" test_list,
-    unitTest "load an old event to the clipboard" test_load
+    unitTest "load an old event to the clipboard" test_load,
+    unitTest "restart the gtk main loop when requested after failure" test_gtkMain
   ]
 
 main :: IO ()

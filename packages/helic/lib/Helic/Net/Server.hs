@@ -16,7 +16,7 @@ import Network.Wai.Handler.Warp (
   )
 import Network.Wai.Middleware.RequestLogger (logStdout)
 import qualified Polysemy.Conc.Effect.Interrupt as Interrupt
-import qualified Polysemy.Conc.Effect.Sync as Sync
+import qualified Polysemy.Conc.Sync as Sync
 import Polysemy.Final (withWeavingToFinal)
 import qualified Polysemy.Log as Log
 import Servant (

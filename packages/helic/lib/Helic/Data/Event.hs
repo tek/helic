@@ -1,4 +1,4 @@
--- |Event Data Type
+-- |The data type 'Event' consists of a yank text and metadata identifying its source and time.
 module Helic.Data.Event where
 
 import qualified Chronos

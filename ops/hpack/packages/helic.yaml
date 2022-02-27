@@ -18,7 +18,6 @@ library:
   source-dirs: lib
   dependencies:
     - chronos >= 1.1.1
-    - either >= 5
     - exon >= 0.3
     - gi-gdk >= 3
     - gi-glib >= 2
@@ -37,7 +36,6 @@ library:
     - polysemy-log >= 0.5
     - polysemy-plugin >= 0.4
     - polysemy-process >= 0.6
-    # - polysemy-resume >= 0.2
     - polysemy-time >= 0.3
     - servant >= 0.18
     - servant-client >= 0.18

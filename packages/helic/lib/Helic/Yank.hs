@@ -4,7 +4,7 @@
 module Helic.Yank where
 
 import qualified Data.Text.IO as Text
-import Polysemy.Chronos.Time (ChronosTime)
+import Polysemy.Chronos (ChronosTime)
 import System.IO (stdin)
 
 import Helic.Data.AgentId (AgentId (AgentId))

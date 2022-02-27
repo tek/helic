@@ -1,85 +1,28 @@
--- |XClipboard Interpreter, Internal
+-- |Interpreter for 'XClipboard' using GTK.
+-- Internal.
 module Helic.Interpreter.XClipboard where
 
-import Exon (exon)
-import qualified GI.Gdk as Gdk
-import qualified GI.Gtk as GI
-import qualified Polysemy.Conc as Conc
-import Polysemy.Conc (withAsync_)
-import qualified Polysemy.Log as Log
-
-import qualified Helic.Data.GtkState as GtkState
-import Helic.Data.GtkState (GtkState (GtkState))
-import Helic.Data.Selection (Selection (Clipboard, Primary, Secondary))
-import Helic.Data.XClipboardEvent (XClipboardEvent (XClipboardEvent))
+import Helic.Data.Selection (Selection (Clipboard))
+import qualified Helic.Effect.GtkClipboard as GtkClipboard
+import Helic.Effect.GtkClipboard (GtkClipboard)
 import Helic.Effect.XClipboard (XClipboard (Current, Set, Sync))
-import qualified Helic.Gtk as Gtk
-import Helic.Gtk (getClipboardFor, gtkClipboard, setClipboardFor, syncXClipboard)
-
--- |Execute a GTK main loop in a baackground thread and interpret @'Reader' 'GtkState'@.
--- The clipboards stored in the state need the main loop running to work properly.
--- The main loop is killed after the interpreted program terminates.
-withMainLoop ::
-  Members [Log, Error Text, Race, Async, Resource, Embed IO] r =>
-  InterpreterFor (Reader GtkState) r
-withMainLoop prog = do
-  bracket acquire release \ display -> do
-    clipboard <- fromEither =<< gtkClipboard display Clipboard
-    primary <- fromEither =<< gtkClipboard display Primary
-    secondary <- fromEither =<< gtkClipboard display Secondary
-    runReader (GtkState clipboard primary secondary display) (withAsync_ GI.main prog)
-  where
-    acquire = do
-      _ <- embed (GI.init Nothing)
-      note "couldn't get a GTK display" =<< Gdk.displayGetDefault
-    release display = do
-      Log.debug [exon|Quitting the GTK main loop|]
-      Gdk.displayFlush display
-      Gdk.displayClose display
-      GI.mainQuit
-
--- |Listen to clipboard events for a specific source, like "primary selection", and publish them via 'Events'.
-subscribeToClipboard ::
-  Members [Events resource XClipboardEvent, Reader GtkState, Log, Embed IO, Final IO] r =>
-  GI.Clipboard ->
-  Selection ->
-  Sem r ()
-subscribeToClipboard clipboard selection =
-  Gtk.subscribe clipboard \case
-    Right t ->
-      Conc.publish (XClipboardEvent t selection)
-    Left e ->
-      Log.warn [exon|GTK: #{e}|]
-
--- |Listen to clipboard events and publish them via 'Events'.
-clipboardEvents ::
-  Members [Events resource XClipboardEvent, Reader GtkState, Log, Embed IO, Final IO] r =>
-  Sem r ()
-clipboardEvents = do
-  GtkState {..} <- ask
-  subscribeToClipboard clipboard Clipboard
-  subscribeToClipboard primary Primary
-  subscribeToClipboard secondary Secondary
-
--- |Run a GTK main loop and listen to clipboard events, publishing them via 'Events'.
-listenXClipboard ::
-  Members [Events resource XClipboardEvent, Log, Error Text, Race, Resource, Async, Embed IO, Final IO] r =>
-  InterpreterFor (Reader GtkState) r
-listenXClipboard sem =
-  withMainLoop do
-    clipboardEvents
-    sem
+import Helic.Interpreter.GtkClipboard (withGtkClipboard)
 
 -- |Interpret 'XClipboard' using a GTK backend.
--- This uses the @gi-gtk@ library to access the X11 clipboard.
+-- This uses the library @gi-gtk@ to access the X11 clipboard.
 interpretXClipboardGtk ::
-  Members [Reader GtkState, Log, Embed IO, Final IO] r =>
-  InterpreterFor XClipboard r
+  Members [Scoped resource GtkClipboard !! Text, Log, Embed IO, Final IO] r =>
+  InterpreterFor (XClipboard !! Text) r
 interpretXClipboardGtk = do
-  interpret \case
+  interpretResumable \case
     Current ->
-      getClipboardFor Clipboard
+      restop $ withGtkClipboard do
+        GtkClipboard.read Clipboard
     Set text ->
-      setClipboardFor Clipboard text
-    Sync text selection ->
-      syncXClipboard text selection
+      restop $ withGtkClipboard do
+        (GtkClipboard.write Clipboard text)
+    Sync _ Clipboard ->
+      unit
+    Sync text _ ->
+      restop $ withGtkClipboard do
+        GtkClipboard.write Clipboard text
