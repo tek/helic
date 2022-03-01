@@ -1,5 +1,9 @@
 # Unreleased
 
+# 0.4.0.0
+
+* Rewrite the GTK main loop effects for better resilience when no display is available (yet).
+
 # 0.3.1.0
 
 * Sanitize newlines when inserting events
