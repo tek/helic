@@ -7,12 +7,14 @@ import Polysemy.Time.Json (json)
 
 import Helic.Data.NetConfig (NetConfig)
 import Helic.Data.TmuxConfig (TmuxConfig)
+import Helic.Data.X11Config (X11Config)
 
 data Config =
   Config {
     name :: Maybe Text,
     tmux :: Maybe TmuxConfig,
     net :: Maybe NetConfig,
+    x11 :: Maybe X11Config,
     maxHistory :: Maybe Int,
     verbose :: Maybe Bool
   }

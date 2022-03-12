@@ -59,7 +59,7 @@ type AppStack =
 listenApp ::
   Config ->
   Sem AppStack ()
-listenApp (Config name tmux net maxHistory _) =
+listenApp (Config name tmux net x11 maxHistory _) =
   runReader (fromMaybe def tmux) $
   runReader (fromMaybe def net) $
   interpretEventsChan @XClipboardEvent $
@@ -67,7 +67,7 @@ listenApp (Config name tmux net maxHistory _) =
   interpretAtomic mempty $
   interpretInstanceName name $
   interpretManager $
-  interpretGtk $
+  interpretGtk (fromMaybe def x11) $
   interpretGtkMain (MilliSeconds 500) (Seconds 10) $
   interpretGtkClipboard $
   gtkMainLoop subscribeEvents $
@@ -84,7 +84,7 @@ yankApp ::
   Config ->
   YankConfig ->
   Sem AppStack ()
-yankApp (Config name _ net _ _) yankConfig =
+yankApp (Config name _ net _ _ _) yankConfig =
   interpretManager $
   interpretInstanceName name $
   runReader (fromMaybe def net) $
@@ -104,7 +104,7 @@ listApp ::
   Config ->
   ListConfig ->
   Sem AppStack ()
-listApp (Config _ _ net _ _) listConfig =
+listApp (Config _ _ net _ _ _) listConfig =
   runReader listConfig $
   runClient net $
   list
@@ -113,6 +113,6 @@ loadApp ::
   Config ->
   LoadConfig ->
   Sem AppStack ()
-loadApp (Config _ _ net _ _) (LoadConfig event) =
+loadApp (Config _ _ net _ _ _) (LoadConfig event) =
   runClient net $
   (void . fromEither =<< Client.load event)

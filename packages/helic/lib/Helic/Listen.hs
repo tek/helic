@@ -24,7 +24,7 @@ listen ::
 listen =
   Conc.subscribe do
     Sync.putBlock Listening
-    (forever (History.receive =<< Conc.consume))
+    forever (History.receive =<< Conc.consume)
 
 -- |Run an action with 'listen' in a thread, waiting for the event subscriber to be up and running before executing the
 -- action.

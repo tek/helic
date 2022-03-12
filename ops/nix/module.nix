@@ -47,6 +47,13 @@ in {
         description = "The package to use for tmux. Defaults to `pkgs.tmux`.";
       };
     };
+    x11 = {
+      display = {
+        type = types.str;
+        default = ":0";
+        description = "The X11 display to connect to if there is no active display in the environment.";
+      };
+    };
   };
   config = mkIf cfg.enable {
     environment.systemPackages = [cfg.package];
@@ -61,6 +68,8 @@ in {
       port: ${toString cfg.net.port}
       hosts: [${concatMapStringsSep ", " (h: "'${h}'") cfg.net.hosts}]
       ${if cfg.net.timeout == null then "" else "timeout: ${toString cfg.net.timeout}"}
+    x11:
+      display: ${cfg.x11.display}
     '';
     systemd.user.services.helic = {
       description = "Clipboard Manager";

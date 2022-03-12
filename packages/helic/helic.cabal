@@ -43,6 +43,7 @@ library
       Helic.Data.NetConfig
       Helic.Data.Selection
       Helic.Data.TmuxConfig
+      Helic.Data.X11Config
       Helic.Data.XClipboardEvent
       Helic.Data.YankConfig
       Helic.Effect.Agent
@@ -67,6 +68,7 @@ library
       Helic.Interpreter.History
       Helic.Interpreter.InstanceName
       Helic.Interpreter.XClipboard
+      Helic.Json
       Helic.List
       Helic.Listen
       Helic.Net.Api
@@ -137,7 +139,8 @@ library
       ViewPatterns
   ghc-options: -Wall -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin
   build-depends:
-      base ==4.*
+      aeson >=1.5
+    , base ==4.*
     , chronos >=1.1.1
     , exon >=0.3
     , gi-gdk >=3

@@ -6,10 +6,8 @@ import qualified Control.Exception as Base
 import Exon (exon)
 import qualified GI.GLib as Glib
 import qualified GI.Gdk as GiGdk
-import qualified GI.Gdk as Gdk
 import GI.Gdk (Display)
 import qualified GI.Gtk as GiGtk
-import qualified GI.Gtk as GI
 import Polysemy.Final (withWeavingToFinal)
 import qualified Polysemy.Log as Log
 
@@ -33,7 +31,7 @@ gtkUi desc ma = do
     recovering :: IO x -> IO x
     recovering =
       flip Base.onException (putMVar result Nothing)
-  _ <- tryStop $ recovering $ Gdk.threadsAddIdle Glib.PRIORITY_DEFAULT do
+  _ <- tryStop $ recovering $ GiGdk.threadsAddIdle Glib.PRIORITY_DEFAULT do
     putMVar result . Just =<< recovering ma
     pure False
   stopNote [exon|Gtk ui thread computation '#{desc}' failed|] =<< embed (takeMVar result)
@@ -44,24 +42,24 @@ unsafeGtkClipboard ::
   MonadIO m =>
   Display ->
   Selection ->
-  m GI.Clipboard
+  m GiGtk.Clipboard
 unsafeGtkClipboard display name = do
-  selection <- Gdk.atomIntern (Selection.toXString name) False
-  GI.clipboardGetForDisplay display selection
+  selection <- GiGdk.atomIntern (Selection.toXString name) False
+  GiGtk.clipboardGetForDisplay display selection
 
 -- |Return a GTK clipboard, converting all exceptions to 'Stop'.
 gtkClipboard ::
   Members [Stop Text, Embed IO] r =>
   Display ->
   Selection ->
-  Sem r GI.Clipboard
+  Sem r GiGtk.Clipboard
 gtkClipboard display name =
   tryStop (unsafeGtkClipboard display name)
 
 -- |Request the text contents of a GTK clipboard, catching all exceptions, and passing the result to a handler.
 -- If the clipboard is empty or an exception was thrown, the value passed to the handler is 'Left', otherwise 'Right'.
 clipboardRequest ::
-  GI.Clipboard ->
+  GiGtk.Clipboard ->
   (Either Text Text -> IO ()) ->
   IO ()
 clipboardRequest clipboard handle =
@@ -69,7 +67,7 @@ clipboardRequest clipboard handle =
     handle (Left (show e))
   where
     run =
-      GI.clipboardRequestText clipboard (const (handle . maybeToRight "no clipboard text"))
+      GiGtk.clipboardRequestText clipboard (const (handle . maybeToRight "no clipboard text"))
 
 -- |Registers a callback for the "owner change" event of a GTK clipboard, which is triggered whenever a client updates
 -- the text.
@@ -77,39 +75,39 @@ clipboardRequest clipboard handle =
 -- exception was thrown.
 subscribeWith ::
   Member (Final IO) r =>
-  GI.Clipboard ->
+  GiGtk.Clipboard ->
   (Either Text Text -> Sem r ()) ->
   Sem r ()
 subscribeWith clipboard handle =
   withWeavingToFinal \ s wv _ -> do
     let lower ma = void (wv (ma <$ s))
-    s <$ GI.onClipboardOwnerChange clipboard \ _ ->
+    s <$ GiGtk.onClipboardOwnerChange clipboard \ _ ->
       clipboardRequest clipboard (lower . handle)
 
 -- |Safely request the text contents of a clipboard by scheduling an action on the UI thread and converting exceptions
 -- into 'Stop'.
 readClipboard ::
   Members [Log, Stop Text, Embed IO] r =>
-  GI.Clipboard ->
+  GiGtk.Clipboard ->
   Sem r (Maybe Text)
 readClipboard =
-  gtkUi "readClipboard" . GI.clipboardWaitForText
+  gtkUi "readClipboard" . GiGtk.clipboardWaitForText
 
 -- |Update the text contents of a clipboard.
 -- Does not catch exceptions.
 unsafeSetClipboard ::
   MonadIO m =>
-  GI.Clipboard ->
+  GiGtk.Clipboard ->
   Text ->
   m ()
 unsafeSetClipboard clipboard text =
-  GI.clipboardSetText clipboard text (-1)
+  GiGtk.clipboardSetText clipboard text (-1)
 
 -- |Safely update the text contents of a clipboard by scheduling an action on the UI thread and converting exceptions
 -- into 'Stop'.
 writeClipboard ::
   Members [Stop Text, Embed IO] r =>
-  GI.Clipboard ->
+  GiGtk.Clipboard ->
   Text ->
   Sem r ()
 writeClipboard clipboard =
@@ -140,10 +138,11 @@ subscribeToClipboard ::
 subscribeToClipboard f selection = do
   cb <- getClipboard selection
   subscribeWith cb \case
-    Right t ->
+    Right t -> do
+      Log.debug [exon|GTK subscriber for #{show selection}: received #{t}|]
       f selection t
     Left e ->
-      Log.warn [exon|GTK: #{e}|]
+      Log.warn [exon|GTK subscriber for #{show selection}: #{e}|]
 
 -- |Fetch the text contents of the GTK clipboard corresponding to the specified X11 selection, converting exceptions
 -- into 'Stop'.

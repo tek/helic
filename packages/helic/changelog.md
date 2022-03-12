@@ -1,6 +1,7 @@
 # Unreleased
 
 * Allow empty config files.
+* Forcibly connect to a GTK display if none is currently open.
 
 # 0.4.0.0
 

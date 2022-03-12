@@ -2,28 +2,51 @@
 -- Internal.
 module Helic.Interpreter.Gtk where
 
+import Exon (exon)
 import qualified GI.Gdk as GiGdk
-import GI.Gdk (Display)
 import qualified GI.Gtk as GiGtk
 import Polysemy.Conc (interpretScopedResumable)
 import qualified Polysemy.Log as Log
 
+import Helic.Data.X11Config (DisplayId (DisplayId), X11Config (X11Config))
 import qualified Helic.Effect.Gtk as Gtk
 import Helic.Effect.Gtk (Gtk)
 import Helic.Gtk (getDisplay)
 import Helic.Stop (tryStop)
 
+tryOpenDisplay ::
+  Members [Stop Text, Log, Embed IO] r =>
+  DisplayId ->
+  GiGdk.DisplayManager ->
+  Sem r ()
+tryOpenDisplay (DisplayId fallbackDisplay) dm = do
+  Log.warn [exon|No default display available. Trying to connect to #{fallbackDisplay}|]
+  tryStop (GiGdk.displayManagerOpenDisplay dm fallbackDisplay) >>= \case
+    Just _ ->
+      Log.info [exon|Connected to display #{fallbackDisplay}|]
+    Nothing ->
+      stop [exon|Could not connect to display #{fallbackDisplay}|]
+
+noDisplayAvailable ::
+  Members [Stop Text, Embed IO] r =>
+  GiGdk.DisplayManager ->
+  Sem r Bool
+noDisplayAvailable dm =
+  tryStop (isNothing <$> GiGdk.displayManagerGetDefaultDisplay dm)
+
 -- |Initialize GTK, run the scoped action, then tear down the GTK environment.
 bracketGtk ::
   Members [Resource, Log, Embed IO] r =>
-  (Display -> Sem (Stop Text : r) a) ->
+  DisplayId ->
+  (GiGdk.Display -> Sem (Stop Text : r) a) ->
   Sem (Stop Text : r) a
-bracketGtk =
+bracketGtk fallbackDisplay =
   bracket acquire release
   where
     acquire = do
       unlessM (fst <$> tryStop (GiGtk.initCheck Nothing)) do
-        stop "GTK intialization failed"
+        dm <- tryStop GiGdk.displayManagerGet
+        ifM (noDisplayAvailable dm) (tryOpenDisplay fallbackDisplay dm) (stop "GTK intialization failed")
       getDisplay
     release display = do
       Log.debug "Quitting the GTK main loop"
@@ -36,9 +59,10 @@ bracketGtk =
 -- This uses 'Scoped' to bracket the initialization and termination of the GTK environment.
 interpretGtk ::
   Members [Resource, Log, Embed IO] r =>
-  InterpreterFor (Scoped Display (Gtk Display) !! Text) r
-interpretGtk =
-  interpretScopedResumable bracketGtk \ display -> \case
+  X11Config ->
+  InterpreterFor (Scoped GiGdk.Display (Gtk GiGdk.Display) !! Text) r
+interpretGtk (X11Config fallbackDisplay) =
+  interpretScopedResumable (bracketGtk (fromMaybe ":0" fallbackDisplay)) \ display -> \case
     Gtk.Main ->
       GiGtk.main
     Gtk.Resource ->

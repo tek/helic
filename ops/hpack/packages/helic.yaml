@@ -17,6 +17,7 @@ dependencies:
 library:
   source-dirs: lib
   dependencies:
+    - aeson >= 1.5
     - chronos >= 1.1.1
     - exon >= 0.3
     - gi-gdk >= 3
