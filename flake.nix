@@ -4,14 +4,10 @@
   inputs = {
     hix.url = github:tek/hix;
     incipit.url = github:tek/incipit;
-    polysemy-resume.url = github:tek/polysemy-resume;
-    polysemy-conc.url = github:tek/polysemy-conc;
   };
 
-  outputs = { self, hix, incipit, polysemy-conc, polysemy-resume, ... }:
+  outputs = { self, hix, incipit, ... }:
   let
-    inherit (incipit.inputs.polysemy-conc.inputs) polysemy-time;
-
     gtkDeps = pkgs: with pkgs; [
       pkgconfig
       gobject-introspection
@@ -21,14 +17,9 @@
       exon = hackage "0.3.0.0" "0jgpj8818nhwmb3271ixid38mx11illlslyi69s4m0ws138v6i18";
       flatparse = unbreak;
       helic = transform_ (d: d.overrideAttrs (old: { buildInputs = old.buildInputs ++ gtkDeps pkgs; }));
-      polysemy-chronos = source.package polysemy-time "chronos";
-      polysemy-http = hackage "0.6.0.0" "02jr278vyqa3sky22z2ywzkd6g339acvlwjq4b6svm7lfpw7nfab";
-      polysemy-resume = source.package polysemy-resume "resume";
-      polysemy-conc = source.package polysemy-conc "conc";
-      polysemy-process = source.package polysemy-conc "process";
-    };
-
-    ghc902 = { hackage, ... }: {
+      polysemy-chronos = hackage "0.4.0.0" "0dckfpz7ww1f96wgbl3i05s1il55bqyyz4kix5lwqrx1zcn8dvvk";
+      polysemy-http = hackage "0.7.0.0" "13p6b3c6g8p4x05gs304qg72i58dhdlxbir00izsrcd0228vyb3q";
+      polysemy-process = hackage "0.7.0.0" "09pyfj6ni4y4czsph4h47q5qn74crw3qra81rimdbmyr6qqd8cjy";
     };
 
     dev = { hackage, ... }: {
@@ -39,8 +30,8 @@
     outputs = hix.lib.flake ({ config, ... }: {
       base = ./.;
       packages.helic = ./packages/helic;
-      overrides = { inherit all ghc902 dev; };
-      deps = [incipit polysemy-conc];
+      overrides = { inherit all dev; };
+      depsFull = [incipit];
       devGhc.compiler = "ghc8107";
       compat.enable = false;
       ghci = {
@@ -48,9 +39,21 @@
         preludePackage = "incipit";
       };
       hackage.versionFile = "ops/hpack/shared/meta.yaml";
-      ghcid.shellConfig = {
-        buildInputs = gtkDeps config.devGhc.pkgs;
-        haskellPackages = g: [g.hsc2hs];
+      ghcid = {
+        commands = {
+          listen = {
+            script = ''
+            :set args --verbose listen
+            :load Helic.Cli
+            import Helic.Cli (app)
+            '';
+            test = "app";
+          };
+        };
+        shellConfig = {
+          buildInputs = gtkDeps config.devGhc.pkgs;
+          haskellPackages = g: [g.hsc2hs];
+        };
       };
       output.amend = _: outputs: rec {
         apps.hel = {
