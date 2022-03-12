@@ -1,5 +1,7 @@
 # Unreleased
 
+* Allow empty config files.
+
 # 0.4.0.0
 
 * Rewrite the GTK main loop effects for better resilience when no display is available (yet).

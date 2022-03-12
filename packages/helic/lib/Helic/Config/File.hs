@@ -17,7 +17,7 @@ parseFileConfig ::
   Sem r Config
 parseFileConfig (toFilePath -> path) = do
   Log.debug [exon|Reading config file #{toText path}|]
-  fromEither =<< first formatError <$> embed (decodeFileEither path)
+  fromEither =<< bimap formatError (fromMaybe def) <$> embed (decodeFileEither path)
   where
     formatError exc =
       toText [exon|invalid config file: #{prettyPrintParseException exc}|]
