@@ -48,7 +48,7 @@ in {
       };
     };
     x11 = {
-      display = {
+      display = mkOption {
         type = types.str;
         default = ":0";
         description = "The X11 display to connect to if there is no active display in the environment.";
