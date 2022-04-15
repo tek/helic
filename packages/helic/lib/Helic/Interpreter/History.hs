@@ -172,5 +172,6 @@ interpretHistory maxHistory =
     History.Receive event ->
       unlessM (isNetworkCycle event) do
         receiveEvent maxHistory event
-    History.Load index ->
-      loadEvent index
+    History.Load index -> do
+      e <- loadEvent index
+      e <$ traverse_ broadcast e

@@ -1,5 +1,9 @@
 # Unreleased
 
+# 0.5.1.0
+
+* Broadcast the matching event when executing `load`.
+
 # 0.5.0.0
 
 * Allow empty config files.
