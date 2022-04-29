@@ -14,6 +14,7 @@ import Helic.Effect.Gtk (Gtk)
 import Helic.Gtk (getDisplay)
 import Helic.Stop (tryStop)
 
+-- |In the case where no default display is available from the manager, attempt to connect to a named display.
 tryOpenDisplay ::
   Members [Stop Text, Log, Embed IO] r =>
   DisplayId ->
@@ -27,6 +28,7 @@ tryOpenDisplay (DisplayId fallbackDisplay) dm = do
     Nothing ->
       stop [exon|Could not connect to display #{fallbackDisplay}|]
 
+-- |Test whether the display manager has a default display available.
 noDisplayAvailable ::
   Members [Stop Text, Embed IO] r =>
   GiGdk.DisplayManager ->

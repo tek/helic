@@ -13,7 +13,7 @@ homepage:       https://github.com/tek/helic#readme
 bug-reports:    https://github.com/tek/helic/issues
 author:         Torsten Schmits
 maintainer:     hackage@tryp.io
-copyright:      2021 Torsten Schmits
+copyright:      2022 Torsten Schmits
 license:        BSD-2-Clause-Patent
 license-file:   LICENSE
 build-type:     Simple
@@ -93,8 +93,10 @@ library
       DeriveFoldable
       DeriveFunctor
       DeriveGeneric
+      DeriveLift
       DeriveTraversable
       DerivingStrategies
+      DerivingVia
       DisambiguateRecordFields
       DoAndIfThenElse
       DuplicateRecordFields
@@ -124,9 +126,9 @@ library
       RankNTypes
       RecordWildCards
       RecursiveDo
+      RoleAnnotations
       ScopedTypeVariables
       StandaloneDeriving
-      StandaloneKindSignatures
       TemplateHaskell
       TupleSections
       TypeApplications
@@ -137,10 +139,10 @@ library
       UndecidableInstances
       UnicodeSyntax
       ViewPatterns
-  ghc-options: -Wall -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin
+  ghc-options: -Wall -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin
   build-depends:
       aeson >=1.5
-    , base ==4.*
+    , base >=4.12 && <5
     , chronos >=1.1.1
     , exon >=0.3
     , fast-logger >=3
@@ -197,8 +199,10 @@ executable hel
       DeriveFoldable
       DeriveFunctor
       DeriveGeneric
+      DeriveLift
       DeriveTraversable
       DerivingStrategies
+      DerivingVia
       DisambiguateRecordFields
       DoAndIfThenElse
       DuplicateRecordFields
@@ -228,9 +232,9 @@ executable hel
       RankNTypes
       RecordWildCards
       RecursiveDo
+      RoleAnnotations
       ScopedTypeVariables
       StandaloneDeriving
-      StandaloneKindSignatures
       TemplateHaskell
       TupleSections
       TypeApplications
@@ -241,13 +245,13 @@ executable hel
       UndecidableInstances
       UnicodeSyntax
       ViewPatterns
-  ghc-options: -Wall -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base ==4.*
+      base >=4.12 && <5
     , helic
-    , incipit
-    , polysemy
-    , polysemy-plugin
+    , incipit >=0.1.0.3
+    , polysemy >=1.6
+    , polysemy-plugin >=0.4
   mixins:
       base hiding (Prelude)
   default-language: Haskell2010
@@ -280,8 +284,10 @@ test-suite helic-unit
       DeriveFoldable
       DeriveFunctor
       DeriveGeneric
+      DeriveLift
       DeriveTraversable
       DerivingStrategies
+      DerivingVia
       DisambiguateRecordFields
       DoAndIfThenElse
       DuplicateRecordFields
@@ -311,9 +317,9 @@ test-suite helic-unit
       RankNTypes
       RecordWildCards
       RecursiveDo
+      RoleAnnotations
       ScopedTypeVariables
       StandaloneDeriving
-      StandaloneKindSignatures
       TemplateHaskell
       TupleSections
       TypeApplications
@@ -324,20 +330,20 @@ test-suite helic-unit
       UndecidableInstances
       UnicodeSyntax
       ViewPatterns
-  ghc-options: -Wall -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base ==4.*
+      base >=4.12 && <5
     , chronos
     , containers
     , exon
     , helic
-    , incipit
+    , incipit >=0.1.0.3
     , path
-    , polysemy
+    , polysemy >=1.6
     , polysemy-chronos
     , polysemy-conc
     , polysemy-log
-    , polysemy-plugin
+    , polysemy-plugin >=0.4
     , polysemy-test
     , polysemy-time
     , tasty

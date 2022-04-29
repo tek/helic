@@ -27,7 +27,7 @@
       polysemy-plugin = hackage "0.4.3.0" "1r7j1ffsd6z2q2fgpg78brl2gb0dg8r5ywfiwdrsjd2fxkinjcg1";
     };
 
-    outputs = hix.lib.flake ({ config, ... }: {
+    outputs = hix.lib.flake ({ config, lib, ... }: {
       base = ./.;
       packages.helic = ./packages/helic;
       overrides = { inherit all dev; };
@@ -38,7 +38,8 @@
         args = ["-fplugin=Polysemy.Plugin"];
         preludePackage = "incipit";
       };
-      hackage.versionFile = "ops/hpack/shared/meta.yaml";
+      hpack.packages.helic = import ./ops/hpack.nix { inherit config; };
+      hackage.versionFile = "ops/version.nix";
       ghcid = {
         commands = {
           listen = {
@@ -64,5 +65,5 @@
       };
     });
 
-  in outputs // { nixosModule = import ./ops/nix/module.nix self; };
+  in outputs // { nixosModule = import ./ops/module.nix self; };
 }

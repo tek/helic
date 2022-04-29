@@ -43,7 +43,7 @@ newtype ApiError =
 
 data ServerReady =
   ServerReady
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
 
 logErrors ::
   Member Log r =>

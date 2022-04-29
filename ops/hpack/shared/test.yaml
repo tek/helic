@@ -1,6 +1,0 @@
-main: Main.hs
-source-dirs: test
-ghc-options:
-  - -threaded
-  - -rtsopts
-  - -with-rtsopts=-N
