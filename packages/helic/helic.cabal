@@ -143,6 +143,7 @@ library
     , base ==4.*
     , chronos >=1.1.1
     , exon >=0.3
+    , fast-logger >=3
     , gi-gdk >=3
     , gi-glib >=2
     , gi-gtk >=3

@@ -14,7 +14,8 @@ import Network.Wai.Handler.Warp (
   setInstallShutdownHandler,
   setPort,
   )
-import Network.Wai.Middleware.RequestLogger (logStdout)
+import qualified Network.Wai.Middleware.RequestLogger as Logger
+import Network.Wai.Middleware.RequestLogger (destination, mkRequestLogger)
 import qualified Polysemy.Conc.Effect.Interrupt as Interrupt
 import qualified Polysemy.Conc.Sync as Sync
 import Polysemy.Final (withWeavingToFinal)
@@ -33,6 +34,7 @@ import Servant (
   serveWithContext,
   type (.++),
   )
+import System.Log.FastLogger (fromLogStr)
 
 newtype ApiError =
   ApiError { unApiError :: Text }
@@ -83,4 +85,7 @@ runServerWithContext srv context port = do
         setInstallShutdownHandler shut $
         setGracefulShutdownTimeout (Just 0) $
         defaultSettings
-    (<$ s) <$> Warp.runSettings settings (logStdout app)
+      log msg =
+        void (wv ((Log.debug (decodeUtf8 (fromLogStr msg))) <$ s))
+    logger <- mkRequestLogger def { destination = Logger.Callback log }
+    (<$ s) <$> Warp.runSettings settings (logger app)

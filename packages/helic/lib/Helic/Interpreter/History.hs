@@ -115,7 +115,7 @@ logTruncation ::
   Int ->
   Sem r ()
 logTruncation num =
-  Log.info [exon|removed #{show num} #{noun} from the history.|]
+  Log.debug [exon|removed #{show num} #{noun} from the history.|]
   where
     noun =
       if num == 1 then "entry" else "entries"

@@ -23,6 +23,7 @@ library:
     - gi-gdk >= 3
     - gi-glib >= 2
     - gi-gtk >= 3
+    - fast-logger >= 3
     - hostname >= 1
     - http-client >= 0.5.14
     - http-client-tls >= 0.3.1
