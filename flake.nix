@@ -19,7 +19,7 @@
       helic = transform_ (d: d.overrideAttrs (old: { buildInputs = old.buildInputs ++ gtkDeps pkgs; }));
       polysemy-chronos = hackage "0.4.0.0" "0dckfpz7ww1f96wgbl3i05s1il55bqyyz4kix5lwqrx1zcn8dvvk";
       polysemy-http = hackage "0.7.0.0" "13p6b3c6g8p4x05gs304qg72i58dhdlxbir00izsrcd0228vyb3q";
-      polysemy-process = hackage "0.7.0.0" "09pyfj6ni4y4czsph4h47q5qn74crw3qra81rimdbmyr6qqd8cjy";
+      polysemy-process = hackage "0.8.0.1" "1djh95amqz1ncyiyb8digc9xn2hlny9xgqpv7myqk81syg1rfvw5";
     };
 
     dev = { hackage, ... }: {

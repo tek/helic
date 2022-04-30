@@ -4,6 +4,11 @@ module Helic.Interpreter.AgentTmux where
 import Exon (exon)
 import qualified Log
 import Path (Abs, File, Path, toFilePath)
+import Polysemy.Chronos (ChronosTime)
+import Polysemy.Process (ProcessKill (KillAfter), interpretProcessByteStringNative)
+import Polysemy.Process.Data.ProcessError (ProcessError)
+import Polysemy.Process.Data.ProcessOptions (ProcessOptions (kill))
+import Polysemy.Time (MilliSeconds (MilliSeconds), convert)
 import qualified System.Process.Typed as Process
 import System.Process.Typed (ProcessConfig)
 
@@ -12,8 +17,6 @@ import Helic.Data.TmuxConfig (TmuxConfig)
 import Helic.Effect.Agent (Agent (Update), AgentTmux)
 import Helic.Interpreter (interpreting)
 import Helic.Tmux (sendToTmux)
-import Polysemy.Process (interpretProcessByteStringNative)
-import Polysemy.Process.Data.ProcessError (ProcessError)
 
 -- |Process definition for running `tmux load-buffer -`.
 tmuxProc ::
@@ -34,11 +37,11 @@ enableTmux =
 
 -- |Interpret 'Agent' using a tmux server as the target.
 interpretAgentTmux ::
-  Members [Reader TmuxConfig, Log, Async, Race, Resource, Embed IO] r =>
+  Members [Reader TmuxConfig, Log, Async, Race, Resource, ChronosTime, Embed IO] r =>
   InterpreterFor (Tagged AgentTmux Agent) r
 interpretAgentTmux sem = do
   exe <- asks TmuxConfig.exe
-  interpretProcessByteStringNative True 64 (tmuxProc exe) $
+  interpretProcessByteStringNative def { kill = KillAfter (convert (MilliSeconds 500)) } (tmuxProc exe) $
     interpreting (raiseUnder (untag sem)) \case
       Update event ->
         whenM enableTmux do
