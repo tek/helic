@@ -67,17 +67,18 @@ sanitize :: Event -> Event
 sanitize e@Event {content} =
   e { content = sanitizeNewlines content }
 
--- |Append an event to the history unless the newest event contains the same text or there was an event within the last
--- second that contained the same text, to avoid clobbering due to cycles induced by external programs.
+-- |Append an event to the history unless the latest event contains the same text, or there was an event within the last
+-- second that contained the same text, or the new event has an earlier time stamp than the latest event, to avoid
+-- clobbering due to cycles induced by external programs.
 appendIfValid ::
   Chronos.Time ->
   Event ->
   Seq Event ->
   Maybe (Seq Event)
-appendIfValid now (sanitize -> e@Event {content}) = \case
+appendIfValid now (sanitize -> e@Event {content, time}) = \case
   Seq.Empty ->
     Just (Seq.singleton e)
-  _ :|> Event _ _ _ newest | newest == content ->
+  _ :|> Event _ _ latestTime latest | latest == content || time < latestTime ->
     Nothing
   hist | inRecent now e hist ->
     Nothing
@@ -143,7 +144,7 @@ loadEvent index = do
   now <- Time.now
   atomicState' \ s -> do
     let rindex = length s - index - 1
-    case (s !? rindex) of
+    case s !? rindex of
       Just event ->
         (Seq.deleteAt rindex s |> event { time = now }, Just event)
       Nothing ->

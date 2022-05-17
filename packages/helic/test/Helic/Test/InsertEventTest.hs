@@ -7,7 +7,7 @@ import Exon (exon)
 import Polysemy.Chronos (interpretTimeChronosConstant)
 import Polysemy.Test (UnitTest, assertJust, runTestAuto, (===))
 import qualified Polysemy.Time as Time
-import Polysemy.Time (Days (Days), MilliSeconds (MilliSeconds), convert, mkDatetime)
+import Polysemy.Time (Days (Days), Hours (Hours), MilliSeconds (MilliSeconds), convert, mkDatetime)
 import Torsor (add)
 
 import Helic.Data.Event (Event (Event))
@@ -47,3 +47,4 @@ test_insertEvent =
     Nothing === appendIfValid (add (convert (MilliSeconds 100)) old) event2 historyLatest
     assertJust (historyLatest |> event2) (appendIfValid (add (convert (MilliSeconds 1100)) old) event2 historyLatest)
     assertJust (historyLatest |> eventNl) (appendIfValid now eventMixedNl historyLatest)
+    Nothing === appendIfValid now (Event "me" "test" (add (convert (Hours (-1))) old) "event3") historyLatest

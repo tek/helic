@@ -1,5 +1,7 @@
 # Unreleased
 
+* Prevent events with timestamps older than the current history head from getting added to the history.
+
 # 0.5.1.0
 
 * Broadcast the matching event when executing `load`.
