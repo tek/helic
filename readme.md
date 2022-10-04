@@ -181,7 +181,7 @@ let g:clipboard = {
   \   'name': 'helic',
   \   'copy': {
   \      '+': 'hel yank --agent nvim',
-  \      '+': 'hel yank --agent nvim',
+  \      '*': 'hel yank --agent nvim',
   \    },
   \   'paste': {
   \      '+': 'xsel -bo',
