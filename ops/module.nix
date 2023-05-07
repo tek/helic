@@ -5,6 +5,13 @@ let
 in {
   options.services.helic = {
     enable = mkEnableOption "Clipboard Manager";
+    user = mkOption {
+      description = mdDoc ''
+      A system user name or ID. If set, the service will only be started for that user.
+      '';
+      type = types.nullOr (types.either types.str types.ints.positive);
+      default = null;
+    };
     package = mkOption {
       type = types.package;
       default = self.packages.${pkgs.system}.helic;
@@ -75,6 +82,7 @@ in {
       description = "Clipboard Manager";
       wantedBy = ["default.target"];
       restartIfChanged = true;
+      unitConfig.ConditionUser = mkIf (cfg.user != null) cfg.user;
       serviceConfig = {
         Restart = "always";
         ExecStart = "${cfg.package}/bin/hel listen";
