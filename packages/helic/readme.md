@@ -82,6 +82,9 @@ After a rebuild, the service may not be started right away, so this command must
 $ systemctl --user start helic
 ```
 
+Globally enabled SystemD user services are started for all users on login.
+To prevent that, you can set the module option `services.helic.user = "myuser"`.
+
 ## Without Nix
 
 Alternatively, the app can be installed using a *Haskell* package manager, like [Cabal]:
