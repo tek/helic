@@ -60,7 +60,7 @@ The flake provides a *NixOS* module that can be used by adding it to `/etc/nixos
 
 ```nix
 {
-  inputs.helic.url = github:/tek/helic;
+  inputs.helic.url = "github:/tek/helic";
   outputs = { nixpkgs, helic, ... }: {
     nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
       modules = [helic.nixosModule];
