@@ -173,7 +173,7 @@ The meaning of these options is:
 |`tmux.enable`|`true`|Whether to send events to *tmux*.|
 |`tmux.package`|`pkgs.tmux`|Only for *NixOS*: The `nixpkgs` package used for the *tmux* executable.|
 |`tmux.exe`|`tmux`|Only for YAML file: The path to the *tmux* executable|
-|`x11.display`|`:0`|Only for YAML file: The path to the *tmux* executable|
+|`x11.display`|`:0`|The display identifier used when connecting to the default display via GTK fails.|
 
 # Neovim
 
