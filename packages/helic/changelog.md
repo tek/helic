@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.6.0.0
+
 * Allow all agents to be disabled in the config file.
 
 # 0.5.3.0
