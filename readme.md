@@ -56,14 +56,14 @@ $ nix run github:tek/helic -- load 5
 
 ## NixOS
 
-The flake provides a *NixOS* module that can be used by adding it to `/etc/nixos/configuration.nix`:
+The flake provides a *NixOS* module that can be used by adding it to `/etc/nixos/flake.nix`:
 
 ```nix
 {
   inputs.helic.url = "github:tek/helic";
   outputs = { nixpkgs, helic, ... }: {
     nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
-      modules = [helic.nixosModule];
+      modules = [helic.nixosModules.default];
       services.helic.enable = true;
     };
   };
@@ -82,7 +82,7 @@ After a rebuild, the service may not be started right away, so this command must
 $ systemctl --user start helic
 ```
 
-Globally enabled SystemD user services are started for all users on login.
+Globally enabled `systemd` user services are started for all users on login.
 To prevent that, you can set the module option `services.helic.user = "myuser"`.
 
 ## Without Nix
