@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.6.1.0
+
 * Add cli option `--text` for the `yank` command as an alternative to stdin.
 
 # 0.6.0.0
