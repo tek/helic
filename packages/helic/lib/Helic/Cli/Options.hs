@@ -28,6 +28,7 @@ import Prelude hiding (Mod)
 
 import Helic.Data.ListConfig (ListConfig (ListConfig))
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
+import qualified Helic.Data.YankConfig
 import Helic.Data.YankConfig (YankConfig (YankConfig))
 
 data Conf =
@@ -63,8 +64,10 @@ listenCommand =
   command "listen" (info (pure Listen) (progDesc "Run the daemon"))
 
 yankParser :: Parser YankConfig
-yankParser =
-  YankConfig <$> optional (strOption (long "agent" <> help "Source of the yank"))
+yankParser = do
+  agent <- optional (strOption (long "agent" <> help "Source of the yank"))
+  text <- optional (strOption (long "text" <> help "Yank text, uses stdin if not specified"))
+  pure YankConfig {..}
 
 yankCommand :: Mod CommandFields Command
 yankCommand =

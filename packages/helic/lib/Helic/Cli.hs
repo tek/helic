@@ -30,7 +30,7 @@ runCommand config = \case
 defaultCommand :: Sem AppStack Command
 defaultCommand = do
   Conc.timeout_ (pure Nothing) (MilliSeconds 100) (Just <$> tryAny (hLookAhead stdin)) <&> \case
-    Just (Right _) -> Yank (YankConfig (Just "cli"))
+    Just (Right _) -> Yank (YankConfig (Just "cli") Nothing)
     _ -> Listen
 
 withCliOptions :: Conf -> Maybe Command -> IO ()

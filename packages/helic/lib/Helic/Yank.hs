@@ -10,7 +10,8 @@ import System.IO (stdin)
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
 import Helic.Data.InstanceName (InstanceName)
-import Helic.Data.YankConfig (YankConfig (YankConfig))
+import qualified Helic.Data.YankConfig
+import Helic.Data.YankConfig (YankConfig)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 
@@ -19,7 +20,7 @@ yank ::
   Members [Reader InstanceName, Client, ChronosTime, Error Text, Embed IO] r =>
   YankConfig ->
   Sem r ()
-yank (YankConfig agent) = do
-  text <- embed (Text.hGetContents stdin)
-  event <- Event.now (AgentId (fromMaybe "cli" agent)) text
   fromEither =<< Client.yank event
+yank conf = do
+  text <- fromMaybeA (embed (Text.hGetContents stdin)) conf.text
+  event <- Event.now (AgentId (fromMaybe "cli" conf.agent)) text

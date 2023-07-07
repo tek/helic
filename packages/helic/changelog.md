@@ -1,5 +1,7 @@
 # Unreleased
 
+* Add cli option `--text` for the `yank` command as an alternative to stdin.
+
 # 0.6.0.0
 
 * Allow all agents to be disabled in the config file.

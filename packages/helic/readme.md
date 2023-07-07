@@ -20,7 +20,7 @@ The CLI understands four different commands:
 |Command|Meaning|
 |---|---|
 |`hel listen`|Start the daemon. This is best done from a *systemd* user service.|
-|`hel yank`|Send standard input to the daemon as a manual yank event.|
+|`hel yank`|Send standard input or argument to the daemon as a manual yank event.|
 |`hel list`|Print the event history.|
 |`hel load`|Load an older event to the clipboard, given its index into the history.|
 
@@ -45,7 +45,7 @@ The index in the first column, with 0 being the latest event, can be used with `
 ## Nix
 
 The project uses a [Nix] [flake] to configure its build, and it is recommended to install or run it using *Nix* as well.
-If *Nix* is installed and configured for use with *flakes*, the app can be run like this:
+If *Nix* is installed and configured for use with *flakes*, the app can be run without installation like this:
 
 ```shell
 $ nix run github:tek/helic -- listen
@@ -70,10 +70,11 @@ The flake provides a *NixOS* module that can be used by adding it to `/etc/nixos
 }
 ```
 
-With this, a *systemd* user service will be started on login and the client will be in `$PATH`:
+With this, a `systemd` user service will be started on login and the client will be in `$PATH`:
 
 ```shell
 $ echo 'yank me' | hel yank
+$ hel yank --agent custom-name --text 'yank me'
 ```
 
 After a rebuild, the service may not be started right away, so this command must be executed:
@@ -112,6 +113,8 @@ Global CLI options are specified *before* the command name, command-specific one
 |`listen`|`--agent NAME`|Used to avoid sending yanks back to the application that sent them.|
 |`list`|positional (`hel list 5`)|Limit the number of printed events.|
 |`load`|positional (`hel load 5`)|Choose the index of the event to be loaded.|
+|`yank`|`--agent NAME`|Custom name used in the `list` output and to avoid cycles.|
+|`yank`|`--text TEXT`|Yank text, uses stdin if not specified.|
 
 # Configuring Helic
 
@@ -151,6 +154,7 @@ For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
     name = "myhost";
     maxHistory = 1000;
     verbose = true;
+    user = "myuser";
     net = {
       enable = true;
       port = 10001;
