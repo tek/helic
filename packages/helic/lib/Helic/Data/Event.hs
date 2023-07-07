@@ -36,6 +36,7 @@ now source content = do
   time <- Time.now
   pure Event {..}
 
+-- | Render the event source.
 describe :: Event -> Text
 describe Event {..} =
   [exon|##{sender}:##{source}|]

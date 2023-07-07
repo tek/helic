@@ -87,7 +87,7 @@
           "polysemy-chronos ^>= 0.6"
           "polysemy-log ^>= 0.9"
           "polysemy-test ^>= 0.7"
-          "random"
+          "random ^>= 1.2"
           "tasty ^>= 1.4"
           "torsor ^>= 0.1"
           "zeugma ^>= 0.7"

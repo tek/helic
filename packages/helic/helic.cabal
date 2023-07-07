@@ -264,7 +264,7 @@ test-suite helic-test
     , polysemy-plugin ==0.4.*
     , polysemy-test ==0.7.*
     , prelate ==0.5.*
-    , random
+    , random ==1.2.*
     , tasty ==1.4.*
     , torsor ==0.1.*
     , zeugma ==0.7.*
