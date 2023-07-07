@@ -260,12 +260,11 @@ test-suite helic-test
     , path ==0.9.*
     , polysemy ==1.9.*
     , polysemy-chronos ==0.6.*
-    , polysemy-conc ==0.12.*
     , polysemy-log ==0.9.*
     , polysemy-plugin ==0.4.*
     , polysemy-test ==0.7.*
-    , polysemy-time ==0.6.*
     , prelate ==0.5.*
+    , random
     , tasty ==1.4.*
     , torsor ==0.1.*
     , zeugma ==0.7.*

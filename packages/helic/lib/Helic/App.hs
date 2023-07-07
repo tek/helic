@@ -47,17 +47,6 @@ listenApp (Config name tmux net x11 maxHistory _) =
   withAsync_ serve $
   Conc.subscribeLoop History.receive
 
-yankApp ::
-  Config ->
-  YankConfig ->
-  Sem AppStack ()
-yankApp (Config name _ net _ _ _) yankConfig =
-  interpretManager $
-  interpretInstanceName name $
-  runReader (fromMaybe def net) $
-  interpretClientNet $
-  yank yankConfig
-
 runClient ::
   Members [Log, Error Text, Race, Embed IO] r =>
   Maybe NetConfig ->
@@ -66,6 +55,15 @@ runClient net =
   interpretManager .
   runReader (fromMaybe def net) .
   interpretClientNet
+
+yankApp ::
+  Config ->
+  YankConfig ->
+  Sem AppStack ()
+yankApp (Config name _ net _ _ _) yankConfig =
+  interpretInstanceName name $
+  runClient net $
+  yank yankConfig
 
 listApp ::
   Config ->

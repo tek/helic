@@ -34,8 +34,7 @@ server =
 
 -- |The default port, 9500.
 defaultPort :: Int
-defaultPort =
-  9500
+defaultPort = 9500
 
 -- |Run the daemon API.
 serve ::

@@ -31,8 +31,8 @@ runAgent ::
   Sem r ()
 runAgent (Event _ (AgentId eId) _ _) | eId == agentName @tag =
   unit
-runAgent e =
-  tag (Agent.update e)
+runAgent event =
+  tag (Agent.update event)
 
 -- |Send an event to all agents.
 broadcast ::
@@ -63,8 +63,8 @@ sanitizeNewlines =
   Text.replace "\r" "\n" . Text.replace "\r\n" "\n"
 
 sanitize :: Event -> Event
-sanitize e@Event {content} =
-  e { content = sanitizeNewlines content }
+sanitize event@Event {content} =
+  event { content = sanitizeNewlines content }
 
 -- |Append an event to the history unless the latest event contains the same text, or there was an event within the last
 -- second that contained the same text, or the new event has an earlier time stamp than the latest event, to avoid
@@ -74,24 +74,24 @@ appendIfValid ::
   Event ->
   Seq Event ->
   Maybe (Seq Event)
-appendIfValid now (sanitize -> e@Event {content, time}) = \case
+appendIfValid now (sanitize -> event@Event {content, time}) = \case
   Seq.Empty ->
-    Just (Seq.singleton e)
+    Just (Seq.singleton event)
   _ :|> Event _ _ latestTime latest | latest == content || time < latestTime ->
     Nothing
-  hist | inRecent now e hist ->
+  hist | inRecent now event hist ->
     Nothing
   hist ->
-    Just (hist |> e)
+    Just (hist |> event)
 
 -- |Add an event to the history unless it is a duplicate.
 insertEvent ::
   Members [AtomicState (Seq Event), ChronosTime] r =>
   Event ->
   Sem r Bool
-insertEvent e = do
+insertEvent event = do
   now <- Time.now
-  atomicState' \ s -> result s (appendIfValid now e s)
+  atomicState' \ s -> result s (appendIfValid now event s)
   where
     result s = \case
       Just new -> (new, True)
@@ -127,11 +127,13 @@ receiveEvent ::
   Maybe Int ->
   Event ->
   Sem r ()
-receiveEvent maxHistory e = do
-  Log.debug [exon|listen: #{show e}|]
-  whenM (insertEvent e) do
-    broadcast e
-    traverse_ logTruncation =<< truncateLog (fromMaybe 100 maxHistory)
+receiveEvent maxHistory event = do
+  Log.debug [exon|listen: #{show event}|]
+  ifM (insertEvent event)
+    do
+      broadcast event
+      traverse_ logTruncation =<< truncateLog (fromMaybe 100 maxHistory)
+    do Log.debug [exon|Ignoring duplicate event: #{Event.describe event}|]
 
 -- |Re-broadcast an older event from the history at the given index (ordered by increasing age) and move it to the end
 -- of the history.
@@ -159,7 +161,7 @@ isNetworkCycle Event {..} = do
   name <- ask
   pure (name == sender && source == agentIdNet)
 
--- |Interpret 'History' as 'AtomicState', broadcasting to agents.
+-- |Interpret 'History' using 'AtomicState', broadcasting to agents.
 interpretHistory ::
   Members Agents r =>
   Members [Reader InstanceName, AtomicState (Seq Event), ChronosTime, Log] r =>
@@ -170,8 +172,9 @@ interpretHistory maxHistory =
     History.Get ->
       toList <$> atomicGet
     History.Receive event ->
-      unlessM (isNetworkCycle event) do
-        receiveEvent maxHistory event
+      ifM (isNetworkCycle event)
+        do Log.debug [exon|Ignoring network cycle event: #{Event.describe event}|]
+        do receiveEvent maxHistory event
     History.Load index -> do
-      e <- loadEvent index
-      e <$ traverse_ broadcast e
+      event <- loadEvent index
+      event <$ traverse_ broadcast event

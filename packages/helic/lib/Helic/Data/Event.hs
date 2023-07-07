@@ -7,6 +7,7 @@ import qualified Polysemy.Time as Time
 
 import Helic.Data.AgentId (AgentId)
 import Helic.Data.InstanceName (InstanceName)
+import Exon (exon)
 
 -- |The central data type representing a clipboard event.
 data Event =
@@ -34,3 +35,7 @@ now source content = do
   sender <- ask
   time <- Time.now
   pure Event {..}
+
+describe :: Event -> Text
+describe Event {..} =
+  [exon|##{sender}:##{source}|]
