@@ -26,7 +26,7 @@ import Helic.Effect.History (History)
 runAgent ::
   ∀ (tag :: AgentTag) r .
   AgentName tag =>
-  Member (Tagged tag Agent) r =>
+  Member (Agent @@ tag) r =>
   Event ->
   Sem r ()
 runAgent (Event _ (AgentId eId) _ _) | eId == agentName @tag =

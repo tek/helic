@@ -115,42 +115,35 @@ library
       NoFieldSelectors
   ghc-options: -fplugin=Polysemy.Plugin -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
-      aeson >=1.5
-    , base ==4.*
-    , chronos >=1.1.1
-    , exon >=0.3
-    , fast-logger >=3
-    , gi-gdk >=3
-    , gi-glib >=2
-    , gi-gtk >=3
-    , hostname >=1
-    , http-client >=0.5.14
-    , http-client-tls >=0.3.1
-    , optparse-applicative >=0.16
-    , path >=0.8
-    , path-io >=1.6
+      base ==4.*
+    , chronos >=1.1.1 && <1.2
+    , exon ==1.4.*
+    , fast-logger ==3.1.*
+    , gi-gdk >=3 && <3.1
+    , gi-glib >=2 && <2.1
+    , gi-gtk >=3 && <3.1
+    , hostname >=1 && <1.1
+    , optparse-applicative ==0.17.*
+    , path ==0.9.*
+    , path-io ==1.7.*
     , polysemy ==1.9.*
-    , polysemy-chronos >=0.3
-    , polysemy-conc >=0.6
-    , polysemy-http >=0.6
-    , polysemy-log >=0.5
+    , polysemy-chronos ==0.6.*
+    , polysemy-conc ==0.12.*
+    , polysemy-http ==0.11.*
+    , polysemy-log ==0.9.*
     , polysemy-plugin ==0.4.*
-    , polysemy-process >=0.6
-    , polysemy-time >=0.3
+    , polysemy-process ==0.12.*
+    , polysemy-time ==0.6.*
     , prelate ==0.5.*
-    , servant >=0.18
-    , servant-client >=0.18
-    , servant-client-core >=0.18
-    , servant-server >=0.18
-    , table-layout >=0.9
-    , template-haskell
-    , terminal-size >=0.3.2.1
+    , servant-client ==0.19.*
+    , servant-server ==0.19.*
+    , table-layout ==0.9.*
+    , terminal-size >=0.3.2.1 && <0.4
     , transformers
-    , typed-process >=0.2.6
-    , unix
-    , wai-extra >=3.1
-    , warp >=3.3
-    , yaml >=0.11
+    , typed-process >=0.2.6 && <0.3
+    , wai-extra ==3.1.*
+    , warp ==3.3.*
+    , yaml ==0.11.*
   mixins:
       base hiding (Prelude)
     , prelate (Prelate as Prelude)
@@ -260,22 +253,22 @@ test-suite helic-test
   ghc-options: -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
       base ==4.*
-    , chronos
+    , chronos >=1.1.1 && <1.2
     , containers
-    , exon
+    , exon ==1.4.*
     , helic
-    , path
+    , path ==0.9.*
     , polysemy ==1.9.*
-    , polysemy-chronos
-    , polysemy-conc
-    , polysemy-log
+    , polysemy-chronos ==0.6.*
+    , polysemy-conc ==0.12.*
+    , polysemy-log ==0.9.*
     , polysemy-plugin ==0.4.*
-    , polysemy-test
-    , polysemy-time
+    , polysemy-test ==0.7.*
+    , polysemy-time ==0.6.*
     , prelate ==0.5.*
-    , tasty
-    , torsor
-    , zeugma
+    , tasty ==1.4.*
+    , torsor ==0.1.*
+    , zeugma ==0.7.*
   mixins:
       base hiding (Prelude)
     , prelate (Prelate as Prelude)

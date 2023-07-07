@@ -4,7 +4,6 @@ module Helic.Interpreter.AgentTmux where
 import Exon (exon)
 import qualified Log
 import Path (Abs, File, Path, toFilePath)
-import Polysemy.Chronos (ChronosTime)
 import Polysemy.Process (Process, ProcessKill (KillAfter), interpretProcessByteString, interpretProcessNative_)
 import Polysemy.Process.Data.ProcessError (ProcessError)
 import Polysemy.Process.Data.ProcessOptions (ProcessOptions (kill))
@@ -15,6 +14,7 @@ import Time (MilliSeconds (MilliSeconds), convert)
 import qualified Helic.Data.TmuxConfig as TmuxConfig
 import Helic.Data.TmuxConfig (TmuxConfig)
 import Helic.Effect.Agent (Agent (Update), AgentTmux)
+import Helic.Interpreter.Agent (interpretAgentIf)
 import Helic.Tmux (sendToTmux)
 
 -- |Process definition for running `tmux load-buffer -`.
@@ -27,33 +27,31 @@ tmuxProc exe =
     cmd =
       maybe "tmux" toFilePath exe
 
--- |Consult the config as to whether tmux should be used, defaulting to true.
-enableTmux ::
-  Member (Reader TmuxConfig) r =>
-  Sem r Bool
-enableTmux =
-  fromMaybe True <$> asks (.enable)
-
+-- |Handle 'Agent' using a tmux server as the target.
 handleAgentTmux ::
-  Member (Scoped_ (Process ByteString o) !! ProcessError) r =>
-  Members [Reader TmuxConfig, Log, Async, Race, Resource, ChronosTime, Embed IO] r =>
+  Members [Scoped_ (Process ByteString o) !! ProcessError, Log] r =>
   Agent m a ->
   Sem r a
 handleAgentTmux (Update event) =
-  whenM enableTmux do
-    sendToTmux @_ @(_ _ : _) event !! \ (e :: ProcessError) ->
-      Log.error [exon|Sending to tmux: #{show e}|]
+  sendToTmux @_ @(_ _ : _) event !! \ (e :: ProcessError) ->
+    Log.error [exon|Sending to tmux: #{show e}|]
 
 -- |Interpret 'Agent' using a tmux server as the target.
 interpretAgentTmux ::
-  Members [Reader TmuxConfig, Log, Async, Race, Resource, ChronosTime, Embed IO] r =>
-  InterpreterFor (Tagged AgentTmux Agent) r
+  Members [Reader TmuxConfig, Log, Resource, Race, Async, Embed IO] r =>
+  InterpreterFor Agent r
 interpretAgentTmux sem = do
-  exe <- asks (.exe)
+  conf <- ask
   interpretProcessByteString $
-    interpretProcessNative_ options (tmuxProc exe) $
+    interpretProcessNative_ options (tmuxProc conf.exe) $
     interpret handleAgentTmux $
-    insertAt @1 $
-    untag sem 
+    insertAt @1 sem
   where
     options = def { kill = KillAfter (convert (MilliSeconds 500)) }
+
+-- | Interpret 'Agent' for tmux if it is enabled by the configuration.
+interpretAgentTmuxIfEnabled ::
+  Members [Reader TmuxConfig, Log, Resource, Race, Async, Embed IO] r =>
+  InterpreterFor (Agent @@ AgentTmux) r
+interpretAgentTmuxIfEnabled =
+  interpretAgentIf interpretAgentTmux

@@ -30,9 +30,9 @@ type AgentNet =
 -- |The default agents for the Helic CLI.
 type Agents =
   [
-    Tagged AgentTmux Agent,
-    Tagged AgentX Agent,
-    Tagged AgentNet Agent
+    Agent @@ AgentTmux,
+    Agent @@ AgentX,
+    Agent @@ AgentNet
   ]
 
 class AgentName (tag :: AgentTag) where

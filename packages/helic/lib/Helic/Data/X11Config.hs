@@ -12,6 +12,7 @@ json ''DisplayId
 
 data X11Config =
   X11Config {
+    enable :: Maybe Bool,
     display :: Maybe DisplayId
   }
   deriving stock (Eq, Show, Generic)

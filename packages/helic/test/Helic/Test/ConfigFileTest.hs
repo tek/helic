@@ -18,9 +18,9 @@ target =
     tmux =
       TmuxConfig (Just True) (Just [absfile|/bin/tmux|])
     net =
-      NetConfig (Just 10001) (Just 5) (Just ["remote:1000"])
+      NetConfig (Just True) (Just 10001) (Just 5) (Just ["remote:1000"])
     x =
-      X11Config (Just ":1")
+      X11Config (Just True) (Just ":1")
 
 test_readConfigFile :: UnitTest
 test_readConfigFile = do

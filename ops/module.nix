@@ -29,6 +29,7 @@ in {
     };
     verbose = mkEnableOption "Increase the log level.";
     net = {
+      enable = mkEnableOption "network propagation" // { default = true; };
       port = mkOption {
         type = types.port;
         default = 9500;
@@ -47,7 +48,7 @@ in {
       };
     };
     tmux = {
-      enable = mkEnableOption "Enable tmux integration";
+      enable = mkEnableOption "tmux integration" // { default = true; };
       package = mkOption {
         type = types.package;
         default = pkgs.tmux;
@@ -55,6 +56,7 @@ in {
       };
     };
     x11 = {
+      enable = mkEnableOption "X11 integration" // { default = true; };
       display = mkOption {
         type = types.str;
         default = ":0";
@@ -72,10 +74,12 @@ in {
       enable: ${if cfg.tmux.enable then "true" else "false"}
       ${if cfg.tmux.enable then "exe: ${cfg.tmux.package}/bin/tmux" else ""}
     net:
+      enable: ${if cfg.net.enable then "true" else "false"}
       port: ${toString cfg.net.port}
       hosts: [${concatMapStringsSep ", " (h: "'${h}'") cfg.net.hosts}]
       ${if cfg.net.timeout == null then "" else "timeout: ${toString cfg.net.timeout}"}
     x11:
+      enable: ${if cfg.x11.enable then "true" else "false"}
       display: ${cfg.x11.display}
     '';
     systemd.user.services.helic = {

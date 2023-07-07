@@ -8,6 +8,8 @@
 
   outputs = { self, hix, prelate, ... }: hix.lib.pro ({config, ...}: {
     depsFull = [prelate];
+    hackage.versionFile = "ops/version.nix";
+    compat.enable = false;
 
     cabal = {
       license = "BSD-2-Clause-Patent";
@@ -43,38 +45,31 @@
       library = {
         enable = true;
         dependencies = [
-          "aeson >= 1.5"
-          "chronos >= 1.1.1"
-          "exon >= 0.3"
-          "gi-gdk >= 3"
-          "gi-glib >= 2"
-          "gi-gtk >= 3"
-          "fast-logger >= 3"
-          "hostname >= 1"
-          "http-client >= 0.5.14"
-          "http-client-tls >= 0.3.1"
-          "optparse-applicative >= 0.16"
-          "path >= 0.8"
-          "path-io >= 1.6"
-          "polysemy-conc >= 0.6"
-          "polysemy-chronos >= 0.3"
-          "polysemy-http >= 0.6"
-          "polysemy-log >= 0.5"
-          "polysemy-process >= 0.6"
-          "polysemy-time >= 0.3"
-          "servant >= 0.18"
-          "servant-client >= 0.18"
-          "servant-client-core >= 0.18"
-          "servant-server >= 0.18"
-          "table-layout >= 0.9"
-          "template-haskell"
-          "terminal-size >= 0.3.2.1"
+          "chronos ^>= 1.1.1"
+          "exon ^>= 1.4"
+          "fast-logger ^>= 3.1"
+          "gi-gdk ^>= 3"
+          "gi-glib ^>= 2"
+          "gi-gtk ^>= 3"
+          "hostname ^>= 1"
+          "optparse-applicative ^>= 0.17"
+          "path ^>= 0.9"
+          "path-io ^>= 1.7"
+          "polysemy-chronos ^>= 0.6"
+          "polysemy-conc ^>= 0.12"
+          "polysemy-http ^>= 0.11"
+          "polysemy-log ^>= 0.9"
+          "polysemy-process ^>= 0.12"
+          "polysemy-time ^>= 0.6"
+          "servant-client ^>= 0.19"
+          "servant-server ^>= 0.19"
+          "table-layout ^>= 0.9"
+          "terminal-size ^>= 0.3.2.1"
           "transformers"
-          "typed-process >= 0.2.6"
-          "wai-extra >= 3.1"
-          "warp >= 3.3"
-          "unix"
-          "yaml >= 0.11"
+          "typed-process ^>= 0.2.6"
+          "wai-extra ^>= 3.1"
+          "warp ^>= 3.3"
+          "yaml ^>= 0.11"
         ];
       };
 
@@ -85,18 +80,18 @@
       test = {
         enable = true;
         dependencies = [
-          "exon"
-          "chronos"
+          "chronos ^>= 1.1.1"
           "containers"
-          "path"
-          "polysemy-chronos"
-          "polysemy-conc"
-          "polysemy-log"
-          "polysemy-test"
-          "polysemy-time"
-          "tasty"
-          "torsor"
-          "zeugma"
+          "exon ^>= 1.4"
+          "path ^>= 0.9"
+          "polysemy-chronos ^>= 0.6"
+          "polysemy-conc ^>= 0.12"
+          "polysemy-log ^>= 0.9"
+          "polysemy-test ^>= 0.7"
+          "polysemy-time ^>= 0.6"
+          "tasty ^>= 1.4"
+          "torsor ^>= 0.1"
+          "zeugma ^>= 0.7"
         ];
       };
 

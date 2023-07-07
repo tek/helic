@@ -1,3 +1,7 @@
+# Unreleased
+
+* Allow all agents to be disabled in the config file.
+
 # 0.5.3.0
 
 * Prevent events with timestamps older than the current history head from getting added to the history.

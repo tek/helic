@@ -12,7 +12,7 @@ import Helic.Data.NetConfig (NetConfig (NetConfig))
 
 conf :: Config
 conf =
-  Config (Just "dev") (Just def) (Just (NetConfig (Just 11111) Nothing Nothing)) Nothing Nothing (Just True)
+  Config (Just "dev") (Just def) (Just (NetConfig (Just True) (Just 11111) Nothing Nothing)) Nothing Nothing (Just True)
 
 main :: IO ()
 main =

@@ -60,7 +60,7 @@ The flake provides a *NixOS* module that can be used by adding it to `/etc/nixos
 
 ```nix
 {
-  inputs.helic.url = "github:/tek/helic";
+  inputs.helic.url = "github:tek/helic";
   outputs = { nixpkgs, helic, ... }: {
     nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
       modules = [helic.nixosModule];
@@ -128,6 +128,7 @@ name: myhost
 maxHistory: 1000
 verbose: true
 net:
+  enable: true
   port: 10001
   hosts:
     - "remote1:1000"
@@ -136,6 +137,9 @@ net:
 tmux:
   enable: true
   exe: /bin/tmux
+x11:
+  enable: true
+  display: ":0"
 ```
 
 For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
@@ -148,13 +152,18 @@ For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
     maxHistory = 1000;
     verbose = true;
     net = {
+      enable = true;
       port = 10001;
       hosts = ["remote1:1000" "remote2:2000"];
       timeout = 5;
     };
     tmux = {
       enable = true;
-      package = old.tmux;
+      package = pkgs.tmux;
+    };
+    x11 = {
+      enable = true;
+      display = ":0";
     };
   };
 }
@@ -168,12 +177,14 @@ The meaning of these options is:
 |`user`|null|Only for *NixOS*: If set, only start the service for that user.|
 |`maxHistory`|100|The number of yanks that should be kept.|
 |`verbose`||Increase the log level.|
+|`net.enable`|`true`|Whether to send events over the network.|
 |`net.port`|`9500`|The HTTP port the daemon listens to for both remote sync and `hel yank`.|
 |`net.hosts`|`[]`|The addresses (with port) of the hosts to which this instance should broadcast yank events.|
 |`net.timeout`|`300`|The timeout in milliseconds for requests to remote hosts.|
 |`tmux.enable`|`true`|Whether to send events to *tmux*.|
 |`tmux.package`|`pkgs.tmux`|Only for *NixOS*: The `nixpkgs` package used for the *tmux* executable.|
 |`tmux.exe`|`tmux`|Only for YAML file: The path to the *tmux* executable|
+|`x11.enable`|`true`|Whether to synchronize the X11 clipboard.|
 |`x11.display`|`:0`|The display identifier used when connecting to the default display via GTK fails.|
 
 # Neovim
