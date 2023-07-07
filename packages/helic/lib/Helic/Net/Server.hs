@@ -5,6 +5,7 @@ module Helic.Net.Server where
 
 import Control.Monad.Trans.Except (ExceptT (ExceptT))
 import Exon (exon)
+import qualified Log
 import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Handler.Warp (
   defaultSettings,
@@ -17,9 +18,7 @@ import Network.Wai.Handler.Warp (
 import qualified Network.Wai.Middleware.RequestLogger as Logger
 import Network.Wai.Middleware.RequestLogger (destination, mkRequestLogger)
 import qualified Polysemy.Conc.Effect.Interrupt as Interrupt
-import qualified Polysemy.Conc.Sync as Sync
 import Polysemy.Final (withWeavingToFinal)
-import qualified Polysemy.Log as Log
 import Servant (
   Context,
   DefaultErrorFormatters,
@@ -34,6 +33,7 @@ import Servant (
   serveWithContext,
   type (.++),
   )
+import qualified Sync
 import System.Log.FastLogger (fromLogStr)
 
 newtype ApiError =

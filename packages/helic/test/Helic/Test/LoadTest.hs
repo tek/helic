@@ -1,9 +1,9 @@
 module Helic.Test.LoadTest where
 
-import Polysemy.Chronos (ChronosTime, interpretTimeChronosConstant)
-import Polysemy.Conc (interpretAtomic)
-import Polysemy.Log (interpretLogNull)
-import Polysemy.Test (UnitTest, assertEq, assertJust, runTestAuto)
+import Conc (interpretAtomic)
+import Polysemy.Chronos (ChronosTime)
+import Polysemy.Test (UnitTest, assertEq, assertJust)
+import Zeugma (runTestFrozen)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
@@ -13,7 +13,6 @@ import Helic.Effect.Agent (AgentNet, AgentTmux, AgentX)
 import qualified Helic.Effect.History as History
 import Helic.Interpreter.Agent (interpretAgent)
 import Helic.Interpreter.History (interpretHistory)
-import Helic.Test.Fixtures (testTime)
 
 event ::
   Members [ChronosTime, Reader InstanceName] r =>
@@ -24,9 +23,7 @@ event n =
 
 test_load :: UnitTest
 test_load =
-  runTestAuto $
-  interpretTimeChronosConstant testTime $
-  interpretLogNull $
+  runTestFrozen $
   runReader "test" $
   interpretAtomic def $
   interpretAgent @AgentNet (const unit) $
@@ -37,4 +34,4 @@ test_load =
     ev5 <- event 6
     assertJust ev5 =<< History.load 4
     assertEq Nothing =<< History.load 11
-    assertEq (show <$> ([1..5] ++ [7..10] ++ [6 :: Int])) . fmap Event.content =<< History.get
+    assertEq (show <$> ([1..5] ++ [7..10] ++ [6 :: Int])) . fmap (.content) =<< History.get

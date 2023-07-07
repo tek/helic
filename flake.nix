@@ -2,68 +2,126 @@
   description = "Clipboard Manager";
 
   inputs = {
-    hix.url = github:tek/hix;
-    incipit.url = github:tek/incipit;
+    hix.url = "git+https://git.tryp.io/tek/hix";
+    prelate.url = "git+https://git.tryp.io/tek/prelate";
   };
 
-  outputs = { self, hix, incipit, ... }:
-  let
-    gtkDeps = pkgs: with pkgs; [
-      pkgconfig
-      gobject-introspection
-    ];
+  outputs = { self, hix, prelate, ... }: hix.lib.pro ({config, ...}: {
+    depsFull = [prelate];
 
-    all = { transform_, pkgs, unbreak, hackage, source, ... }: {
-      exon = hackage "0.3.0.0" "0jgpj8818nhwmb3271ixid38mx11illlslyi69s4m0ws138v6i18";
-      flatparse = unbreak;
-      helic = transform_ (d: d.overrideAttrs (old: { buildInputs = old.buildInputs ++ gtkDeps pkgs; }));
-      polysemy-chronos = hackage "0.4.0.0" "0dckfpz7ww1f96wgbl3i05s1il55bqyyz4kix5lwqrx1zcn8dvvk";
-      polysemy-http = hackage "0.7.0.0" "13p6b3c6g8p4x05gs304qg72i58dhdlxbir00izsrcd0228vyb3q";
-      polysemy-process = hackage "0.8.0.1" "1djh95amqz1ncyiyb8digc9xn2hlny9xgqpv7myqk81syg1rfvw5";
+    cabal = {
+      license = "BSD-2-Clause-Patent";
+      license-file = "LICENSE";
+      author = "Torsten Schmits";
+      prelude = {
+        enable = true;
+        package = {
+          name = "prelate";
+          version = "^>= 0.5";
+        };
+        module = "Prelate";
+      };
+      meta = {
+        maintainer = "hackage@tryp.io";
+        category = "Clipboard";
+        github = "tek/helic";
+        extra-source-files = ["readme.md" "changelog.md"];
+      };
+      ghc-options = ["-fplugin=Polysemy.Plugin"];
+      dependencies = [
+        "polysemy ^>= 1.9"
+        "polysemy-plugin ^>= 0.4"
+      ];
     };
 
-    dev = { hackage, ... }: {
-      polysemy = hackage "1.7.1.0" "0qwli1kx3hk68hqsgw65mk81bx0djw1wlk17v8ggym7mf3lailyc";
-      polysemy-plugin = hackage "0.4.3.0" "1r7j1ffsd6z2q2fgpg78brl2gb0dg8r5ywfiwdrsjd2fxkinjcg1";
+    packages.helic = {
+      src = ./packages/helic;
+      cabal = {
+        meta.synopsis = "Clipboard Manager";
+      };
+
+      library = {
+        enable = true;
+        dependencies = [
+          "aeson >= 1.5"
+          "chronos >= 1.1.1"
+          "exon >= 0.3"
+          "gi-gdk >= 3"
+          "gi-glib >= 2"
+          "gi-gtk >= 3"
+          "fast-logger >= 3"
+          "hostname >= 1"
+          "http-client >= 0.5.14"
+          "http-client-tls >= 0.3.1"
+          "optparse-applicative >= 0.16"
+          "path >= 0.8"
+          "path-io >= 1.6"
+          "polysemy-conc >= 0.6"
+          "polysemy-chronos >= 0.3"
+          "polysemy-http >= 0.6"
+          "polysemy-log >= 0.5"
+          "polysemy-process >= 0.6"
+          "polysemy-time >= 0.3"
+          "servant >= 0.18"
+          "servant-client >= 0.18"
+          "servant-client-core >= 0.18"
+          "servant-server >= 0.18"
+          "table-layout >= 0.9"
+          "template-haskell"
+          "terminal-size >= 0.3.2.1"
+          "transformers"
+          "typed-process >= 0.2.6"
+          "wai-extra >= 3.1"
+          "warp >= 3.3"
+          "unix"
+          "yaml >= 0.11"
+        ];
+      };
+
+      executables.hel = {
+        source-dirs = "app";
+      };
+
+      test = {
+        enable = true;
+        dependencies = [
+          "exon"
+          "chronos"
+          "containers"
+          "path"
+          "polysemy-chronos"
+          "polysemy-conc"
+          "polysemy-log"
+          "polysemy-test"
+          "polysemy-time"
+          "tasty"
+          "torsor"
+          "zeugma"
+        ];
+      };
+
     };
 
-    outputs = hix.lib.flake ({ config, lib, ... }: {
-      base = ./.;
-      packages.helic = ./packages/helic;
-      overrides = { inherit all dev; };
-      depsFull = [incipit];
-      devGhc.compiler = "ghc8107";
-      compat.enable = false;
+    ghci = {
+      setup.listen = ''
+      :set args --verbose listen
+      :load Helic.Cli
+      import Helic.Cli (app)
+      '';
+
+      run.listen = "app";
+    };
+
+    commands.listen = {
       ghci = {
-        args = ["-fplugin=Polysemy.Plugin"];
-        preludePackage = "incipit";
+        enable = true;
+        ghcid = true;
+        runner = "listen";
+        package = "helic";
+        component = "app";
       };
-      hpack.packages.helic = import ./ops/hpack.nix { inherit config; };
-      hackage.versionFile = "ops/version.nix";
-      ghcid = {
-        commands = {
-          listen = {
-            script = ''
-            :set args --verbose listen
-            :load Helic.Cli
-            import Helic.Cli (app)
-            '';
-            test = "app";
-          };
-        };
-        shellConfig = {
-          buildInputs = gtkDeps config.devGhc.pkgs;
-          haskellPackages = g: [g.hsc2hs];
-        };
-      };
-      output.amend = _: outputs: rec {
-        apps.hel = {
-          type = "app";
-          program = "${outputs.packages.helic}/bin/hel";
-        };
-        defaultApp = apps.hel;
-      };
-    });
+      expose = true;
+    };
 
-  in outputs // { nixosModule = import ./ops/module.nix self; };
+  }) // { nixosModule = import ./ops/module.nix self; };
 }

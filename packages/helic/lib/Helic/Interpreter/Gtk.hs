@@ -5,7 +5,6 @@ module Helic.Interpreter.Gtk where
 import Exon (exon)
 import qualified GI.Gdk as GiGdk
 import qualified GI.Gtk as GiGtk
-import Polysemy.Conc (interpretScopedResumable)
 import qualified Polysemy.Log as Log
 
 import Helic.Data.X11Config (DisplayId (DisplayId), X11Config (X11Config))
@@ -52,7 +51,7 @@ bracketGtk fallbackDisplay =
       getDisplay
     release display = do
       Log.debug "Quitting the GTK main loop"
-      ignoreException do
+      tryAny_ do
         GiGdk.displayFlush display
         GiGdk.displayClose display
       tryStop GiGtk.mainQuit
@@ -62,9 +61,9 @@ bracketGtk fallbackDisplay =
 interpretGtk ::
   Members [Resource, Log, Embed IO] r =>
   X11Config ->
-  InterpreterFor (Scoped GiGdk.Display (Gtk GiGdk.Display) !! Text) r
+  InterpreterFor (Scoped_ (Gtk GiGdk.Display) !! Text) r
 interpretGtk (X11Config fallbackDisplay) =
-  interpretScopedResumable (bracketGtk (fromMaybe ":0" fallbackDisplay)) \ display -> \case
+  interpretScopedResumable (const (bracketGtk (fromMaybe ":0" fallbackDisplay))) \ display -> \case
     Gtk.Main ->
       GiGtk.main
     Gtk.Resource ->

@@ -11,10 +11,10 @@ import Helic.Interpreter.GtkMain (interpretWithGtk)
 
 -- |Specialization of 'scoped' to 'GtkClipboard' for syntactic sugar.
 withGtkClipboard ::
-  Member (Scoped resource GtkClipboard) r =>
+  Member (Scoped_ GtkClipboard) r =>
   InterpreterFor GtkClipboard r
 withGtkClipboard =
-  scoped
+  scoped_
 
 -- |This handler for 'GtkClipboard' depends on a 'Display', which should optimally be provided by a 'Scoped'
 -- interpreter to ensure safe acquisition of the resource.
@@ -39,6 +39,6 @@ handleGtkClipboard display = \case
 -- |Native interpreter for 'GtkClipboard' that requires the effect to be used within a 'withGtkClipboard' region.
 interpretGtkClipboard ::
   Members [GtkMain Display, Log, Embed IO, Final IO] r =>
-  InterpreterFor (Scoped Display GtkClipboard !! Text) r
+  InterpreterFor (Scoped_ GtkClipboard !! Text) r
 interpretGtkClipboard =
   interpretWithGtk handleGtkClipboard

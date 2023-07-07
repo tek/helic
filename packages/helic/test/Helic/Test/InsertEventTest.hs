@@ -1,21 +1,20 @@
 module Helic.Test.InsertEventTest where
 
 import qualified Chronos
-import Chronos (datetimeToTime)
 import Data.Sequence ((|>))
 import Exon (exon)
-import Polysemy.Chronos (interpretTimeChronosConstant)
-import Polysemy.Test (UnitTest, assertJust, runTestAuto, (===))
-import qualified Polysemy.Time as Time
-import Polysemy.Time (Days (Days), Hours (Hours), MilliSeconds (MilliSeconds), convert, mkDatetime)
+import Polysemy.Test (UnitTest, assertJust, (===))
+import qualified Time
+import Time (Days (Days), Hours (Hours), MilliSeconds (MilliSeconds), convert)
 import Torsor (add)
+import Zeugma (runTestFrozen, testTime)
 
 import Helic.Data.Event (Event (Event))
 import Helic.Interpreter.History (appendIfValid)
 
 old :: Chronos.Time
 old =
-  datetimeToTime (mkDatetime 2000 1 1 0 0 0)
+  add (convert (-(Days 1))) testTime
 
 event1 :: Event
 event1 =
@@ -39,7 +38,7 @@ historyLatest =
 
 test_insertEvent :: UnitTest
 test_insertEvent =
-  runTestAuto $ interpretTimeChronosConstant (add (convert (Days 1)) old) do
+  runTestFrozen do
     now <- Time.now
     assertJust [Event "me" "test" now "string"] (appendIfValid now (Event "me" "test" now "string") mempty)
     Nothing === appendIfValid now event1 historyLatest

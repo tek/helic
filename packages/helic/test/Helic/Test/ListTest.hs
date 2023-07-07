@@ -1,15 +1,14 @@
 module Helic.Test.ListTest where
 
 import Exon(exon)
-import Polysemy.Chronos (interpretTimeChronosConstant)
-import Polysemy.Test (UnitTest, assertRight, runTestAuto)
+import Polysemy.Test (UnitTest, assertRight)
+import Zeugma (runTestFrozen)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
 import Helic.Data.ListConfig (ListConfig (ListConfig))
 import Helic.Interpreter.Client (interpretClientConst)
 import Helic.List (buildList)
-import Helic.Test.Fixtures (testTime)
 
 eventContents :: [Text]
 eventContents =
@@ -38,8 +37,7 @@ target =
 
 test_list :: UnitTest
 test_list =
-  runTestAuto $
-  interpretTimeChronosConstant testTime $
+  runTestFrozen $
   runReader "test" $
   runReader (ListConfig (Just 3)) do
     events <- traverse (Event.now (AgentId "nvim")) eventContents

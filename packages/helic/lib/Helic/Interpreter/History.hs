@@ -8,11 +8,10 @@ import qualified Data.Sequence as Seq
 import Data.Sequence (Seq ((:|>)), (!?), (|>))
 import qualified Data.Text as Text
 import Exon (exon)
+import qualified Log
 import Polysemy.Chronos (ChronosTime)
-import qualified Polysemy.Log as Log
-import qualified Polysemy.Time as Time
-import Polysemy.Time (Seconds (Seconds), convert)
-import Polysemy.Time.Diff (diff)
+import qualified Time
+import Time (MilliSeconds (MilliSeconds), diff)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
@@ -54,10 +53,10 @@ inRecent ::
   Seq Event ->
   Bool
 inRecent now (Event _ _ _ c) =
-  any ((c ==) . Event.content) . Seq.takeWhileR newer
+  any ((c ==) . (.content)) . Seq.takeWhileR newer
   where
     newer (Event _ _ t _) =
-      diff now t <= convert (Seconds 1)
+      diff now t <= MilliSeconds 1000
 
 sanitizeNewlines :: Text -> Text
 sanitizeNewlines =

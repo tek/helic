@@ -63,7 +63,7 @@ buildList ::
   Sem r String
 buildList = do
   history <- fromEither =<< Client.get
-  limit <- asks ListConfig.limit
+  limit <- asks (.limit)
   let
     dropper l =
       drop (length history - l)

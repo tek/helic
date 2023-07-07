@@ -8,8 +8,8 @@ import qualified GI.GLib as Glib
 import qualified GI.Gdk as GiGdk
 import GI.Gdk (Display)
 import qualified GI.Gtk as GiGtk
+import qualified Log
 import Polysemy.Final (withWeavingToFinal)
-import qualified Polysemy.Log as Log
 
 import qualified Helic.Data.Selection as Selection
 import Helic.Data.Selection (Selection)

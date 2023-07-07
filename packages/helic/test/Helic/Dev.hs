@@ -1,12 +1,12 @@
 module Helic.Dev where
 
-import Polysemy.Conc (withAsync_)
-import qualified Polysemy.Time as Time
-import Polysemy.Time (Seconds (Seconds))
+import Conc (withAsync_)
+import Log (Severity (Trace))
 import System.Environment (setEnv)
+import qualified Time
+import Time (Seconds (Seconds))
 
 import Helic.App (listenApp)
-import Helic.Cli (interpretLog, runIO)
 import Helic.Data.Config (Config (Config))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 
@@ -16,7 +16,7 @@ conf =
 
 main :: IO ()
 main =
-  runIO (withAsync_ setenv (interpretLog (Just True) (listenApp conf)))
+  runAppLevel Trace (withAsync_ setenv (listenApp conf))
   where
     setenv =
       Time.sleep (Seconds 12) *> embed (setEnv "DISPLAY" ":0")

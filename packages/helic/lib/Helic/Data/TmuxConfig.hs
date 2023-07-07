@@ -4,7 +4,6 @@
 module Helic.Data.TmuxConfig where
 
 import Path (Abs, File, Path)
-import Polysemy.Time.Json (json)
 
 data TmuxConfig =
   TmuxConfig {

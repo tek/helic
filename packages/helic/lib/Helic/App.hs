@@ -4,13 +4,11 @@
 -- Internal.
 module Helic.App where
 
-import Conc (Critical, interpretAtomic, interpretEventsChan, interpretSync, withAsync_)
-import Polysemy.Chronos (ChronosTime)
-import qualified Polysemy.Conc as Conc
+import qualified Conc
+import Conc (interpretAtomic, interpretEventsChan, interpretSync, withAsync_)
 import Polysemy.Http (Manager)
 import Polysemy.Http.Interpreter.Manager (interpretManager)
-import Polysemy.Log (Logger)
-import Polysemy.Time (GhcTime, MilliSeconds (MilliSeconds), Seconds (Seconds))
+import Time (MilliSeconds (MilliSeconds), Seconds (Seconds))
 
 import Helic.Data.Config (Config (Config))
 import Helic.Data.Event (Event)
@@ -37,24 +35,6 @@ import Helic.Interpreter.XClipboard (interpretXClipboardGtk)
 import Helic.List (list)
 import Helic.Net.Api (serve)
 import Helic.Yank (yank)
-
-type IOStack =
-  [
-    Error Text,
-    Logger,
-    Interrupt,
-    Critical,
-    ChronosTime,
-    GhcTime,
-    Race,
-    Async,
-    Resource,
-    Embed IO,
-    Final IO
-  ]
-
-type AppStack =
-    Log : IOStack
 
 listenApp ::
   Config ->

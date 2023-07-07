@@ -1,12 +1,12 @@
 module Helic.Test.GtkMainTest where
 
+import Conc (interpretAtomic, interpretEventsChan)
 import qualified Data.Set as Set
-import Polysemy.Chronos (ChronosTime, interpretTimeChronos)
-import Polysemy.Conc (interpretAtomic, interpretEventsChan, interpretRace, interpretScopedResumable)
-import Polysemy.Log (interpretLogNull)
-import Polysemy.Test (Hedgehog, UnitTest, assertEq, evalEither, runTestAuto)
-import qualified Polysemy.Time as Time
-import Polysemy.Time (MilliSeconds (MilliSeconds), Seconds (Seconds))
+import Polysemy.Chronos (ChronosTime)
+import Polysemy.Test (UnitTest, assertEq)
+import qualified Time
+import Time (MilliSeconds (MilliSeconds), Seconds (Seconds))
+import Zeugma (runTest)
 
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
@@ -48,23 +48,17 @@ bracketGtk f = do
 
 interpretGtk ::
   Members [AtomicState Bool, ChronosTime] r =>
-  InterpreterFor (Scoped () (Gtk ()) !! Text) r
+  InterpreterFor (Scoped_ (Gtk ()) !! Text) r
 interpretGtk =
-  interpretScopedResumable bracketGtk \ () -> \case
+  interpretScopedResumable (const bracketGtk) \ () -> \case
     Gtk.Main ->
       Time.sleep (Seconds 10)
     Gtk.Resource ->
       unit
 
-gtkMainTest ::
-  Members [Hedgehog IO, Resource, Embed IO, Final IO] r =>
-  Sem r (Either Text ())
-gtkMainTest =
-  asyncToIOFinal $
-  errorToIOFinal $
-  interpretRace $
-  interpretTimeChronos $
-  interpretLogNull $
+test_gtkMain :: UnitTest
+test_gtkMain =
+  runTest $
   interpretInstanceName (Just "test") $
   interpretEventsChan @XClipboardEvent $
   interpretEventsChan @Event $
@@ -81,7 +75,3 @@ gtkMainTest =
     let pub = tag @AgentX . Agent.update <=< Event.now agentIdNet . show
     sequenceConcurrently @[] (pub <$> [1..5 :: Int])
     assertEq ["1", "2", "3", "4", "5"] . Set.fromList =<< atomicGet @[Text]
-
-test_gtkMain :: UnitTest
-test_gtkMain =
-  runTestAuto (evalEither =<< gtkMainTest)

@@ -3,8 +3,6 @@
 -- |Config Data Type, Internal
 module Helic.Data.Config where
 
-import Polysemy.Time.Json (json)
-
 import Helic.Data.NetConfig (NetConfig)
 import Helic.Data.TmuxConfig (TmuxConfig)
 import Helic.Data.X11Config (X11Config)

@@ -1,19 +1,11 @@
 module Helic.Test.ListenTest where
 
+import qualified Conc
+import Conc (interpretAtomic, interpretEventsChan, interpretQueueTBM, interpretSync, resultToMaybe)
 import qualified Data.Set as Set
-import Polysemy.Chronos (interpretTimeChronosConstant)
-import qualified Polysemy.Conc as Conc
-import Polysemy.Conc (
-  interpretAtomic,
-  interpretEventsChan,
-  interpretQueueTBM,
-  interpretRace,
-  interpretSync,
-  resultToMaybe,
-  )
-import qualified Polysemy.Conc.Queue as Queue
-import Polysemy.Log (interpretLogNull)
-import Polysemy.Test (UnitTest, assertEq, assertJust, runTestAuto)
+import Polysemy.Test (UnitTest, assertEq, assertJust)
+import qualified Queue
+import Zeugma (runTestFrozen, testTime)
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
@@ -22,10 +14,9 @@ import Helic.Effect.Agent (AgentNet, AgentTmux, AgentX)
 import Helic.Interpreter.Agent (interpretAgent)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Listen (withListen)
-import Helic.Test.Fixtures (testTime)
 
 handleNet ::
-  Member (Events res Event) r =>
+  Member (Events Event) r =>
   Event ->
   Sem r ()
 handleNet (Event {..}) =
@@ -40,11 +31,7 @@ handleLog Event {content} =
 
 test_listen :: UnitTest
 test_listen =
-  runTestAuto $
-  asyncToIOFinal $
-  interpretRace $
-  interpretLogNull $
-  interpretTimeChronosConstant testTime $
+  runTestFrozen $
   interpretEventsChan $
   interpretAtomic def $
   interpretQueueTBM 64 $

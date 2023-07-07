@@ -3,14 +3,14 @@
 -- |HTTP Client, Internal
 module Helic.Net.Client where
 
+import qualified Conc
 import Exon (exon)
-import qualified Polysemy.Conc as Conc
+import qualified Log
 import Polysemy.Http (Manager)
 import qualified Polysemy.Http.Effect.Manager as Manager
-import qualified Polysemy.Log as Log
-import Polysemy.Time (MilliSeconds (MilliSeconds))
 import Servant (NoContent, type (:<|>) ((:<|>)))
 import Servant.Client (BaseUrl, ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
+import Time (MilliSeconds (MilliSeconds))
 
 import Helic.Data.Event (Event)
 import Helic.Data.Host (Host (Host))
@@ -46,7 +46,7 @@ localhost ::
   Member (Reader NetConfig) r =>
   Sem r Host
 localhost = do
-  port <- asks NetConfig.port
+  port <- asks (.port)
   pure (Host [exon|localhost:#{show (fromMaybe defaultPort port)}|])
 
 localhostUrl ::

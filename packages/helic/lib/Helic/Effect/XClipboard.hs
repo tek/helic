@@ -2,6 +2,8 @@
 -- |The XClipboard Effect
 module Helic.Effect.XClipboard where
 
+import Prelude hiding (set)
+
 import Helic.Data.Selection (Selection)
 
 -- |Communicate with the X11 clipboard.

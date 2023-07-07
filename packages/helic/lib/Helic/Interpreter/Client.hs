@@ -23,7 +23,7 @@ interpretClientNet =
       bimap show toList <$> embed (runClientM Api.get env)
     Yank event -> do
       host <- localhost
-      timeout <- asks NetConfig.timeout
+      timeout <- asks (.timeout)
       runError (sendTo timeout host event)
     Load event -> do
       env <- mkClientEnv <$> Manager.get <*> localhostUrl

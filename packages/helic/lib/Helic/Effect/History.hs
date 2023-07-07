@@ -1,6 +1,8 @@
 -- |History Effect, Internal
 module Helic.Effect.History where
 
+import Prelude hiding (get)
+
 import Helic.Data.Event (Event)
 
 -- |The core actions of the 'Event' history.

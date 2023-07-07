@@ -5,7 +5,7 @@ module Helic.Config.File where
 
 import Data.Yaml (decodeFileEither, prettyPrintParseException)
 import Exon (exon)
-import Path (Abs, File, Path, Rel, absfile, relfile, toFilePath, (</>))
+import Path (Abs, File, Path, absfile, relfile, toFilePath, (</>))
 import Path.IO (XdgDirectory (XdgConfig), doesFileExist, getXdgDir)
 import qualified Polysemy.Log as Log
 

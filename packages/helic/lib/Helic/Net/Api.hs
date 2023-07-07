@@ -42,5 +42,5 @@ serve ::
   Members [History, Reader NetConfig, Sync ServerReady, Log, Interrupt, Final IO] r =>
   Sem r ()
 serve = do
-  port <- asks NetConfig.port
+  port <- asks (.port)
   runServerWithContext @Api server EmptyContext (fromMaybe defaultPort port)

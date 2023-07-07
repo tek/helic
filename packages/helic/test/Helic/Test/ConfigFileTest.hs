@@ -1,6 +1,6 @@
 module Helic.Test.ConfigFileTest where
 
-import Path (Abs, File, Rel, absfile, relfile)
+import Path (absfile, relfile)
 import Polysemy.Log (interpretLogNull)
 import Polysemy.Test (UnitTest, assertRight, runTestAuto)
 import qualified Polysemy.Test.Data.Test as Test

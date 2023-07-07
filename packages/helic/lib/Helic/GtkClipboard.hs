@@ -13,7 +13,7 @@ import Helic.Interpreter.GtkClipboard (withGtkClipboard)
 -- |Registers a callback with GTK's clipboard event system that converts each update into an 'XClipboardEvent' published
 -- through 'Events'.
 subscribeEvents ::
-  Members [Scoped s GtkClipboard !! Text, Events res XClipboardEvent, Log] r =>
+  Members [Scoped_ GtkClipboard !! Text, Events XClipboardEvent, Log] r =>
   Sem r ()
 subscribeEvents =
   resuming failure $ withGtkClipboard do

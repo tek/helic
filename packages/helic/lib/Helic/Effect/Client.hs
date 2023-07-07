@@ -1,6 +1,8 @@
 -- |Client Effect, Internal
 module Helic.Effect.Client where
 
+import Prelude hiding (get)
+
 import Helic.Data.Event (Event)
 
 -- |An abstraction of the API, used by the @list@ command.

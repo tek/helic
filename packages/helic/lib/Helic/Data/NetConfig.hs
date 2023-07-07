@@ -3,8 +3,6 @@
 -- |NetConfig Data Type, Internal
 module Helic.Data.NetConfig where
 
-import Polysemy.Time.Json (json)
-
 import Helic.Data.Host (Host)
 
 newtype Timeout =

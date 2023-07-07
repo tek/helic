@@ -1,19 +1,19 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.34.6.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
 name:           helic
-version:        0.5.3.0
+version:        0.1.0.0
 synopsis:       Clipboard Manager
-description:    See <https://hackage.haskell.org/package/helic/docs/Helic.html>
+description:    See https://hackage.haskell.org/package/helic/docs/Helic.html
 category:       Clipboard
 homepage:       https://github.com/tek/helic#readme
 bug-reports:    https://github.com/tek/helic/issues
 author:         Torsten Schmits
 maintainer:     hackage@tryp.io
-copyright:      2022 Torsten Schmits
+copyright:      2023 Torsten Schmits
 license:        BSD-2-Clause-Patent
 license-file:   LICENSE
 build-type:     Simple
@@ -68,7 +68,6 @@ library
       Helic.Interpreter.History
       Helic.Interpreter.InstanceName
       Helic.Interpreter.XClipboard
-      Helic.Json
       Helic.List
       Helic.Listen
       Helic.Net.Api
@@ -82,67 +81,42 @@ library
   default-extensions:
       AllowAmbiguousTypes
       ApplicativeDo
-      BangPatterns
-      BinaryLiterals
       BlockArguments
-      ConstraintKinds
       DataKinds
       DefaultSignatures
       DeriveAnyClass
-      DeriveDataTypeable
-      DeriveFoldable
-      DeriveFunctor
-      DeriveGeneric
-      DeriveLift
-      DeriveTraversable
       DerivingStrategies
       DerivingVia
       DisambiguateRecordFields
-      DoAndIfThenElse
       DuplicateRecordFields
-      EmptyDataDecls
-      ExistentialQuantification
-      FlexibleContexts
-      FlexibleInstances
       FunctionalDependencies
       GADTs
-      GeneralizedNewtypeDeriving
-      InstanceSigs
-      KindSignatures
       LambdaCase
       LiberalTypeSynonyms
-      MultiParamTypeClasses
       MultiWayIf
-      NamedFieldPuns
-      OverloadedStrings
+      OverloadedLabels
       OverloadedLists
+      OverloadedStrings
       PackageImports
       PartialTypeSignatures
-      PatternGuards
       PatternSynonyms
-      PolyKinds
       QuantifiedConstraints
       QuasiQuotes
-      RankNTypes
       RecordWildCards
       RecursiveDo
       RoleAnnotations
-      ScopedTypeVariables
-      StandaloneDeriving
       TemplateHaskell
-      TupleSections
-      TypeApplications
       TypeFamilies
       TypeFamilyDependencies
-      TypeOperators
-      TypeSynonymInstances
       UndecidableInstances
       UnicodeSyntax
       ViewPatterns
-  ghc-options: -Wall -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin
+      OverloadedRecordDot
+      NoFieldSelectors
+  ghc-options: -fplugin=Polysemy.Plugin -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
       aeson >=1.5
-    , base >=4.12 && <5
+    , base ==4.*
     , chronos >=1.1.1
     , exon >=0.3
     , fast-logger >=3
@@ -152,18 +126,18 @@ library
     , hostname >=1
     , http-client >=0.5.14
     , http-client-tls >=0.3.1
-    , incipit >=0.1.0.3
     , optparse-applicative >=0.16
     , path >=0.8
     , path-io >=1.6
-    , polysemy >=1.6
+    , polysemy ==1.9.*
     , polysemy-chronos >=0.3
     , polysemy-conc >=0.6
     , polysemy-http >=0.6
     , polysemy-log >=0.5
-    , polysemy-plugin >=0.4
+    , polysemy-plugin ==0.4.*
     , polysemy-process >=0.6
     , polysemy-time >=0.3
+    , prelate ==0.5.*
     , servant >=0.18
     , servant-client >=0.18
     , servant-client-core >=0.18
@@ -179,7 +153,9 @@ library
     , yaml >=0.11
   mixins:
       base hiding (Prelude)
-  default-language: Haskell2010
+    , prelate (Prelate as Prelude)
+    , prelate hiding (Prelate)
+  default-language: GHC2021
 
 executable hel
   main-is: Main.hs
@@ -188,81 +164,57 @@ executable hel
   default-extensions:
       AllowAmbiguousTypes
       ApplicativeDo
-      BangPatterns
-      BinaryLiterals
       BlockArguments
-      ConstraintKinds
       DataKinds
       DefaultSignatures
       DeriveAnyClass
-      DeriveDataTypeable
-      DeriveFoldable
-      DeriveFunctor
-      DeriveGeneric
-      DeriveLift
-      DeriveTraversable
       DerivingStrategies
       DerivingVia
       DisambiguateRecordFields
-      DoAndIfThenElse
       DuplicateRecordFields
-      EmptyDataDecls
-      ExistentialQuantification
-      FlexibleContexts
-      FlexibleInstances
       FunctionalDependencies
       GADTs
-      GeneralizedNewtypeDeriving
-      InstanceSigs
-      KindSignatures
       LambdaCase
       LiberalTypeSynonyms
-      MultiParamTypeClasses
       MultiWayIf
-      NamedFieldPuns
-      OverloadedStrings
+      OverloadedLabels
       OverloadedLists
+      OverloadedStrings
       PackageImports
       PartialTypeSignatures
-      PatternGuards
       PatternSynonyms
-      PolyKinds
       QuantifiedConstraints
       QuasiQuotes
-      RankNTypes
       RecordWildCards
       RecursiveDo
       RoleAnnotations
-      ScopedTypeVariables
-      StandaloneDeriving
       TemplateHaskell
-      TupleSections
-      TypeApplications
       TypeFamilies
       TypeFamilyDependencies
-      TypeOperators
-      TypeSynonymInstances
       UndecidableInstances
       UnicodeSyntax
       ViewPatterns
-  ghc-options: -Wall -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N
+      OverloadedRecordDot
+      NoFieldSelectors
+  ghc-options: -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
-      base >=4.12 && <5
+      base ==4.*
     , helic
-    , incipit >=0.1.0.3
-    , polysemy >=1.6
-    , polysemy-plugin >=0.4
+    , polysemy ==1.9.*
+    , polysemy-plugin ==0.4.*
+    , prelate ==0.5.*
   mixins:
       base hiding (Prelude)
-  default-language: Haskell2010
+    , prelate (Prelate as Prelude)
+    , prelate hiding (Prelate)
+  default-language: GHC2021
 
-test-suite helic-unit
+test-suite helic-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
       Helic.Dev
       Helic.Test.ConfigFileTest
-      Helic.Test.Fixtures
       Helic.Test.GtkMainTest
       Helic.Test.InsertEventTest
       Helic.Test.ListenTest
@@ -273,81 +225,59 @@ test-suite helic-unit
   default-extensions:
       AllowAmbiguousTypes
       ApplicativeDo
-      BangPatterns
-      BinaryLiterals
       BlockArguments
-      ConstraintKinds
       DataKinds
       DefaultSignatures
       DeriveAnyClass
-      DeriveDataTypeable
-      DeriveFoldable
-      DeriveFunctor
-      DeriveGeneric
-      DeriveLift
-      DeriveTraversable
       DerivingStrategies
       DerivingVia
       DisambiguateRecordFields
-      DoAndIfThenElse
       DuplicateRecordFields
-      EmptyDataDecls
-      ExistentialQuantification
-      FlexibleContexts
-      FlexibleInstances
       FunctionalDependencies
       GADTs
-      GeneralizedNewtypeDeriving
-      InstanceSigs
-      KindSignatures
       LambdaCase
       LiberalTypeSynonyms
-      MultiParamTypeClasses
       MultiWayIf
-      NamedFieldPuns
-      OverloadedStrings
+      OverloadedLabels
       OverloadedLists
+      OverloadedStrings
       PackageImports
       PartialTypeSignatures
-      PatternGuards
       PatternSynonyms
-      PolyKinds
       QuantifiedConstraints
       QuasiQuotes
-      RankNTypes
       RecordWildCards
       RecursiveDo
       RoleAnnotations
-      ScopedTypeVariables
-      StandaloneDeriving
       TemplateHaskell
-      TupleSections
-      TypeApplications
       TypeFamilies
       TypeFamilyDependencies
-      TypeOperators
-      TypeSynonymInstances
       UndecidableInstances
       UnicodeSyntax
       ViewPatterns
-  ghc-options: -Wall -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-packages -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N
+      OverloadedRecordDot
+      NoFieldSelectors
+  ghc-options: -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
-      base >=4.12 && <5
+      base ==4.*
     , chronos
     , containers
     , exon
     , helic
-    , incipit >=0.1.0.3
     , path
-    , polysemy >=1.6
+    , polysemy ==1.9.*
     , polysemy-chronos
     , polysemy-conc
     , polysemy-log
-    , polysemy-plugin >=0.4
+    , polysemy-plugin ==0.4.*
     , polysemy-test
     , polysemy-time
+    , prelate ==0.5.*
     , tasty
     , torsor
+    , zeugma
   mixins:
       base hiding (Prelude)
-  default-language: Haskell2010
+    , prelate (Prelate as Prelude)
+    , prelate hiding (Prelate)
+  default-language: GHC2021

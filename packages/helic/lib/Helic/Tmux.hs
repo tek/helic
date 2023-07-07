@@ -4,16 +4,15 @@
 module Helic.Tmux where
 
 import qualified Polysemy.Process as Process
-import Polysemy.Process (Process)
-import Polysemy.Process.Effect.Process (withProcess)
+import Polysemy.Process (Process, withProcess_)
 
 import Helic.Data.Event (Event (Event))
 
 sendToTmux ::
-  ∀ o e resource r .
-  Members [Scoped resource (Process ByteString o e), Log] r =>
+  ∀ o r .
+  Members [Scoped_ (Process ByteString o), Log] r =>
   Event ->
   Sem r ()
 sendToTmux (Event _ _ _ text) =
-  withProcess do
+  withProcess_ do
     Process.send (encodeUtf8 text)

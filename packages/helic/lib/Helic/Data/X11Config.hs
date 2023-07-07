@@ -3,8 +3,6 @@
 -- |X11Config Data Type, Internal
 module Helic.Data.X11Config where
 
-import Helic.Json (json, unaryJson)
-
 newtype DisplayId =
   DisplayId { unDisplayId :: Text }
   deriving stock (Eq, Show, Generic)

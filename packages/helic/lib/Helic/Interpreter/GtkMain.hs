@@ -4,8 +4,9 @@
 -- Internal.
 module Helic.Interpreter.GtkMain where
 
-import Polysemy.Conc (interpretScopedResumableH, interpretSync, interpretSyncAs, lock)
-import qualified Polysemy.Conc.Sync as Sync
+import Conc (Lock, interpretLockReentrant, interpretSync, lock)
+import Polysemy.Opaque (Opaque)
+import qualified Sync
 
 import qualified Helic.Effect.GtkMain as GtkMain
 import Helic.Effect.GtkMain (GtkMain)
@@ -31,14 +32,14 @@ handleGtkMain ::
   ∀ s wait restart e m r a .
   TimeUnit wait =>
   TimeUnit restart =>
-  Members [Resource, Sync GtkLock, Sync StartGtkMain, Sync (GtkResource s)] r =>
+  Members [Resource, Lock, Sync StartGtkMain, Sync (GtkResource s)] r =>
   wait ->
   restart ->
   GtkMain s m a ->
   Tactical e m r a
 handleGtkMain wait restart = \case
   GtkMain.Access ms -> do
-    lock GtkLock do
+    lock do
       Sync.try >>= \case
         Just (GtkResource s) ->
           pureT s
@@ -66,13 +67,13 @@ interpretGtkMain ::
   ∀ s wait restart r .
   TimeUnit wait =>
   TimeUnit restart =>
-  Members [Resource, Race, Embed IO] r =>
+  Members [Mask, Resource, Race, Embed IO] r =>
   wait ->
   restart ->
   InterpreterFor (GtkMain s) r
 interpretGtkMain wait restart =
   interpretSync .
-  interpretSyncAs GtkLock .
+  interpretLockReentrant .
   interpretSync @StartGtkMain .
   interpretH (handleGtkMain wait restart) .
   raiseUnder3
@@ -81,7 +82,7 @@ interpretGtkMain wait restart =
 interpretWithGtk ::
   ∀ e s r .
   Members [GtkMain s, Log] r =>
-  (∀ r0 x . s -> e (Sem r0) x -> Tactical e (Sem r0) (Stop Text : r) x) ->
-  InterpreterFor (Scoped s e !! Text) r
+  (∀ q r0 x . s -> e (Sem r0) x -> Tactical e (Sem r0) (Stop Text : Opaque q : r) x) ->
+  InterpreterFor (Scoped_ e !! Text) r
 interpretWithGtk =
-  interpretScopedResumableH (=<< gtkResource)
+  interpretScopedResumableH \ () -> (=<< gtkResource)
