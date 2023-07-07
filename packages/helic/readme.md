@@ -60,7 +60,7 @@ The flake provides a *NixOS* module that can be used by adding it to `/etc/nixos
 
 ```nix
 {
-  inputs.helic.url = github:/tek/helic;
+  inputs.helic.url = "github:/tek/helic";
   outputs = { nixpkgs, helic, ... }: {
     nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
       modules = [helic.nixosModule];
@@ -165,6 +165,7 @@ The meaning of these options is:
 |Key|Default|Description|
 |---|---|---|
 |`name`|Host name|An identifier for the host, used for filtering duplicates.|
+|`user`|null|Only for *NixOS*: If set, only start the service for that user.|
 |`maxHistory`|100|The number of yanks that should be kept.|
 |`verbose`||Increase the log level.|
 |`net.port`|`9500`|The HTTP port the daemon listens to for both remote sync and `hel yank`.|

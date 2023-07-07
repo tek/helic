@@ -165,6 +165,7 @@ The meaning of these options is:
 |Key|Default|Description|
 |---|---|---|
 |`name`|Host name|An identifier for the host, used for filtering duplicates.|
+|`user`|null|Only for *NixOS*: If set, only start the service for that user.|
 |`maxHistory`|100|The number of yanks that should be kept.|
 |`verbose`||Increase the log level.|
 |`net.port`|`9500`|The HTTP port the daemon listens to for both remote sync and `hel yank`.|
@@ -173,7 +174,7 @@ The meaning of these options is:
 |`tmux.enable`|`true`|Whether to send events to *tmux*.|
 |`tmux.package`|`pkgs.tmux`|Only for *NixOS*: The `nixpkgs` package used for the *tmux* executable.|
 |`tmux.exe`|`tmux`|Only for YAML file: The path to the *tmux* executable|
-|`x11.display`|`:0`|Only for YAML file: The path to the *tmux* executable|
+|`x11.display`|`:0`|The display identifier used when connecting to the default display via GTK fails.|
 
 # Neovim
 
