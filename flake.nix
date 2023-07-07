@@ -118,5 +118,5 @@
       expose = true;
     };
 
-  }) // { nixosModule = import ./ops/module.nix self; };
+  }) // { nixosModules.default = import ./ops/module.nix self; };
 }
