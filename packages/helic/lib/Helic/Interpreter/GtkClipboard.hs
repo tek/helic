@@ -9,7 +9,7 @@ import Helic.Effect.GtkMain (GtkMain)
 import Helic.Gtk (clipboardText, setClipboardText, subscribeToClipboard)
 import Helic.Interpreter.GtkMain (interpretWithGtk)
 
--- |Specialization of 'scoped' to 'GtkClipboard' for syntactic sugar.
+-- |Specialization of 'scoped_' to 'GtkClipboard' for syntactic sugar.
 withGtkClipboard ::
   Member (Scoped_ GtkClipboard) r =>
   InterpreterFor GtkClipboard r
