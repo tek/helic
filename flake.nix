@@ -19,7 +19,7 @@
         enable = true;
         package = {
           name = "prelate";
-          version = "^>= 0.5";
+          version = ">= 0.5 && < 0.7";
         };
         module = "Prelate";
       };
@@ -34,6 +34,10 @@
         "polysemy ^>= 1.9"
         "polysemy-plugin ^>= 0.4"
       ];
+    };
+
+    overrides = {hackage, ...}: {
+      polysemy-http = hackage "0.12.0.0" "1665w90cc7hj8gkpnz3icdfiw8y6k85wsi4spxc7k5dqbhg801x5";
     };
 
     packages.helic = {
@@ -57,7 +61,7 @@
           "path-io ^>= 1.7"
           "polysemy-chronos ^>= 0.6"
           "polysemy-conc ^>= 0.12"
-          "polysemy-http ^>= 0.11"
+          "polysemy-http >= 0.11 && < 0.13"
           "polysemy-log ^>= 0.9"
           "polysemy-process ^>= 0.12"
           "polysemy-time ^>= 0.6"
@@ -90,7 +94,7 @@
           "random ^>= 1.2"
           "tasty ^>= 1.4"
           "torsor ^>= 0.1"
-          "zeugma ^>= 0.7"
+          "zeugma >= 0.7 && < 0.9"
         ];
       };
 

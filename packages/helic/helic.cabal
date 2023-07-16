@@ -129,12 +129,12 @@ library
     , polysemy ==1.9.*
     , polysemy-chronos ==0.6.*
     , polysemy-conc ==0.12.*
-    , polysemy-http ==0.11.*
+    , polysemy-http >=0.11 && <0.13
     , polysemy-log ==0.9.*
     , polysemy-plugin ==0.4.*
     , polysemy-process ==0.12.*
     , polysemy-time ==0.6.*
-    , prelate ==0.5.*
+    , prelate >=0.5 && <0.7
     , servant-client ==0.19.*
     , servant-server ==0.19.*
     , table-layout ==0.9.*
@@ -195,7 +195,7 @@ executable hel
     , helic
     , polysemy ==1.9.*
     , polysemy-plugin ==0.4.*
-    , prelate ==0.5.*
+    , prelate >=0.5 && <0.7
   mixins:
       base hiding (Prelude)
     , prelate (Prelate as Prelude)
@@ -263,11 +263,11 @@ test-suite helic-test
     , polysemy-log ==0.9.*
     , polysemy-plugin ==0.4.*
     , polysemy-test ==0.7.*
-    , prelate ==0.5.*
+    , prelate >=0.5 && <0.7
     , random ==1.2.*
     , tasty ==1.4.*
     , torsor ==0.1.*
-    , zeugma ==0.7.*
+    , zeugma >=0.7 && <0.9
   mixins:
       base hiding (Prelude)
     , prelate (Prelate as Prelude)
