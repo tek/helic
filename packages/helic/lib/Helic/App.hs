@@ -11,6 +11,7 @@ import Polysemy.Http.Interpreter.Manager (interpretManager)
 
 import Helic.Data.Config (Config (Config))
 import Helic.Data.Event (Event)
+import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Data.ListConfig (ListConfig)
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
 import Helic.Data.NetConfig (NetConfig)
@@ -36,6 +37,7 @@ listenApp (Config name tmux net x11 maxHistory _) =
   runReader (fromMaybe def x11) $
   runReader (fromMaybe def tmux) $
   interpretEventsChan @Event $
+  interpretEventsChan @HistoryUpdate $
   interpretAtomic mempty $
   interpretInstanceName name $
   interpretManager $
@@ -48,7 +50,7 @@ listenApp (Config name tmux net x11 maxHistory _) =
   Conc.subscribeLoop History.receive
 
 runClient ::
-  Members [Log, Error Text, Race, Embed IO] r =>
+  Members [Log, Error Text, Race, Embed IO, Final IO] r =>
   Maybe NetConfig ->
   InterpretersFor [Client, Reader NetConfig, Manager] r
 runClient net =

@@ -1,5 +1,7 @@
 # Unreleased
 
+* Add an HTTP endpoint `event/listen` that streams events as JSON separated by newlines.
+
 # 0.6.1.0
 
 * Add cli option `--text` for the `yank` command as an alternative to stdin.

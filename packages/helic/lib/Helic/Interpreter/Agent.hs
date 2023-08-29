@@ -21,8 +21,8 @@ interpretAgent handle sem =
 interpretAgentNull :: InterpreterFor (Agent @@ id) r
 interpretAgentNull = interpretAgent (const unit)
 
--- | Interpret 'Agent' using the supplied interpreter unless the first argument is 'Just False', in which case run the
--- dummy interpreter.
+-- | Interpret 'Agent' using the supplied interpreter unless the field @enable@ of the config type in the 'Reader' is
+-- 'Just False', in which case run the dummy interpreter.
 interpretAgentIf ::
   HasField "enable" conf (Maybe Bool) =>
   Member (Reader conf) r =>

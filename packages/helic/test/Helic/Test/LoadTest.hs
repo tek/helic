@@ -1,6 +1,6 @@
 module Helic.Test.LoadTest where
 
-import Conc (interpretAtomic)
+import Conc (interpretAtomic, interpretEventsChan)
 import Polysemy.Chronos (ChronosTime)
 import Polysemy.Test (UnitTest, assertEq, assertJust)
 import Zeugma (runTestFrozen)
@@ -26,6 +26,7 @@ test_load =
   runTestFrozen $
   runReader "test" $
   interpretAtomic def $
+  interpretEventsChan $
   interpretAgent @AgentNet (const unit) $
   interpretAgent @AgentTmux (const unit) $
   interpretAgent @AgentX (const unit) $

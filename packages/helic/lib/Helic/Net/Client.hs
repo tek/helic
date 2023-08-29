@@ -9,19 +9,22 @@ import qualified Log
 import Polysemy.Http (Manager)
 import qualified Polysemy.Http.Effect.Manager as Manager
 import Servant (NoContent, type (:<|>) ((:<|>)))
-import Servant.Client (BaseUrl, ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
+import Servant.Client (BaseUrl, mkClientEnv, parseBaseUrl)
+import Servant.Client.Streaming (ClientM, client, runClientM)
+import Servant.Types.SourceT (SourceT)
 import Time (MilliSeconds (MilliSeconds))
 
 import Helic.Data.Event (Event)
 import Helic.Data.Host (Host (Host))
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig, Timeout)
-import Helic.Net.Api (Api, defaultPort)
+import Helic.Net.Api (Api, ListenFrame, defaultPort)
 
 get :: ClientM [Event]
 yank :: Event -> ClientM NoContent
 load :: Int -> ClientM (Maybe Event)
-get :<|> yank :<|> load = client (Proxy @Api)
+listen :: ClientM (SourceT IO ListenFrame)
+get :<|> yank :<|> load :<|> listen = client (Proxy @Api)
 
 sendTo ::
   Members [Manager, Log, Race, Error Text, Embed IO] r =>

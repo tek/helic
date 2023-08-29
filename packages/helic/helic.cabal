@@ -36,6 +36,7 @@ library
       Helic.Data.Config
       Helic.Data.Event
       Helic.Data.GtkState
+      Helic.Data.HistoryUpdate
       Helic.Data.Host
       Helic.Data.InstanceName
       Helic.Data.ListConfig
@@ -135,6 +136,7 @@ library
     , polysemy-process ==0.12.*
     , polysemy-time ==0.6.*
     , prelate >=0.5 && <0.7
+    , servant ==0.19.*
     , servant-client ==0.19.*
     , servant-server ==0.19.*
     , table-layout ==0.9.*
@@ -213,6 +215,8 @@ test-suite helic-test
       Helic.Test.ListenTest
       Helic.Test.ListTest
       Helic.Test.LoadTest
+      Helic.Test.Port
+      Helic.Test.StreamTest
   hs-source-dirs:
       test
   default-extensions:
@@ -257,9 +261,12 @@ test-suite helic-test
     , containers
     , exon ==1.4.*
     , helic
+    , network ==3.1.*
     , path ==0.9.*
     , polysemy ==1.9.*
     , polysemy-chronos ==0.6.*
+    , polysemy-conc ==0.12.*
+    , polysemy-http >=0.11 && <0.13
     , polysemy-log ==0.9.*
     , polysemy-plugin ==0.4.*
     , polysemy-test ==0.7.*

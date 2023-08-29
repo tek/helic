@@ -28,6 +28,8 @@ listen =
 
 -- |Run an action with 'listen' in a thread, waiting for the event subscriber to be up and running before executing the
 -- action.
+--
+-- TODO use subscribeLoopGated
 withListen ::
   Members [EventConsumer Event, History, Resource, Race, Async, Embed IO] r =>
   Sem r a ->

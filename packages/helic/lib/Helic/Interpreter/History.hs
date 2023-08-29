@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |Core daemon logic, Internal
+-- | The history validates and stores new events.
 module Helic.Interpreter.History where
 
 import qualified Chronos
@@ -16,6 +16,7 @@ import Time (MilliSeconds (MilliSeconds), diff)
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (Event, content, time))
+import Helic.Data.HistoryUpdate (HistoryUpdate (HistoryUpdate))
 import Helic.Data.InstanceName (InstanceName)
 import qualified Helic.Effect.Agent as Agent
 import Helic.Effect.Agent (Agent, AgentName, AgentNet, AgentTag, AgentTmux, AgentX, Agents, agentIdNet, agentName)
@@ -37,7 +38,7 @@ runAgent event =
 -- |Send an event to all agents.
 broadcast ::
   Members Agents r =>
-  Member Log r =>
+  Members [Events HistoryUpdate, Log] r =>
   Event ->
   Sem r ()
 broadcast event@(Event _ (AgentId ag) _ text) = do
@@ -45,6 +46,7 @@ broadcast event@(Event _ (AgentId ag) _ text) = do
   runAgent @AgentTmux event
   runAgent @AgentNet event
   runAgent @AgentX event
+  publish (HistoryUpdate event)
 
 -- |Whether there was an event within the last second that contained the same text as the current event.
 inRecent ::
@@ -123,7 +125,7 @@ logTruncation num =
 -- |Process an event received from outside.
 receiveEvent ::
   Members Agents r =>
-  Members [AtomicState (Seq Event), ChronosTime, Log] r =>
+  Members [AtomicState (Seq Event), Events HistoryUpdate, ChronosTime, Log] r =>
   Maybe Int ->
   Event ->
   Sem r ()
@@ -157,14 +159,13 @@ isNetworkCycle ::
   Member (Reader InstanceName) r =>
   Event ->
   Sem r Bool
-isNetworkCycle Event {..} = do
-  name <- ask
-  pure (name == sender && source == agentIdNet)
+isNetworkCycle Event {..} =
+  asks \ inst -> inst == sender && source == agentIdNet
 
 -- |Interpret 'History' using 'AtomicState', broadcasting to agents.
 interpretHistory ::
   Members Agents r =>
-  Members [Reader InstanceName, AtomicState (Seq Event), ChronosTime, Log] r =>
+  Members [Reader InstanceName, AtomicState (Seq Event), Events HistoryUpdate, ChronosTime, Log] r =>
   Maybe Int ->
   InterpreterFor History r
 interpretHistory maxHistory =

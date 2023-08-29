@@ -10,6 +10,7 @@ import Zeugma (runTestFrozen, testTime)
 import Helic.Data.AgentId (AgentId (AgentId))
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (Event, content))
+import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Effect.Agent (AgentNet, AgentTmux, AgentX)
 import Helic.Interpreter.Agent (interpretAgent)
 import Helic.Interpreter.History (interpretHistory)
@@ -19,7 +20,7 @@ handleNet ::
   Member (Events Event) r =>
   Event ->
   Sem r ()
-handleNet (Event {..}) =
+handleNet Event {..} =
   Conc.publish (Event "test" (AgentId "net") testTime content)
 
 handleLog ::
@@ -33,6 +34,7 @@ test_listen :: UnitTest
 test_listen =
   runTestFrozen $
   interpretEventsChan $
+  interpretEventsChan @HistoryUpdate $
   interpretAtomic def $
   interpretQueueTBM 64 $
   interpretSync $
