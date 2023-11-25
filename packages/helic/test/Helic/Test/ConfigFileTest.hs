@@ -13,7 +13,7 @@ import Helic.Data.X11Config (X11Config (X11Config))
 
 target :: Config
 target =
-  Config (Just "name") (Just tmux) (Just net) (Just x) (Just 1000) (Just False)
+  Config (Just "name") (Just tmux) (Just net) (Just x) (Just 1000) (Just 5000) (Just False)
   where
     tmux =
       TmuxConfig (Just True) (Just [absfile|/bin/tmux|])

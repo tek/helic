@@ -1,5 +1,6 @@
 name: name
 maxHistory: 1000
+debounceMillis: 5000
 verbose: false
 tmux:
   enable: true

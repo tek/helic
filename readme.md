@@ -129,6 +129,7 @@ An example config file looks like this:
 ```yaml
 name: myhost
 maxHistory: 1000
+debounceMillis: 3000
 verbose: true
 net:
   enable: true
@@ -153,6 +154,7 @@ For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
     enable = true;
     name = "myhost";
     maxHistory = 1000;
+    debounceMillis = 3000;
     verbose = true;
     user = "myuser";
     net = {
@@ -180,6 +182,7 @@ The meaning of these options is:
 |`name`|Host name|An identifier for the host, used for filtering duplicates.|
 |`user`|null|Only for *NixOS*: If set, only start the service for that user.|
 |`maxHistory`|100|The number of yanks that should be kept.|
+|`debounceMillis`|3000|The interval in milliseconds during which the same text is ignored.|
 |`verbose`||Increase the log level.|
 |`net.enable`|`true`|Whether to send events over the network.|
 |`net.port`|`9500`|The HTTP port the daemon listens to for both remote sync and `hel yank`.|

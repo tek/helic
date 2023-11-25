@@ -36,14 +36,17 @@ historyLatest :: Seq Event
 historyLatest =
   [event2, event1]
 
+debounce :: MilliSeconds
+debounce = 1000
+
 test_insertEvent :: UnitTest
 test_insertEvent =
   runTestFrozen do
     now <- Time.now
-    assertJust [Event "me" "test" now "string"] (appendIfValid now (Event "me" "test" now "string") mempty)
-    Nothing === appendIfValid now event1 historyLatest
-    assertJust (historyLatest |> event2) (appendIfValid now event2 historyLatest)
-    Nothing === appendIfValid (add (convert (MilliSeconds 100)) old) event2 historyLatest
-    assertJust (historyLatest |> event2) (appendIfValid (add (convert (MilliSeconds 1100)) old) event2 historyLatest)
-    assertJust (historyLatest |> eventNl) (appendIfValid now eventMixedNl historyLatest)
-    Nothing === appendIfValid now (Event "me" "test" (add (convert (Hours (-1))) old) "event3") historyLatest
+    assertJust [Event "me" "test" now "string"] (appendIfValid now debounce (Event "me" "test" now "string") mempty)
+    Nothing === appendIfValid now debounce event1 historyLatest
+    assertJust (historyLatest |> event2) (appendIfValid now debounce event2 historyLatest)
+    Nothing === appendIfValid (add (convert (MilliSeconds 100)) old) debounce event2 historyLatest
+    assertJust (historyLatest |> event2) (appendIfValid (add (convert (MilliSeconds 1100)) old) debounce event2 historyLatest)
+    assertJust (historyLatest |> eventNl) (appendIfValid now debounce eventMixedNl historyLatest)
+    Nothing === appendIfValid now debounce (Event "me" "test" (add (convert (Hours (-1))) old) "event3") historyLatest

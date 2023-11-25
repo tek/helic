@@ -14,6 +14,7 @@ data Config =
     net :: Maybe NetConfig,
     x11 :: Maybe X11Config,
     maxHistory :: Maybe Int,
+    debounceMillis :: Maybe Int64,
     verbose :: Maybe Bool
   }
   deriving stock (Eq, Show, Generic)

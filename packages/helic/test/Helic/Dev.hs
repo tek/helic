@@ -16,7 +16,7 @@ import Helic.Data.YankConfig (YankConfig (YankConfig))
 
 conf :: Config
 conf =
-  Config (Just "dev") (Just def) (Just (NetConfig (Just True) (Just 11111) Nothing Nothing)) Nothing Nothing (Just True)
+  Config (Just "dev") (Just def) (Just (NetConfig (Just True) (Just 11111) Nothing Nothing)) Nothing Nothing Nothing (Just True)
 
 listen :: IO ()
 listen =

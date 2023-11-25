@@ -51,14 +51,15 @@ broadcast event@(Event _ (AgentId ag) _ text) = do
 -- |Whether there was an event within the last second that contained the same text as the current event.
 inRecent ::
   Chronos.Time ->
+  MilliSeconds ->
   Event ->
   Seq Event ->
   Bool
-inRecent now (Event _ _ _ c) =
+inRecent now debounce (Event _ _ _ c) =
   any ((c ==) . (.content)) . Seq.takeWhileR newer
   where
     newer (Event _ _ t _) =
-      diff now t <= MilliSeconds 1000
+      diff now t <= debounce
 
 sanitizeNewlines :: Text -> Text
 sanitizeNewlines =
@@ -73,15 +74,16 @@ sanitize event@Event {content} =
 -- clobbering due to cycles induced by external programs.
 appendIfValid ::
   Chronos.Time ->
+  MilliSeconds ->
   Event ->
   Seq Event ->
   Maybe (Seq Event)
-appendIfValid now (sanitize -> event@Event {content, time}) = \case
+appendIfValid now debounce (sanitize -> event@Event {content, time}) = \case
   Seq.Empty ->
     Just (Seq.singleton event)
   _ :|> Event _ _ latestTime latest | latest == content || time < latestTime ->
     Nothing
-  hist | inRecent now event hist ->
+  hist | inRecent now debounce event hist ->
     Nothing
   hist ->
     Just (hist |> event)
@@ -89,11 +91,12 @@ appendIfValid now (sanitize -> event@Event {content, time}) = \case
 -- |Add an event to the history unless it is a duplicate.
 insertEvent ::
   Members [AtomicState (Seq Event), ChronosTime] r =>
+  MilliSeconds ->
   Event ->
   Sem r Bool
-insertEvent event = do
+insertEvent debounce event = do
   now <- Time.now
-  atomicState' \ s -> result s (appendIfValid now event s)
+  atomicState' \ s -> result s (appendIfValid now debounce event s)
   where
     result s = \case
       Just new -> (new, True)
@@ -127,11 +130,12 @@ receiveEvent ::
   Members Agents r =>
   Members [AtomicState (Seq Event), Events HistoryUpdate, ChronosTime, Log] r =>
   Maybe Int ->
+  MilliSeconds ->
   Event ->
   Sem r ()
-receiveEvent maxHistory event = do
+receiveEvent maxHistory debounce event = do
   Log.debug [exon|listen: #{show event}|]
-  ifM (insertEvent event)
+  ifM (insertEvent debounce event)
     do
       broadcast event
       traverse_ logTruncation =<< truncateLog (fromMaybe 100 maxHistory)
@@ -167,15 +171,18 @@ interpretHistory ::
   Members Agents r =>
   Members [Reader InstanceName, AtomicState (Seq Event), Events HistoryUpdate, ChronosTime, Log] r =>
   Maybe Int ->
+  Maybe Int64 ->
   InterpreterFor History r
-interpretHistory maxHistory =
+interpretHistory maxHistory debounceMillis =
   interpret \case
     History.Get ->
       toList <$> atomicGet
     History.Receive event ->
       ifM (isNetworkCycle event)
         do Log.debug [exon|Ignoring network cycle event: #{Event.describe event}|]
-        do receiveEvent maxHistory event
+        do receiveEvent maxHistory debounce event
     History.Load index -> do
       event <- loadEvent index
       event <$ traverse_ broadcast event
+  where
+    debounce = MilliSeconds (fromMaybe 3000 debounceMillis)

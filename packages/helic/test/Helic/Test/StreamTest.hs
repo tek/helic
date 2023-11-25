@@ -40,7 +40,7 @@ test_stream =
   interpretAgentNull @AgentNet $
   interpretAgentNull @AgentTmux $
   interpretAgentNull @AgentX $
-  interpretHistory Nothing $
+  interpretHistory Nothing Nothing $
   interpretSync do
     let port = 10002
     -- port <- freePort

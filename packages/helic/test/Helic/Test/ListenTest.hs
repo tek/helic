@@ -42,7 +42,7 @@ test_listen =
   interpretAgent @AgentNet handleNet $
   interpretAgent @AgentTmux handleLog $
   interpretAgent @AgentX (const unit) $
-  interpretHistory (Just 5) do
+  interpretHistory (Just 5) Nothing do
     result <- withListen do
       let
         pub n =

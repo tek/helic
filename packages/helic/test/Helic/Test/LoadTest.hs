@@ -30,7 +30,7 @@ test_load =
   interpretAgent @AgentNet (const unit) $
   interpretAgent @AgentTmux (const unit) $
   interpretAgent @AgentX (const unit) $
-  interpretHistory Nothing do
+  interpretHistory Nothing Nothing do
     atomicPut =<< traverse event [1..10]
     ev5 <- event 6
     assertJust ev5 =<< History.load 4

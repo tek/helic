@@ -27,6 +27,11 @@ in {
       default = 100;
       description = "The maximum number of yanks to store in memory.";
     };
+    debounceMillis = mkOption {
+      type = types.nullOr types.ints.positive;
+      default = 3000;
+      description = "The interval in milliseconds during which the same text is ignored.";
+    };
     verbose = mkEnableOption "Increase the log level.";
     net = {
       enable = mkEnableOption "network propagation" // { default = true; };
