@@ -36,10 +36,6 @@
       ];
     };
 
-    overrides = {hackage, ...}: {
-      polysemy-http = hackage "0.12.0.0" "1665w90cc7hj8gkpnz3icdfiw8y6k85wsi4spxc7k5dqbhg801x5";
-    };
-
     packages.helic = {
       src = ./packages/helic;
       cabal = {
@@ -98,7 +94,7 @@
           "random ^>= 1.2"
           "tasty ^>= 1.4"
           "torsor ^>= 0.1"
-          "zeugma >= 0.7 && < 0.9"
+          "zeugma >= 0.7 && < 0.10"
         ];
       };
 

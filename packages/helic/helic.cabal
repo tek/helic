@@ -94,6 +94,7 @@ library
       GADTs
       LambdaCase
       LiberalTypeSynonyms
+      MonadComprehensions
       MultiWayIf
       OverloadedLabels
       OverloadedLists
@@ -171,6 +172,7 @@ executable hel
       GADTs
       LambdaCase
       LiberalTypeSynonyms
+      MonadComprehensions
       MultiWayIf
       OverloadedLabels
       OverloadedLists
@@ -234,6 +236,7 @@ test-suite helic-test
       GADTs
       LambdaCase
       LiberalTypeSynonyms
+      MonadComprehensions
       MultiWayIf
       OverloadedLabels
       OverloadedLists
@@ -274,7 +277,7 @@ test-suite helic-test
     , random ==1.2.*
     , tasty ==1.4.*
     , torsor ==0.1.*
-    , zeugma >=0.7 && <0.9
+    , zeugma >=0.7 && <0.10
   mixins:
       base hiding (Prelude)
     , prelate (Prelate as Prelude)
