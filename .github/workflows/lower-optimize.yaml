@@ -1,0 +1,13 @@
+name: Optimize lower bounds
+on: workflow_dispatch
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+jobs:
+  lower-pr:
+    uses: tek/hix/.github/workflows/bounds.yaml@main
+    with:
+      command: lower.optimize
+    secrets:
+      cachix_key: ${{ secrets.CACHIX_SIGNING_KEY }}

@@ -1,0 +1,20 @@
+name: Flake checks
+on: [push, pull_request]
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  check:
+    name: Run flake checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v16
+        with:
+          extra-conf: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+      - uses: cachix/cachix-action@v14
+        with:
+          name: tek
+          signingKey: ${{ secrets.CACHIX_SIGNING_KEY }}
+      - run: nix flake check

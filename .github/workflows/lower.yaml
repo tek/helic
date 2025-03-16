@@ -1,0 +1,13 @@
+name: Maintain lower bounds
+on: [workflow_dispatch, pull_request, push]
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+jobs:
+  lower-pr:
+    uses: tek/hix/.github/workflows/bounds.yaml@main
+    with:
+      command: lower.auto
+    secrets:
+      cachix_key: ${{ secrets.CACHIX_SIGNING_KEY }}

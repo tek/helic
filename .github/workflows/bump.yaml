@@ -1,0 +1,16 @@
+name: Maintain upper bounds
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '45 6 * * 6'
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+jobs:
+  bump-pr:
+    uses: tek/hix/.github/workflows/bounds.yaml@main
+    with:
+      command: bump
+    secrets:
+      cachix_key: ${{ secrets.CACHIX_SIGNING_KEY }}
