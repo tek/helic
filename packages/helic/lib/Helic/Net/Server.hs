@@ -17,8 +17,9 @@ import Network.Wai.Handler.Warp (
   )
 import qualified Network.Wai.Middleware.RequestLogger as Logger
 import Network.Wai.Middleware.RequestLogger (destination, mkRequestLogger)
-import qualified Polysemy.Conc.Effect.Interrupt as Interrupt
 import Polysemy.Final (withWeavingToFinal)
+import qualified Polysemy.Process.Effect.Interrupt as Interrupt
+import Process (Interrupt)
 import Servant (
   Context,
   DefaultErrorFormatters,

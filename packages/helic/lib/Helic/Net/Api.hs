@@ -2,6 +2,7 @@
 module Helic.Net.Api where
 
 import Polysemy.Final (getInspectorS, pureS, runS, withStrategicToFinal)
+import Process (Interrupt)
 import Servant (
   Get,
   JSON,

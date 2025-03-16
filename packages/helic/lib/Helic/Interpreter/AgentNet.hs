@@ -10,6 +10,7 @@ import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Effect.Agent (Agent (Update), AgentNet, agentIdNet)
 import Helic.Interpreter.Agent (interpretAgentIf)
 import Helic.Net.Client (sendTo)
+import Process (Interrupt)
 
 -- |Interpret 'Agent' using remote hosts as targets.
 -- This also starts the HTTP server that listens to network events, which are used both for remote hosts and CLI

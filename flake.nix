@@ -6,35 +6,37 @@
     prelate.url = "git+https://git.tryp.io/tek/prelate";
   };
 
-  outputs = { self, hix, prelate, ... }: hix.lib.pro ({config, ...}: {
-    depsFull = [prelate];
-    hackage.versionFile = "ops/version.nix";
-    compat.enable = false;
+  outputs = {self, hix, prelate, ...}: hix.lib.pro (let
 
-    cabal = {
-      license = "BSD-2-Clause-Patent";
-      license-file = "LICENSE";
-      author = "Torsten Schmits";
-      prelude = {
-        enable = true;
-        package = {
-          name = "prelate";
-          version = ">=0.5 && <0.8";
-        };
-        module = "Prelate";
-      };
-      meta = {
-        maintainer = "hackage@tryp.io";
-        category = "Clipboard";
-        github = "tek/helic";
-        extra-source-files = ["readme.md" "changelog.md"];
-      };
-      ghc-options = ["-fplugin=Polysemy.Plugin"];
-      dependencies = [
-        "polysemy ^>=1.9"
-        "polysemy-plugin ^>=0.4"
-      ];
+    jailbreaks910 = {hackage, jailbreak, unbreak, ...}: {
+      bytebuild = jailbreak;
+      chronos = jailbreak;
+      incipit = jailbreak;
+      incipit-base = jailbreak;
+      incipit-core = jailbreak;
+      polysemy-chronos = jailbreak;
+      polysemy-conc = jailbreak;
+      polysemy-log = jailbreak;
+      polysemy-process = jailbreak unbreak;
+      polysemy-resume = jailbreak;
+      polysemy-test = jailbreak unbreak;
+      polysemy-time = jailbreak;
+      zeugma = jailbreak;
     };
+
+    overrides910 = api@{hackage, jailbreak, unbreak, ...}: jailbreaks910 api // {
+      byte-order = jailbreak;
+      exon = hackage "1.7.1.0" "16vf84nnpivxw4a46g7jsy2hg4lpla7grkv3gp8nd69zlv43777l";
+      polysemy-http = hackage "0.13.1.0" "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+      prelate = hackage "0.8.0.0" "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    };
+
+  in {
+    depsFull = [prelate];
+    ghcVersions = ["ghc94" "ghc96" "ghc98" "ghc910"];
+    hackage.versionFile = "ops/version.nix";
+    gen-overrides.enable = true;
+    compat.enable = false;
 
     packages.helic = {
       src = ./packages/helic;
@@ -45,32 +47,32 @@
       library = {
         enable = true;
         dependencies = [
-          "chronos ^>=1.1.1"
-          "exon >=1.4 && <1.6"
-          "fast-logger >=3.1 && <3.3"
-          "gi-gdk ^>=3"
-          "gi-glib ^>=2"
-          "gi-gtk ^>=3"
-          "hostname ^>=1"
-          "optparse-applicative ^>=0.17"
-          "path ^>=0.9"
-          "path-io >=1.7 && <1.9"
-          "polysemy-chronos ^>=0.6"
-          "polysemy-conc >=0.12 && <0.14"
-          "polysemy-http >=0.11 && <0.14"
-          "polysemy-log >=0.9 && <0.11"
-          "polysemy-process >=0.12 && <0.14"
-          "polysemy-time ^>=0.6"
-          "servant ^>=0.19"
-          "servant-client ^>=0.19"
-          "servant-server ^>=0.19"
-          "table-layout ^>=0.9"
-          "terminal-size ^>=0.3.2.1"
+          "chronos"
+          "exon"
+          "fast-logger"
+          "gi-gdk"
+          "gi-glib"
+          "gi-gtk"
+          "hostname"
+          "optparse-applicative"
+          "path"
+          "path-io"
+          "polysemy-chronos"
+          "polysemy-conc"
+          "polysemy-http"
+          "polysemy-log"
+          "polysemy-process"
+          "polysemy-time"
+          "servant"
+          "servant-client"
+          "servant-server"
+          "table-layout"
+          "terminal-size"
           "transformers"
-          "typed-process ^>=0.2.6"
-          "wai-extra ^>=3.1"
-          "warp ^>=3.3"
-          "yaml ^>=0.11"
+          "typed-process"
+          "wai-extra"
+          "warp"
+          "yaml"
         ];
       };
 
@@ -81,20 +83,20 @@
       test = {
         enable = true;
         dependencies = [
-          "chronos ^>=1.1.1"
+          "chronos"
           "containers"
-          "exon >=1.4 && <1.6"
-          "network ^>=3.1"
-          "path ^>=0.9"
-          "polysemy-chronos ^>=0.6"
-          "polysemy-conc >=0.12 && <0.14"
-          "polysemy-http >=0.11 && <0.14"
-          "polysemy-log >=0.9 && <0.11"
-          "polysemy-test >=0.7 && <0.10"
-          "random ^>=1.2"
-          "tasty ^>=1.4"
-          "torsor ^>=0.1"
-          "zeugma >=0.7 && <0.10"
+          "exon"
+          "network"
+          "path"
+          "polysemy-chronos"
+          "polysemy-conc"
+          "polysemy-http"
+          "polysemy-log"
+          "polysemy-test"
+          "random"
+          "tasty"
+          "torsor"
+          "zeugma"
         ];
       };
 
@@ -119,6 +121,41 @@
         component = "app";
       };
       expose = true;
+    };
+
+    cabal = {
+      license = "BSD-2-Clause-Patent";
+      license-file = "LICENSE";
+      author = "Torsten Schmits";
+      prelude = {
+        enable = true;
+        package = "prelate";
+        module = "Prelate";
+      };
+      meta = {
+        maintainer = "hackage@tryp.io";
+        category = "Clipboard";
+        github = "tek/helic";
+        extra-source-files = ["readme.md" "changelog.md"];
+      };
+      ghc-options = ["-fplugin=Polysemy.Plugin"];
+      dependencies = [
+        "polysemy"
+        "polysemy-plugin"
+      ];
+    };
+
+    managed = {
+      enable = true;
+      latest.compiler = "ghc910";
+      envs.solverOverrides = overrides910;
+      envs.verbatim.globalOverrides = true;
+    };
+
+    envs.latest.overrides = jailbreaks910;
+
+    overrides = {hackage, ...}: {
+      polysemy-http = hackage "0.13.1.0" "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     };
 
   }) // { nixosModules.default = import ./ops/module.nix self; };

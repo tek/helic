@@ -8,10 +8,22 @@ import qualified Data.Text as Text
 import Data.Text.Lazy.Builder (toLazyText)
 import Exon (exon)
 import qualified System.Console.Terminal.Size as TerminalSize
-import Text.Layout.Table (center, column, expandUntil, fixedCol, left, right, rowG, tableString, titlesH, unicodeRoundS)
+import Text.Layout.Table (
+  center,
+  column,
+  columnHeaderTableS,
+  expandUntil,
+  fixedCol,
+  left,
+  right,
+  rowG,
+  tableString,
+  titlesH,
+  unicodeRoundS,
+  )
 
 import Helic.Data.AgentId (AgentId (AgentId))
-import Helic.Data.Event (Event (Event), content, sender, source, time)
+import Helic.Data.Event (Event (..))
 import Helic.Data.InstanceName (InstanceName (InstanceName))
 import qualified Helic.Data.ListConfig as ListConfig
 import Helic.Data.ListConfig (ListConfig)
@@ -42,7 +54,7 @@ eventColumns maxWidth i Event {..} =
 
 format :: Int -> NonEmpty Event -> String
 format width (toList -> events) =
-  tableString cols unicodeRoundS titles (row <$> zip [lastIndex,lastIndex-1..0] events)
+  tableString (columnHeaderTableS cols unicodeRoundS titles (row <$> zip [lastIndex,lastIndex-1..0] events))
   where
     lastIndex =
       length events - 1
@@ -51,7 +63,7 @@ format width (toList -> events) =
     col w al =
       column (expandUntil w) al def def
     titles =
-      titlesH ["#", "Instance", "Agent", "Time", "Content"]
+      titlesH ["#" :: Text, "Instance", "Agent", "Time", "Content"]
     row (i, event) =
       rowG (toString <$> eventColumns contentWidth i event)
     contentWidth =

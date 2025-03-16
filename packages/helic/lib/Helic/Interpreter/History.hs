@@ -70,8 +70,8 @@ sanitize event@Event {content} =
   event { content = sanitizeNewlines content }
 
 -- |Append an event to the history unless the latest event contains the same text, or there was an event within the last
--- second that contained the same text, or the new event has an earlier time stamp than the latest event, to avoid
--- clobbering due to cycles induced by external programs.
+-- @debounce@ milliseconds that contained the same text, or the new event has an earlier time stamp than the latest
+-- event, to avoid clobbering due to cycles induced by external programs.
 appendIfValid ::
   Chronos.Time ->
   MilliSeconds ->
