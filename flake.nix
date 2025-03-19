@@ -149,6 +149,7 @@
       managed = {
         enable = true;
         latest.compiler = "ghc910";
+        lower.enable = true;
         envs.solverOverrides = overrides910;
         envs.verbatim.globalOverrides = true;
       };
