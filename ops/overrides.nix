@@ -925,4 +925,36 @@ mkDerivation {
 }
 ;
 };
+system-test = {
+  polysemy-http = {
+  meta = {
+    sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+    ver = "0.13.1.0";
+  };
+  drv = { mkDerivation, aeson, base, case-insensitive, exon, hedgehog
+, http-client, http-client-tls, http-types, lib, network, polysemy
+, polysemy-plugin, prelate, servant, servant-client, servant-server
+, tasty, tasty-hedgehog, time, warp
+}:
+mkDerivation {
+  pname = "polysemy-http";
+  version = "0.13.1.0";
+  src = /nix/store/7bb0n2i5c8cgf3xyjvki147vw3kcmz4h-source;
+  libraryHaskellDepends = [
+    aeson base case-insensitive exon http-client http-client-tls
+    http-types polysemy polysemy-plugin prelate time
+  ];
+  testHaskellDepends = [
+    aeson base exon hedgehog http-client network polysemy
+    polysemy-plugin prelate servant servant-client servant-server tasty
+    tasty-hedgehog warp
+  ];
+  homepage = "https://github.com/tek/polysemy-http#readme";
+  description = "Polysemy effects for HTTP clients";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+};
 }
