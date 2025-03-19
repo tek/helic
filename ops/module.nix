@@ -89,7 +89,7 @@ in {
     '';
     systemd.user.services.helic = {
       description = "Clipboard Manager";
-      wantedBy = ["default.target"];
+      wantedBy = ["graphical-session.target"];
       restartIfChanged = true;
       unitConfig.ConditionUser = mkIf (cfg.user != null) cfg.user;
       serviceConfig = {
