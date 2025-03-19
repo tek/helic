@@ -159,6 +159,8 @@
         polysemy-http = hackage "0.13.1.0" "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
       };
 
+      output.expose.static = false;
+
     };
 
     system-test = import ./ops/system-test.nix self;

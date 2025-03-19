@@ -5,14 +5,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1742416098,
-        "narHash": "sha256-NA7d7nmM3ZQfovRozCnngynb/YNh+EDkVZC7k2lgT+o=",
-        "path": "/data/code/tek/haskell/hix",
-        "type": "path"
+        "lastModified": 1742420244,
+        "narHash": "sha256-eAqiVBl/BUr/uU++K4nGyTo1AuB5ThonYsC3Cbu15Pw=",
+        "ref": "refs/heads/main",
+        "rev": "2aa52312f7a2b35781e8e937403c189e4f1686c3",
+        "revCount": 941,
+        "type": "git",
+        "url": "https://git.tryp.io/tek/hix"
       },
       "original": {
-        "path": "/data/code/tek/haskell/hix",
-        "type": "path"
+        "type": "git",
+        "url": "https://git.tryp.io/tek/hix"
       }
     },
     "hix_2": {
