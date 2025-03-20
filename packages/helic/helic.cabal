@@ -127,7 +127,7 @@ library
     , hostname ==1.0.*
     , optparse-applicative >=0.18.1.0 && <0.19
     , path >=0.9.5 && <0.10
-    , path-io >=1.8.2 && <1.9
+    , path-io >=1.6.3 && <1.9
     , polysemy >=1.9.2.0 && <1.10
     , polysemy-chronos >=0.5.0.0 && <0.8
     , polysemy-conc >=0.14.1.1 && <0.15
