@@ -1190,6 +1190,34 @@ mkDerivation {
 ;
 }
 ;
+  path-io = {
+  meta = {
+    sha256 = "05hcxgyf6kkz36mazd0fqwb6mjy2049gx3vh8qq9h93gfjkpp2vc";
+    ver = "1.6.3";
+  };
+  drv = { mkDerivation, base, containers, directory, dlist, exceptions
+, filepath, hspec, lib, path, temporary, time, transformers
+, unix-compat
+}:
+mkDerivation {
+  pname = "path-io";
+  version = "1.6.3";
+  src = /nix/store/vgfbjck2brpd6zb090ljasw6z2xgvif9-source;
+  libraryHaskellDepends = [
+    base containers directory dlist exceptions filepath path temporary
+    time transformers unix-compat
+  ];
+  testHaskellDepends = [
+    base directory exceptions filepath hspec path transformers
+    unix-compat
+  ];
+  homepage = "https://github.com/mrkkrp/path-io";
+  description = "Interface to ‘directory’ package for users of ‘path’";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
   polysemy-chronos = {
   meta = {
     sha256 = "1h5rqyxpmjslqz145y5qa75fww9iqlrnilpvp6bbk5kz2sz935rz";

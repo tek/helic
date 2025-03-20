@@ -50,7 +50,7 @@
         upper = "0.10";
       };
       path-io = {
-        lower = "1.8.2";
+        lower = "1.6.3";
         upper = "1.9";
       };
       polysemy = {
@@ -204,7 +204,7 @@
       network = "3.1.4.0";
       optparse-applicative = "0.18.1.0";
       path = "0.9.5";
-      path-io = "1.8.2";
+      path-io = "1.6.3";
       polysemy = "1.9.2.0";
       polysemy-chronos = "0.5.0.0";
       polysemy-conc = "0.14.1.1";
@@ -419,6 +419,10 @@
       parallel = {
         version = "3.2.2.0";
         hash = "0j6k54y7mcc8lii99f4i696g67kfzpyma3l7aa9q97w8cj8xv24n";
+      };
+      path-io = {
+        version = "1.6.3";
+        hash = "05hcxgyf6kkz36mazd0fqwb6mjy2049gx3vh8qq9h93gfjkpp2vc";
       };
       polysemy-chronos = {
         version = "0.5.0.0";
