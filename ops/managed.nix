@@ -14,11 +14,11 @@
         upper = "0.8";
       };
       exon = {
-        lower = "1.7.0.0";
+        lower = "1.6.0.0";
         upper = "1.8";
       };
       fast-logger = {
-        lower = "3.2.1";
+        lower = "3.0.3";
         upper = "3.3";
       };
       gi-gdk = {
@@ -58,7 +58,7 @@
         upper = "1.10";
       };
       polysemy-chronos = {
-        lower = "0.7.0.0";
+        lower = "0.5.0.0";
         upper = "0.8";
       };
       polysemy-conc = {
@@ -66,7 +66,7 @@
         upper = "0.15";
       };
       polysemy-http = {
-        lower = "0.13.1.0";
+        lower = "0.5.0.0";
         upper = "0.14";
       };
       polysemy-log = {
@@ -82,11 +82,11 @@
         upper = "0.15";
       };
       polysemy-test = {
-        lower = "0.10.0.1";
+        lower = "0.7.0.0";
         upper = "0.11";
       };
       polysemy-time = {
-        lower = "0.7.0.0";
+        lower = "0.6.0.0";
         upper = "0.8";
       };
       prelate = {
@@ -134,11 +134,11 @@
         upper = "0.3";
       };
       wai-extra = {
-        lower = "3.1.13.0";
+        lower = "3.1.12.1";
         upper = "3.2";
       };
       warp = {
-        lower = "3.4.0";
+        lower = "3.3.21";
         upper = "3.5";
       };
       yaml = {
@@ -195,8 +195,8 @@
       base = "4.17.2.1";
       chronos = "1.1.5";
       containers = "0.6.7";
-      exon = "1.7.0.0";
-      fast-logger = "3.2.1";
+      exon = "1.6.0.0";
+      fast-logger = "3.0.3";
       gi-gdk = "3.0.29";
       gi-glib = "2.0.30";
       gi-gtk = "3.0.43";
@@ -206,14 +206,14 @@
       path = "0.9.5";
       path-io = "1.8.2";
       polysemy = "1.9.2.0";
-      polysemy-chronos = "0.7.0.0";
+      polysemy-chronos = "0.5.0.0";
       polysemy-conc = "0.14.1.1";
-      polysemy-http = "0.13.1.0";
+      polysemy-http = "0.5.0.0";
       polysemy-log = "0.11.0.0";
       polysemy-plugin = "0.4.4.0";
       polysemy-process = "0.14.1.0";
-      polysemy-test = "0.10.0.1";
-      polysemy-time = "0.7.0.0";
+      polysemy-test = "0.7.0.0";
+      polysemy-time = "0.6.0.0";
       prelate = "0.8.0.0";
       random = "1.2.1.2";
       servant = "0.20.2";
@@ -225,8 +225,8 @@
       torsor = "0.1";
       transformers = "0.5.6.2";
       typed-process = "0.2.12.0";
-      wai-extra = "3.1.13.0";
-      warp = "3.4.0";
+      wai-extra = "3.1.12.1";
+      warp = "3.3.21";
       yaml = "0.11.11.0";
       zeugma = "0.10.0.0";
     };
@@ -372,6 +372,10 @@
       };
     };
     lower = {
+      base16-bytestring = {
+        version = "1.0.2.0";
+        hash = "0r3p5q5zxcrk5cbnwdcm435pgx3yjv3slidpjxdsvigdxizq4fyv";
+      };
       cabal-doctest = {
         version = "1.0.11";
         hash = "152rqpicqpvigjpy4rf1kjlwny1c7ys1r0r123wdjafvv1igflii";
@@ -380,41 +384,53 @@
         version = "1.1.5";
         hash = "1rja3hsf7s4gfm1xq5s2gydx9d0jckcjpza9rqvhbpv1h0qsh3f3";
       };
+      composition = {
+        version = "1.0.2.2";
+        hash = "1mywrzizfj7740ybww2fxc3q6v6wp8yxsnv6hs3b30ps2jr4mds0";
+      };
+      cryptonite = {
+        version = "0.30";
+        hash = "04wq8lh300dng87n59a37ngjqbwjlxpd62vz6ifvz0gpyx0pnhy7";
+      };
+      either = {
+        version = "5.0.2";
+        hash = "1dcl2pg45cbjygbxasn0c7qfs4svrmi7fdp9xl0ivxpgg0y648d0";
+      };
       exon = {
-        version = "1.7.0.0";
-        hash = "142i8ka6b16ydllhhb2305ml3hij66h6y555fp6cvc82166kdrhb";
+        version = "1.6.0.0";
+        hash = "1vvh9if76d84s3xagiqdpxmmq1pgyvcc5bi43fwxxxvqzlr2hgc8";
       };
       fast-logger = {
-        version = "3.2.1";
-        hash = "0cgipf7zfmxjm2j52wqkfxd4k1m5clq6n8z3nsmscp9d18prgvx8";
-      };
-      http-semantics = {
-        version = "0.0.0";
-        hash = "0jdlakynqm1vm22kb1g1g1mh7h0ihk7mx8l2zzvdaqmqn10lwmh4";
+        version = "3.0.3";
+        hash = "091j0krd6n422jq25h834k2swqa4p5qcy4psq9az5d7d8837blaw";
       };
       http2 = {
-        version = "5.2.0";
-        hash = "12zrgymnbsc9ybz1mz0a183vzrpawrsv9hmhhsnrbxqc2im6g52k";
+        version = "3.0.3";
+        hash = "150511gq5cljkdrvkxxb4cw3yrs530p9p3nzgbip3bzrqjfm2b9k";
       };
       incipit = {
         version = "0.10.0.0";
         hash = "1r3y2wp8wz1ii28a6wb76z6w3sgiah158kwsadrr13w6iryhq047";
       };
-      network-control = {
-        version = "0.1.4";
-        hash = "00kb50jj14661p0bfb2hgzrq93z9rjch082hp6wda65hvgxfz289";
+      lens = {
+        version = "5.3.4";
+        hash = "17xmlkm15681di3lvzrmcy67qmkdqqhqym040g0fdmsy05777al3";
+      };
+      parallel = {
+        version = "3.2.2.0";
+        hash = "0j6k54y7mcc8lii99f4i696g67kfzpyma3l7aa9q97w8cj8xv24n";
       };
       polysemy-chronos = {
-        version = "0.7.0.0";
-        hash = "0srq4xda9rracrf0frqh9vb00fscxyjv8w6fgavgxbxsrir856i8";
+        version = "0.5.0.0";
+        hash = "1h5rqyxpmjslqz145y5qa75fww9iqlrnilpvp6bbk5kz2sz935rz";
       };
       polysemy-conc = {
         version = "0.14.1.1";
         hash = "1xli6ja9f7qx2k9956lw4h9y5ywdglhgw769afxw9d4w9avclx28";
       };
       polysemy-http = {
-        version = "0.13.1.0";
-        hash = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+        version = "0.5.0.0";
+        hash = "12kzq6910qwj7n1rwym3zibjm5cv7llfgk9iagcwd16vfysag6wp";
       };
       polysemy-log = {
         version = "0.11.0.0";
@@ -429,20 +445,36 @@
         hash = "125fiwq30ybncmc0pb25ki3k2sxbhkjz4k2i53bcj9y026xgvjyi";
       };
       polysemy-test = {
-        version = "0.10.0.1";
-        hash = "1sp9iag1brknmdy0qvmgnmynwc4gbg1jy21w584x1m2hpqi25p6j";
+        version = "0.7.0.0";
+        hash = "1m6ncbihr742765rshz6w7dn450f3d2ip6ci3qah27lnz7yrwmp6";
       };
       polysemy-time = {
-        version = "0.7.0.0";
-        hash = "0imvjiybxrsggh72pfkd226pvzhz5hg1zvxyd72b91a3xz1vynmq";
+        version = "0.6.0.0";
+        hash = "1ay0ym01wznk98km2ksw8slj52gc7rav6n16z4sndzsw7cdwdq2y";
       };
       prelate = {
         version = "0.8.0.0";
         hash = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
       };
+      reflection = {
+        version = "2.1.9";
+        hash = "0xiivs8grfnp896hznp6rfx09d86mfyaaxvnslgmjl626520ac8p";
+      };
+      relude = {
+        version = "1.2.2.0";
+        hash = "0gmcdwci7r0cb2zjry9ycq0kn7x8bfq40ngjd6xdc0pbh7cz6v8i";
+      };
       servant-server = {
         version = "0.20.2";
         hash = "1xp86ha73fkqbsxyycr0wga0k106vfb4kpjyzh055l2qb47kyj9j";
+      };
+      string-interpolate = {
+        version = "0.3.4.0";
+        hash = "0vvcdd9m7z6rxqcf39xdjaz7hv0hbkkxvcpnyxcvldrsqzlhy3r8";
+      };
+      text-conversions = {
+        version = "0.3.1.1";
+        hash = "0lfcp2f8ld46cry5wm2afcn362mb7fp28ii3afji7bns1fvhh6lf";
       };
       torsor = {
         version = "0.1";
@@ -453,16 +485,20 @@
         hash = "1kwvzy9w4v76q5bk4xwq7kz9q9l8867my6zvsv731x6xkhy7wr2c";
       };
       wai-extra = {
-        version = "3.1.13.0";
-        hash = "1niaix0vhfjw2ch65mhd4favzr6h53vyd9vlkv28skrgsdzicc0h";
+        version = "3.1.12.1";
+        hash = "0lqcvc1akb3n2ldnzafjmrybzvy8386hz1bixi05awrv89d12q9m";
       };
       wai-logger = {
         version = "2.5.0";
         hash = "1l0gspzbwkrs1dqay2rv5wz1gg49a31l3vyl741b2j2apkgamf3p";
       };
       warp = {
-        version = "3.4.0";
-        hash = "1iskx4vxb3f8b0qfqwxyljgv801sh9jw3kfc1vxxr0j0zlvy3j7r";
+        version = "3.3.21";
+        hash = "1pm3dyd2pkby8ssbpsa9vf11vzsvphljsg10wraxyi2q3cqzlyhv";
+      };
+      x509 = {
+        version = "1.7.7";
+        hash = "1pld1yx0fl6g4bzqfx147xipl3kzfx6pz8q4difw2k0kg0qj6xar";
       };
       yaml = {
         version = "0.11.11.0";
