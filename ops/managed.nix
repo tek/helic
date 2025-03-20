@@ -42,7 +42,7 @@
         upper = "3.2";
       };
       optparse-applicative = {
-        lower = "0.18.1.0";
+        lower = "0.17.0.0";
         upper = "0.19";
       };
       path = {
@@ -202,7 +202,7 @@
       gi-gtk = "3.0.43";
       hostname = "1.0";
       network = "3.1.4.0";
-      optparse-applicative = "0.18.1.0";
+      optparse-applicative = "0.17.0.0";
       path = "0.9.5";
       path-io = "1.6.3";
       polysemy = "1.9.2.0";
@@ -372,6 +372,10 @@
       };
     };
     lower = {
+      ansi-wl-pprint = {
+        version = "0.6.9";
+        hash = "08akbbdra1sx36ff1la5k7rcxlz543i86qk4gyyxbxy636m9fhwv";
+      };
       base16-bytestring = {
         version = "1.0.2.0";
         hash = "0r3p5q5zxcrk5cbnwdcm435pgx3yjv3slidpjxdsvigdxizq4fyv";
@@ -415,6 +419,10 @@
       lens = {
         version = "5.3.4";
         hash = "17xmlkm15681di3lvzrmcy67qmkdqqhqym040g0fdmsy05777al3";
+      };
+      optparse-applicative = {
+        version = "0.17.0.0";
+        hash = "068v1pbalmkc635likhcnwzrx02hg6vnpshppff54qgnsqjm37cl";
       };
       parallel = {
         version = "3.2.2.0";
@@ -475,6 +483,18 @@
       string-interpolate = {
         version = "0.3.4.0";
         hash = "0vvcdd9m7z6rxqcf39xdjaz7hv0hbkkxvcpnyxcvldrsqzlhy3r8";
+      };
+      tasty = {
+        version = "1.4.3";
+        hash = "1vnwvsngrvh1swlnmv3hzj1srj5yc6hf3k2gccqs732fl1y9wj2c";
+      };
+      tasty-expected-failure = {
+        version = "0.12.3";
+        hash = "1dplg5n7rv8azy7xysl0z85inicvcxwprf5n9lh5k12lki5i1hdc";
+      };
+      tasty-hedgehog = {
+        version = "1.4.0.2";
+        hash = "04kg2qdnsqzzmj3xggy2jcgidlp21lsjkz4sfnbq7b1yhrv2vbbc";
       };
       text-conversions = {
         version = "0.3.1.1";

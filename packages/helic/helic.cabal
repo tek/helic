@@ -125,7 +125,7 @@ library
     , gi-glib >=2.0.30 && <2.1
     , gi-gtk >=3.0.43 && <3.1
     , hostname ==1.0.*
-    , optparse-applicative >=0.18.1.0 && <0.19
+    , optparse-applicative >=0.17.0.0 && <0.19
     , path >=0.9.5 && <0.10
     , path-io >=1.6.3 && <1.9
     , polysemy >=1.9.2.0 && <1.10

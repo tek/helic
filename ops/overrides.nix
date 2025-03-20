@@ -862,6 +862,26 @@ mkDerivation {
 ;
 };
 lower = {
+  ansi-wl-pprint = {
+  meta = {
+    sha256 = "08akbbdra1sx36ff1la5k7rcxlz543i86qk4gyyxbxy636m9fhwv";
+    ver = "0.6.9";
+  };
+  drv = { mkDerivation, ansi-terminal, base, lib }:
+mkDerivation {
+  pname = "ansi-wl-pprint";
+  version = "0.6.9";
+  src = /nix/store/z4qb2zjir7qiqdv4fl79iys17ig6vl8g-source;
+  isLibrary = true;
+  isExecutable = true;
+  libraryHaskellDepends = [ ansi-terminal base ];
+  homepage = "http://github.com/ekmett/ansi-wl-pprint";
+  description = "The Wadler/Leijen Pretty Printer for colored ANSI terminal output";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
   base16-bytestring = {
   meta = {
     sha256 = "0r3p5q5zxcrk5cbnwdcm435pgx3yjv3slidpjxdsvigdxizq4fyv";
@@ -1169,6 +1189,29 @@ mkDerivation {
   homepage = "http://github.com/ekmett/lens/";
   description = "Lenses, Folds and Traversals";
   license = lib.licenses.bsd2;
+}
+;
+}
+;
+  optparse-applicative = {
+  meta = {
+    sha256 = "068v1pbalmkc635likhcnwzrx02hg6vnpshppff54qgnsqjm37cl";
+    ver = "0.17.0.0";
+  };
+  drv = { mkDerivation, ansi-wl-pprint, base, lib, process, QuickCheck
+, transformers, transformers-compat
+}:
+mkDerivation {
+  pname = "optparse-applicative";
+  version = "0.17.0.0";
+  src = /nix/store/ijkhyfrf3p90dsshjflzfj2xi5v92p7n-source;
+  libraryHaskellDepends = [
+    ansi-wl-pprint base process transformers transformers-compat
+  ];
+  testHaskellDepends = [ base QuickCheck ];
+  homepage = "https://github.com/pcapriotti/optparse-applicative";
+  description = "Utilities and combinators for parsing command line options";
+  license = lib.licenses.bsd3;
 }
 ;
 }
@@ -1604,6 +1647,75 @@ mkDerivation {
   ];
   homepage = "https://gitlab.com/williamyaoh/string-interpolate/blob/master/README.md";
   description = "Haskell string/text/bytestring interpolation that just works";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  tasty = {
+  meta = {
+    sha256 = "1vnwvsngrvh1swlnmv3hzj1srj5yc6hf3k2gccqs732fl1y9wj2c";
+    ver = "1.4.3";
+  };
+  drv = { mkDerivation, ansi-terminal, base, containers, lib
+, optparse-applicative, stm, tagged, transformers, unix
+}:
+mkDerivation {
+  pname = "tasty";
+  version = "1.4.3";
+  src = /nix/store/4igv5s3b9r47h8hdbf1m1qqmah05i3y6-source;
+  libraryHaskellDepends = [
+    ansi-terminal base containers optparse-applicative stm tagged
+    transformers unix
+  ];
+  homepage = "https://github.com/UnkindPartition/tasty";
+  description = "Modern and extensible testing framework";
+  license = lib.licenses.mit;
+}
+;
+}
+;
+  tasty-expected-failure = {
+  meta = {
+    sha256 = "1dplg5n7rv8azy7xysl0z85inicvcxwprf5n9lh5k12lki5i1hdc";
+    ver = "0.12.3";
+  };
+  drv = { mkDerivation, base, hedgehog, lib, tagged, tasty, tasty-golden
+, tasty-hedgehog, tasty-hunit, unbounded-delays
+}:
+mkDerivation {
+  pname = "tasty-expected-failure";
+  version = "0.12.3";
+  src = /nix/store/qrh487167vrz6d983f0kxwkgicvf4nj9-source;
+  libraryHaskellDepends = [ base tagged tasty unbounded-delays ];
+  testHaskellDepends = [
+    base hedgehog tasty tasty-golden tasty-hedgehog tasty-hunit
+  ];
+  homepage = "http://github.com/nomeata/tasty-expected-failure";
+  description = "Mark tasty tests as failure expected";
+  license = lib.licenses.mit;
+}
+;
+}
+;
+  tasty-hedgehog = {
+  meta = {
+    sha256 = "04kg2qdnsqzzmj3xggy2jcgidlp21lsjkz4sfnbq7b1yhrv2vbbc";
+    ver = "1.4.0.2";
+  };
+  drv = { mkDerivation, base, hedgehog, lib, tagged, tasty
+, tasty-expected-failure
+}:
+mkDerivation {
+  pname = "tasty-hedgehog";
+  version = "1.4.0.2";
+  src = /nix/store/b9mxq4fh65sif22q9a4g041jvp847cyc-source;
+  libraryHaskellDepends = [ base hedgehog tagged tasty ];
+  testHaskellDepends = [
+    base hedgehog tasty tasty-expected-failure
+  ];
+  homepage = "https://github.com/qfpl/tasty-hedgehog";
+  description = "Integration for tasty and hedgehog";
   license = lib.licenses.bsd3;
 }
 ;
