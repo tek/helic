@@ -1362,17 +1362,17 @@ mkDerivation {
 ;
   optparse-applicative = {
   meta = {
-    sha256 = "068v1pbalmkc635likhcnwzrx02hg6vnpshppff54qgnsqjm37cl";
+    sha256 = "1jmaizbpksnaf89afz8yz3phnjmyrzch2r22ir8ydw22f6zd5srk";
     url = "https://hackage.haskell.org";
-    ver = "0.17.0.0";
+    ver = "0.16.1.0";
   };
   drv = { mkDerivation, ansi-wl-pprint, base, lib, process, QuickCheck
 , transformers, transformers-compat
 }:
 mkDerivation {
   pname = "optparse-applicative";
-  version = "0.17.0.0";
-  src = /nix/store/ijkhyfrf3p90dsshjflzfj2xi5v92p7n-source;
+  version = "0.16.1.0";
+  src = /nix/store/gz5a20kw0w49zqq3ip5zxrx4x5v0qnl4-source;
   libraryHaskellDepends = [
     ansi-wl-pprint base process transformers transformers-compat
   ];

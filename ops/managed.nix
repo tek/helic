@@ -46,7 +46,7 @@
         upper = "3.2";
       };
       optparse-applicative = {
-        lower = "0.17.0.0";
+        lower = "0.16.1.0";
         upper = "0.19";
       };
       path = {
@@ -206,7 +206,7 @@
       gi-gtk = "3.0.43";
       hostname = "1.0";
       network = "3.1.4.0";
-      optparse-applicative = "0.17.0.0";
+      optparse-applicative = "0.16.1.0";
       path = "0.9.5";
       path-io = "1.6.3";
       polysemy = "1.9.2.0";
@@ -500,8 +500,8 @@
         repo = "hackage.haskell.org";
       };
       optparse-applicative = {
-        version = "0.17.0.0";
-        hash = "068v1pbalmkc635likhcnwzrx02hg6vnpshppff54qgnsqjm37cl";
+        version = "0.16.1.0";
+        hash = "1jmaizbpksnaf89afz8yz3phnjmyrzch2r22ir8ydw22f6zd5srk";
         repo = "hackage.haskell.org";
       };
       parallel = {
