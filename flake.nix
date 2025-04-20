@@ -11,7 +11,7 @@
 
     main = {util, ...}: {
       depsFull = [prelate];
-      ghcVersions = ["ghc94" "ghc96" "ghc98" "ghc910"];
+      ghcVersions = ["ghc94" "ghc96" "ghc98"];
       hackage.versionFile = "ops/version.nix";
       gen-overrides.enable = true;
       compat.enable = false;

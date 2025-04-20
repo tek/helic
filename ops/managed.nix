@@ -278,101 +278,149 @@
   };
   overrides = {
     latest = {
+      bytebuild = {
+        version = "0.3.16.2";
+        hash = "0r14dmwywpr91qrnck3lb269hn8nmfmfwww11yglggn6fmjv6ks7";
+        repo = "hackage.haskell.org";
+        revision = true;
+      };
       cabal-doctest = {
         version = "1.0.11";
         hash = "152rqpicqpvigjpy4rf1kjlwny1c7ys1r0r123wdjafvv1igflii";
+        repo = "hackage.haskell.org";
       };
       chronos = {
         version = "1.1.6.2";
         hash = "1pbfp25py682d17visa4i9rjxmiim8aykrgs7nv2q9anajv88kdx";
+        repo = "hackage.haskell.org";
       };
       exon = {
         version = "1.7.2.0";
         hash = "0hg271cvjqm4ps75qpnirq9nvjwpwb03mcbn1a364jrysrj6bg3b";
+        repo = "hackage.haskell.org";
       };
       fast-logger = {
         version = "3.2.5";
         hash = "0872c6clb0p7js9g3p8xn2xfr97d0zqi8rp8zlxl5hpy5q32jlli";
+        repo = "hackage.haskell.org";
       };
       incipit = {
         version = "0.10.0.1";
         hash = "0vr1balwy6v9l15pjlyy372w0scli1wcl6395jqdkjncqm3ymdin";
+        repo = "hackage.haskell.org";
+      };
+      incipit-base = {
+        version = "0.5.1.0";
+        hash = "0hkqnqpdw8rvg4xzslw9sp3684ggyk9n4hr0lczwm8b0pzakzs0l";
+        repo = "hackage.haskell.org";
+        revision = true;
+      };
+      incipit-core = {
+        version = "0.5.1.0";
+        hash = "04lyzycvqxyjqcd703cd33lnlk5va9wj3czpsybah0ybydnrwabd";
+        repo = "hackage.haskell.org";
+        revision = true;
       };
       path = {
         version = "0.9.6";
         hash = "16hgrkvd27c9vp5447d1dv3b3fi0fv0jfig10h2j37mzk4850wg8";
+        repo = "hackage.haskell.org";
       };
       path-io = {
         version = "1.8.2";
         hash = "063ma7gzqr5c6s8a1yv72jgll3xdajvgclbc8w0ddmqgcrb62x2k";
+        repo = "hackage.haskell.org";
       };
       polysemy-chronos = {
         version = "0.7.0.1";
         hash = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+        repo = "hackage.haskell.org";
       };
       polysemy-conc = {
         version = "0.14.1.1";
         hash = "1xli6ja9f7qx2k9956lw4h9y5ywdglhgw769afxw9d4w9avclx28";
+        repo = "hackage.haskell.org";
       };
       polysemy-http = {
         version = "0.13.1.0";
         hash = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+        repo = "hackage.haskell.org";
       };
       polysemy-log = {
         version = "0.11.1.0";
         hash = "09jdy3jzry31knaydjqka0mj8jwscdys5wq2xij21lxbxr5msy1m";
+        repo = "hackage.haskell.org";
       };
       polysemy-plugin = {
         version = "0.4.5.3";
         hash = "1c2agk21jj7fwdj6xkagq0prvxknp3zr6q1f480wizssibcvm7y6";
+        repo = "hackage.haskell.org";
       };
       polysemy-process = {
         version = "0.14.1.1";
         hash = "1qvbkldhai77r2pr7wbznsb9pr0pawynmvcd31v3v8jpki3xaycr";
+        repo = "hackage.haskell.org";
+      };
+      polysemy-resume = {
+        version = "0.9.0.0";
+        hash = "1achlwdkycbgjlcdkq641r481m1bl9rb7fklbwfb9nnb6xmqyzms";
+        repo = "hackage.haskell.org";
+        revision = true;
       };
       polysemy-test = {
         version = "0.10.0.1";
         hash = "1sp9iag1brknmdy0qvmgnmynwc4gbg1jy21w584x1m2hpqi25p6j";
+        repo = "hackage.haskell.org";
       };
       polysemy-time = {
         version = "0.7.0.1";
         hash = "0cw39gvmr9rgh3hc0gd55wimm4lxzw9nyrczixk42nw170bpls40";
+        repo = "hackage.haskell.org";
       };
       prelate = {
         version = "0.8.0.0";
         hash = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+        repo = "hackage.haskell.org";
       };
       servant-server = {
         version = "0.20.2";
         hash = "1xp86ha73fkqbsxyycr0wga0k106vfb4kpjyzh055l2qb47kyj9j";
+        repo = "hackage.haskell.org";
       };
       tasty = {
         version = "1.5.3";
         hash = "1xjlmgsww34asjl9rcwbziw5l4qqbvi5l4b7qvzf4dc7hqkpq1rs";
+        repo = "hackage.haskell.org";
       };
       tasty-expected-failure = {
         version = "0.12.3";
         hash = "1dplg5n7rv8azy7xysl0z85inicvcxwprf5n9lh5k12lki5i1hdc";
+        repo = "hackage.haskell.org";
       };
       tasty-hedgehog = {
         version = "1.4.0.2";
         hash = "04kg2qdnsqzzmj3xggy2jcgidlp21lsjkz4sfnbq7b1yhrv2vbbc";
+        repo = "hackage.haskell.org";
       };
       wai-app-static = {
         version = "3.1.9";
         hash = "1kwvzy9w4v76q5bk4xwq7kz9q9l8867my6zvsv731x6xkhy7wr2c";
+        repo = "hackage.haskell.org";
       };
       wai-extra = {
         version = "3.1.17";
         hash = "0lvsv014k2fpd3rm99qkfkh47zic7wg39zgv7g7ll06515ly23w9";
+        repo = "hackage.haskell.org";
       };
       wai-logger = {
         version = "2.5.0";
         hash = "1l0gspzbwkrs1dqay2rv5wz1gg49a31l3vyl741b2j2apkgamf3p";
+        repo = "hackage.haskell.org";
       };
       zeugma = {
         version = "0.10.0.1";
         hash = "14k0lq3ghanvxw47g43vvzfw4d9cm04bmc2fn5cp4y3vslflaknj";
+        repo = "hackage.haskell.org";
       };
     };
     lower = {
@@ -519,6 +567,59 @@
     };
   };
   solver = {
+    latest = {
+      bytebuild = {
+        jailbreak = true;
+      };
+      chronos = {
+        jailbreak = true;
+      };
+      exon = {
+        version = "1.7.2.0";
+        hash = "0hg271cvjqm4ps75qpnirq9nvjwpwb03mcbn1a364jrysrj6bg3b";
+        repo = "hackage.haskell.org";
+      };
+      incipit = {
+        jailbreak = true;
+      };
+      incipit-base = {
+        jailbreak = true;
+      };
+      incipit-core = {
+        jailbreak = true;
+      };
+      polysemy-chronos = {
+        version = "0.7.0.1";
+        hash = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+        repo = "hackage.haskell.org";
+      };
+      polysemy-conc = {
+        jailbreak = true;
+      };
+      polysemy-http = {
+        version = "0.13.1.0";
+        hash = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+        repo = "hackage.haskell.org";
+      };
+      polysemy-log = {
+        jailbreak = true;
+      };
+      polysemy-process = {
+        jailbreak = true;
+      };
+      polysemy-resume = {
+        jailbreak = true;
+      };
+      polysemy-test = {
+        jailbreak = true;
+      };
+      polysemy-time = {
+        jailbreak = true;
+      };
+      zeugma = {
+        jailbreak = true;
+      };
+    };
     lower = {
       polysemy-http = {
         jailbreak = true;
