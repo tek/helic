@@ -13,7 +13,7 @@ jobs:
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: cachix/cachix-action@v14
+      - uses: cachix/cachix-action@v16
         with:
           name: tek
           signingKey: ${{ secrets.CACHIX_SIGNING_KEY }}
