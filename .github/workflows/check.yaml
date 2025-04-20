@@ -15,13 +15,19 @@ jobs:
     name: Run flake checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v16
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Set up Nix
+        uses: DeterminateSystems/nix-installer-action@v16
         with:
           extra-conf: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-      - uses: cachix/cachix-action@v16
+      - name: Set up Cachix
+        uses: cachix/cachix-action@v16
         with:
           name: tek
           signingKey: ${{ secrets.CACHIX_SIGNING_KEY }}
-      - run: nix -L flake check
+      - name: Free up space
+        run: rm -rf /opt/hostedtoolcache
+      - name: Run flake checks
+        run: nix -L flake check
