@@ -1,8 +1,15 @@
 name: Flake checks
-on: [push, pull_request]
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
 permissions:
   contents: read
   id-token: write
+
 jobs:
   check:
     name: Run flake checks
@@ -17,4 +24,4 @@ jobs:
         with:
           name: tek
           signingKey: ${{ secrets.CACHIX_SIGNING_KEY }}
-      - run: nix flake check
+      - run: nix -L flake check
