@@ -9,29 +9,6 @@
 
   outputs = {self, hix, prelate, ...}: let
 
-    jailbreaks910 = {hackage, jailbreak, unbreak, ...}: {
-      bytebuild = jailbreak;
-      chronos = jailbreak;
-      incipit = jailbreak;
-      incipit-base = jailbreak;
-      incipit-core = jailbreak;
-      polysemy-chronos = jailbreak;
-      polysemy-conc = jailbreak;
-      polysemy-log = jailbreak;
-      polysemy-process = jailbreak unbreak;
-      polysemy-resume = jailbreak;
-      polysemy-test = jailbreak unbreak;
-      polysemy-time = jailbreak;
-      zeugma = jailbreak;
-    };
-
-    overrides910 = api@{hackage, jailbreak, unbreak, ...}: jailbreaks910 api // {
-      byte-order = jailbreak;
-      exon = hackage "1.7.1.0" "16vf84nnpivxw4a46g7jsy2hg4lpla7grkv3gp8nd69zlv43777l";
-      polysemy-http = hackage "0.13.1.0" "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
-      prelate = hackage "0.8.0.0" "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
-    };
-
     main = {util, ...}: {
       depsFull = [prelate];
       ghcVersions = ["ghc94" "ghc96" "ghc98" "ghc910"];
@@ -150,11 +127,7 @@
         enable = true;
         latest.compiler = "ghc910";
         lower.enable = true;
-        envs.solverOverrides = overrides910;
-        envs.verbatim.globalOverrides = true;
       };
-
-      envs.latest.overrides = jailbreaks910;
 
       overrides = {hackage, ...}: {
         polysemy-http = hackage "0.13.1.0" "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";

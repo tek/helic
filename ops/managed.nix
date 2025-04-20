@@ -33,6 +33,10 @@
         lower = "3.0.43";
         upper = "3.1";
       };
+      helic = {
+        lower = null;
+        upper = null;
+      };
       hostname = {
         lower = "1.0";
         upper = "1.1";
@@ -531,6 +535,13 @@
       zeugma = {
         version = "0.10.0.0";
         hash = "16rv92l40bhrpf4mdj3f39wqb483jgj3jzkgckanfy4z6nfglirm";
+      };
+    };
+  };
+  solver = {
+    lower = {
+      polysemy-http = {
+        jailbreak = true;
       };
     };
   };

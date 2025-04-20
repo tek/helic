@@ -5,11 +5,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1742420244,
-        "narHash": "sha256-eAqiVBl/BUr/uU++K4nGyTo1AuB5ThonYsC3Cbu15Pw=",
+        "lastModified": 1745095171,
+        "narHash": "sha256-f4TJcOxKFgJ449xVdDpimlUIXCqD3cC5qfYd2ZmLzM4=",
         "ref": "refs/heads/main",
-        "rev": "2aa52312f7a2b35781e8e937403c189e4f1686c3",
-        "revCount": 941,
+        "rev": "d133500f9d0b2ee6689cd9da4b404cb52b54bd04",
+        "revCount": 996,
         "type": "git",
         "url": "https://git.tryp.io/tek/hix"
       },
@@ -23,11 +23,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1742009034,
-        "narHash": "sha256-Bh8PkDtyPDQWZv7kSRP19jIKUMcN7bIziy7I66wV8no=",
+        "lastModified": 1745066385,
+        "narHash": "sha256-qxoAN9W/kuMFSB1iqGwAQvPMPSyivvQpjk9T+9JgG7Q=",
         "ref": "refs/heads/main",
-        "rev": "27534d903221c9a7892d26aa782f33deff50f2f1",
-        "revCount": 925,
+        "rev": "27a24f072be3cc1b9873847b797ba65b2673be33",
+        "revCount": 990,
         "type": "git",
         "url": "https://git.tryp.io/tek/hix"
       },
@@ -73,11 +73,11 @@
         "hix": "hix_2"
       },
       "locked": {
-        "lastModified": 1742132127,
-        "narHash": "sha256-PrRwUPxkB8Ain4dZ3UbkoPkNoYYnU4pquAOjQrOvTjU=",
+        "lastModified": 1745072041,
+        "narHash": "sha256-qC6wxN1vWpOKYgG4bxu/sYlT4RJLlrQIeHL6PQ0RUpg=",
         "ref": "refs/heads/main",
-        "rev": "cc39baecdf655ac32c1876350815255c865c234d",
-        "revCount": 51,
+        "rev": "6810425a7967c428c3e90e07a17b453b011ffaaf",
+        "revCount": 53,
         "type": "git",
         "url": "https://git.tryp.io/tek/prelate"
       },
