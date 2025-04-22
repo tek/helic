@@ -2,15 +2,11 @@
 
   description = "Clipboard Manager";
 
-  inputs = {
-    hix.url = "git+https://git.tryp.io/tek/hix";
-    prelate.url = "git+https://git.tryp.io/tek/prelate";
-  };
+  inputs.hix.url = "git+https://git.tryp.io/tek/hix";
 
-  outputs = {self, hix, prelate, ...}: let
+  outputs = {self, hix, ...}: let
 
     main = {util, ...}: {
-      depsFull = [prelate];
       ghcVersions = ["ghc94" "ghc96" "ghc98"];
       hackage.versionFile = "ops/version.nix";
       gen-overrides.enable = true;
@@ -129,8 +125,14 @@
         lower.enable = true;
       };
 
-      overrides = {hackage, ...}: {
+      overrides = {hackage, jailbreak, unbreak, ...}: {
+        incipit = jailbreak;
+        polysemy-conc = jailbreak;
         polysemy-http = hackage "0.13.1.0" "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+        polysemy-log = jailbreak;
+        polysemy-process = unbreak;
+        polysemy-test = jailbreak unbreak;
+        prelate = hackage "0.8.0.0" "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
       };
 
       output.expose.static = false;

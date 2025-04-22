@@ -30,6 +30,32 @@ mkDerivation {
 ;
 }
 ;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
 };
 ghc94 = {
   polysemy-http = {
@@ -57,6 +83,32 @@ mkDerivation {
   ];
   homepage = "https://github.com/tek/polysemy-http#readme";
   description = "Polysemy effects for HTTP clients";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
   license = "BSD-2-Clause-Patent";
 }
 ;
@@ -94,6 +146,32 @@ mkDerivation {
 ;
 }
 ;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
 };
 ghc98 = {
   polysemy-http = {
@@ -121,6 +199,32 @@ mkDerivation {
   ];
   homepage = "https://github.com/tek/polysemy-http#readme";
   description = "Polysemy effects for HTTP clients";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
   license = "BSD-2-Clause-Patent";
 }
 ;
@@ -2217,6 +2321,32 @@ mkDerivation {
 ;
 }
 ;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
 };
 profiled = {
   polysemy-http = {
@@ -2249,6 +2379,32 @@ mkDerivation {
 ;
 }
 ;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
 };
 system-test = {
   polysemy-http = {
@@ -2276,6 +2432,32 @@ mkDerivation {
   ];
   homepage = "https://github.com/tek/polysemy-http#readme";
   description = "Polysemy effects for HTTP clients";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
   license = "BSD-2-Clause-Patent";
 }
 ;
