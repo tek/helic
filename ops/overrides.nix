@@ -836,6 +836,36 @@ mkDerivation {
 ;
 }
 ;
+  table-layout = {
+  meta = {
+    sha256 = "1kz5njn1y1f8n920nmsb59yljwmb3xycrjxl71j573jbm1dx9bsn";
+    url = "https://hackage.haskell.org";
+    ver = "1.0.0.2";
+  };
+  drv = { mkDerivation, base, data-default-class, doclayout, hspec, HUnit
+, lib, QuickCheck, text
+}:
+mkDerivation {
+  pname = "table-layout";
+  version = "1.0.0.2";
+  src = /nix/store/qyylxg89cky1sn8mrj7q8rl634jdw51q-source;
+  isLibrary = true;
+  isExecutable = true;
+  libraryHaskellDepends = [ base data-default-class doclayout text ];
+  executableHaskellDepends = [
+    base data-default-class doclayout text
+  ];
+  testHaskellDepends = [
+    base data-default-class doclayout hspec HUnit QuickCheck text
+  ];
+  homepage = "https://github.com/muesli4/table-layout";
+  description = "Format tabular data as grid or table";
+  license = lib.licenses.bsd3;
+  mainProgram = "table-layout-test-styles";
+}
+;
+}
+;
   tasty = {
   meta = {
     sha256 = "1xjlmgsww34asjl9rcwbziw5l4qqbvi5l4b7qvzf4dc7hqkpq1rs";
