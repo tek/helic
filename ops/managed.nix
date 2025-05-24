@@ -184,7 +184,7 @@
       servant = "0.20.2";
       servant-client = "0.20.2";
       servant-server = "0.20.2";
-      table-layout = "1.0.0.1";
+      table-layout = "1.0.0.2";
       tasty = "1.5.3";
       terminal-size = "0.3.4";
       torsor = "0.1.0.1";
@@ -385,6 +385,11 @@
       servant-server = {
         version = "0.20.2";
         hash = "1xp86ha73fkqbsxyycr0wga0k106vfb4kpjyzh055l2qb47kyj9j";
+        repo = "hackage.haskell.org";
+      };
+      table-layout = {
+        version = "1.0.0.2";
+        hash = "1kz5njn1y1f8n920nmsb59yljwmb3xycrjxl71j573jbm1dx9bsn";
         repo = "hackage.haskell.org";
       };
       tasty = {
@@ -691,8 +696,15 @@
       polysemy-time = {
         jailbreak = true;
       };
+      prelate = {
+        version = "0.8.0.0";
+        hash = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+        repo = "hackage.haskell.org";
+      };
       zeugma = {
-        jailbreak = true;
+        version = "0.10.0.1";
+        hash = "14k0lq3ghanvxw47g43vvzfw4d9cm04bmc2fn5cp4y3vslflaknj";
+        repo = "hackage.haskell.org";
       };
     };
     lower = {
