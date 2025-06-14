@@ -381,6 +381,32 @@ mkDerivation {
 ;
 }
 ;
+  generics-sop = {
+  meta = {
+    sha256 = "0ai089kly1cajn4djqnplkg2jmnapqlb3crrsyvfnadcyzc9h3km";
+    url = "https://hackage.haskell.org";
+    ver = "0.5.1.4";
+  };
+  drv = { mkDerivation, base, criterion, deepseq, ghc-prim, lib, sop-core
+, template-haskell, th-abstraction
+}:
+mkDerivation {
+  pname = "generics-sop";
+  version = "0.5.1.4";
+  src = /nix/store/qky7s4rv2qdyxl5wx3jbd5c46j7bglrx-source;
+  libraryHaskellDepends = [
+    base ghc-prim sop-core template-haskell th-abstraction
+  ];
+  testHaskellDepends = [ base ];
+  benchmarkHaskellDepends = [
+    base criterion deepseq template-haskell
+  ];
+  description = "Generic Programming using True Sums of Products";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
   incipit = {
   meta = {
     sha256 = "0vr1balwy6v9l15pjlyy372w0scli1wcl6395jqdkjncqm3ymdin";
@@ -443,6 +469,32 @@ mkDerivation {
   homepage = "https://github.com/tek/incipit-core#readme";
   description = "A Prelude for Polysemy";
   license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  optparse-applicative = {
+  meta = {
+    sha256 = "0cs8fqipakad38lvm75nz98hmvf881mgjhnc7icblxfzh92ay6kn";
+    url = "https://hackage.haskell.org";
+    ver = "0.19.0.0";
+  };
+  drv = { mkDerivation, base, lib, prettyprinter
+, prettyprinter-ansi-terminal, process, QuickCheck, text
+, transformers
+}:
+mkDerivation {
+  pname = "optparse-applicative";
+  version = "0.19.0.0";
+  src = /nix/store/l5z3gyf61qdyda9hmv5fqdq6svb2g7wh-source;
+  libraryHaskellDepends = [
+    base prettyprinter prettyprinter-ansi-terminal process text
+    transformers
+  ];
+  testHaskellDepends = [ base QuickCheck ];
+  homepage = "https://github.com/pcapriotti/optparse-applicative";
+  description = "Utilities and combinators for parsing command line options";
+  license = lib.licenses.bsd3;
 }
 ;
 }
@@ -793,11 +845,116 @@ mkDerivation {
 ;
 }
 ;
+  servant = {
+  meta = {
+    sha256 = "0vgppwv8fzfi1wc7n72lqrj49xfn8ymjh1balpsphhj4bc7n6lvi";
+    url = "https://hackage.haskell.org";
+    ver = "0.20.3.0";
+  };
+  drv = { mkDerivation, aeson, attoparsec, base, bifunctors, bytestring
+, case-insensitive, constraints, containers, deepseq, generics-sop
+, hspec, hspec-discover, http-api-data, http-media, http-types, lib
+, mmorph, mtl, network-uri, QuickCheck, quickcheck-instances
+, singleton-bool, sop-core, text, transformers, vault
+}:
+mkDerivation {
+  pname = "servant";
+  version = "0.20.3.0";
+  src = /nix/store/87zpmsmv6h0c3zfwvz44195cd127xl35-source;
+  libraryHaskellDepends = [
+    aeson attoparsec base bifunctors bytestring case-insensitive
+    constraints containers deepseq generics-sop http-api-data
+    http-media http-types mmorph mtl network-uri QuickCheck
+    singleton-bool sop-core text transformers vault
+  ];
+  testHaskellDepends = [
+    aeson base bytestring hspec http-media mtl network-uri QuickCheck
+    quickcheck-instances text
+  ];
+  testToolDepends = [ hspec-discover ];
+  homepage = "http://docs.servant.dev/";
+  description = "A family of combinators for defining webservices APIs";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  servant-client = {
+  meta = {
+    sha256 = "0xlf354mcvg3cg8nqfi1aqfym686qcyy1yv46fg9fxchms9njczr";
+    url = "https://hackage.haskell.org";
+    ver = "0.20.3.0";
+  };
+  drv = { mkDerivation, aeson, base, base-compat, bytestring, containers
+, deepseq, entropy, exceptions, generics-sop, hspec, hspec-discover
+, http-api-data, http-client, http-media, http-types, HUnit
+, kan-extensions, lib, markdown-unlit, monad-control, mtl, network
+, QuickCheck, semigroupoids, servant, servant-client-core
+, servant-server, sop-core, stm, text, time, transformers
+, transformers-base, wai, warp
+}:
+mkDerivation {
+  pname = "servant-client";
+  version = "0.20.3.0";
+  src = /nix/store/y0azgrrnkv9wq5wy4fz962k9v9s0ck3z-source;
+  libraryHaskellDepends = [
+    base base-compat bytestring containers deepseq exceptions
+    http-client http-media http-types kan-extensions monad-control mtl
+    semigroupoids servant servant-client-core stm time transformers
+    transformers-base
+  ];
+  testHaskellDepends = [
+    aeson base base-compat bytestring entropy generics-sop hspec
+    http-api-data http-client http-types HUnit markdown-unlit mtl
+    network QuickCheck servant servant-client-core servant-server
+    sop-core stm text transformers wai warp
+  ];
+  testToolDepends = [ hspec-discover markdown-unlit ];
+  homepage = "http://docs.servant.dev/";
+  description = "Automatic derivation of querying functions for servant";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  servant-client-core = {
+  meta = {
+    sha256 = "0yv0asv77zjclnvadjb2hxjghnmz5rnba4akg237x3ssh50i52ca";
+    url = "https://hackage.haskell.org";
+    ver = "0.20.3.0";
+  };
+  drv = { mkDerivation, aeson, attoparsec, base, base-compat
+, base64-bytestring, bytestring, constraints, containers, deepseq
+, exceptions, free, hspec, hspec-discover, http-media, http-types
+, lib, network-uri, QuickCheck, safe, servant, sop-core
+, template-haskell, text, transformers
+}:
+mkDerivation {
+  pname = "servant-client-core";
+  version = "0.20.3.0";
+  src = /nix/store/9dr7w7j8242pv1aypymsml7z4bh17jyf-source;
+  libraryHaskellDepends = [
+    aeson attoparsec base base-compat base64-bytestring bytestring
+    constraints containers deepseq exceptions free http-media
+    http-types network-uri safe servant sop-core template-haskell text
+  ];
+  testHaskellDepends = [
+    base base-compat bytestring deepseq hspec QuickCheck servant
+    transformers
+  ];
+  testToolDepends = [ hspec-discover ];
+  homepage = "http://docs.servant.dev/";
+  description = "Core functionality and class for client function generation for servant APIs";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
   servant-server = {
   meta = {
-    sha256 = "1xp86ha73fkqbsxyycr0wga0k106vfb4kpjyzh055l2qb47kyj9j";
+    sha256 = "053d5j5sxki31v8d5b73jx53bfhz76pm8xyb99n0rk1gxc8rg18x";
     url = "https://hackage.haskell.org";
-    ver = "0.20.2";
+    ver = "0.20.3.0";
   };
   drv = { mkDerivation, aeson, base, base-compat, base64-bytestring
 , bytestring, constraints, containers, directory, exceptions
@@ -809,8 +966,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "servant-server";
-  version = "0.20.2";
-  src = /nix/store/1h5crkb17rn2sswhf313f28ngk7chpfz-source;
+  version = "0.20.3.0";
+  src = /nix/store/bzxi418yskly16zwlrcbxfk8cw38mzfz-source;
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
@@ -1034,6 +1191,50 @@ mkDerivation {
   ];
   description = "A logging system for WAI";
   license = lib.licenses.bsd3;
+}
+;
+}
+;
+  warp = {
+  meta = {
+    sha256 = "1sx9kv01ic8d588sfzn6hrbl0g0nnmz864xslrgviw0krix9v6i5";
+    url = "https://hackage.haskell.org";
+    ver = "3.4.8";
+  };
+  drv = { mkDerivation, array, async, auto-update, base, bsb-http-chunked
+, bytestring, case-insensitive, containers, criterion, crypton-x509
+, directory, ghc-prim, hashable, hspec, hspec-discover, http-client
+, http-date, http-types, http2, iproute, lib, network, process
+, QuickCheck, recv, simple-sendfile, stm, streaming-commons, text
+, time-manager, unix, vault, wai, word8
+}:
+mkDerivation {
+  pname = "warp";
+  version = "3.4.8";
+  src = /nix/store/wvj0vs4cvy7qiv38yci171zbm4q7wgm3-source;
+  libraryHaskellDepends = [
+    array async auto-update base bsb-http-chunked bytestring
+    case-insensitive containers crypton-x509 ghc-prim hashable
+    http-date http-types http2 iproute network recv simple-sendfile stm
+    streaming-commons text time-manager unix vault wai word8
+  ];
+  testHaskellDepends = [
+    array async auto-update base bsb-http-chunked bytestring
+    case-insensitive containers crypton-x509 directory ghc-prim
+    hashable hspec http-client http-date http-types http2 iproute
+    network process QuickCheck recv simple-sendfile stm
+    streaming-commons text time-manager unix vault wai word8
+  ];
+  testToolDepends = [ hspec-discover ];
+  benchmarkHaskellDepends = [
+    array auto-update base bytestring case-insensitive containers
+    criterion crypton-x509 ghc-prim hashable http-date http-types
+    network recv streaming-commons text time-manager unix vault wai
+    word8
+  ];
+  homepage = "http://github.com/yesodweb/wai";
+  description = "A fast, light-weight web server for WAI applications";
+  license = lib.licenses.mit;
 }
 ;
 }
