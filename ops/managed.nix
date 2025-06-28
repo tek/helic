@@ -161,7 +161,7 @@
       chronos = "1.1.6.2";
       containers = "0.7";
       exon = "1.7.2.0";
-      fast-logger = "3.2.5";
+      fast-logger = "3.2.6";
       gi-gdk = "3.0.29";
       gi-glib = "2.0.30";
       gi-gtk = "3.0.43";
@@ -300,8 +300,8 @@
         repo = "hackage.haskell.org";
       };
       fast-logger = {
-        version = "3.2.5";
-        hash = "0872c6clb0p7js9g3p8xn2xfr97d0zqi8rp8zlxl5hpy5q32jlli";
+        version = "3.2.6";
+        hash = "0i2lcjrg2ll4ccwqk9lzqq862yhjiyhqk4222g90rvk379qphhg0";
         repo = "hackage.haskell.org";
       };
       generics-sop = {

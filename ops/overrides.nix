@@ -356,9 +356,9 @@ mkDerivation {
 ;
   fast-logger = {
   meta = {
-    sha256 = "0872c6clb0p7js9g3p8xn2xfr97d0zqi8rp8zlxl5hpy5q32jlli";
+    sha256 = "0i2lcjrg2ll4ccwqk9lzqq862yhjiyhqk4222g90rvk379qphhg0";
     url = "https://hackage.haskell.org";
-    ver = "3.2.5";
+    ver = "3.2.6";
   };
   drv = { mkDerivation, array, async, auto-update, base, bytestring
 , directory, easy-file, filepath, hspec, hspec-discover, lib, stm
@@ -366,8 +366,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "fast-logger";
-  version = "3.2.5";
-  src = /nix/store/48r7m5z61gb1xa2hk6mr41i2yxpf8zrg-source;
+  version = "3.2.6";
+  src = /nix/store/rzjzxm842086yd8iq3gnng6dapj1s6rm-source;
   libraryHaskellDepends = [
     array auto-update base bytestring directory easy-file filepath stm
     text unix-compat unix-time
