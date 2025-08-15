@@ -18,10 +18,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: Set up Nix
-        uses: DeterminateSystems/nix-installer-action@v19
+        uses: cachix/install-nix-action@v31
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Cachix
         uses: cachix/cachix-action@v16
         with:
