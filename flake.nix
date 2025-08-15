@@ -101,6 +101,7 @@
         license = "BSD-2-Clause-Patent";
         license-file = "LICENSE";
         author = "Torsten Schmits";
+        language = "GHC2021";
         prelude = {
           enable = true;
           package = "prelate";
@@ -136,6 +137,8 @@
       };
 
       output.expose.static = false;
+
+      internal.hixCli.dev = true;
 
     };
 
