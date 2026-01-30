@@ -8,6 +8,9 @@ import Helic.Effect.GtkClipboard (GtkClipboard)
 import Helic.Effect.GtkMain (GtkMain)
 import Helic.Gtk (clipboardText, setClipboardText, subscribeToClipboard)
 import Helic.Interpreter.GtkMain (interpretWithGtk)
+import Helic.Data.X11Config (X11Config(..))
+import Helic.Data.Selection (Selection)
+import qualified Data.Set as Set
 
 -- |Specialization of 'scoped_' to 'GtkClipboard' for syntactic sugar.
 withGtkClipboard ::
@@ -21,7 +24,7 @@ withGtkClipboard =
 -- The effect then needs to be scoped using 'withGtkClipboard'.
 -- The default implementation for this purpose is 'interpretWithGtk'.
 handleGtkClipboard ::
-  Members [Log, Embed IO, Final IO] r =>
+  Members [Reader X11Config, Log, Embed IO, Final IO] r =>
   Display ->
   GtkClipboard (Sem r0) a ->
   Tactical effect (Sem r0) (Stop Text : r) a
@@ -33,12 +36,16 @@ handleGtkClipboard display = \case
   GtkClipboard.Events f -> do
     let f' s t = void (raise (runTSimple (f s t)))
     runReader display do
-      for_ @[] [minBound..maxBound] (subscribeToClipboard f')
+      x11Config <- ask @X11Config
+      let 
+        targetSelections :: Set Selection
+        targetSelections = fromMaybe (Set.fromList [minBound..maxBound]) x11Config.subscribedSelections
+      for_ @Set targetSelections (subscribeToClipboard f')
     pureT ()
 
 -- |Native interpreter for 'GtkClipboard' that requires the effect to be used within a 'withGtkClipboard' region.
 interpretGtkClipboard ::
-  Members [GtkMain Display, Log, Embed IO, Final IO] r =>
+  Members [Reader X11Config, GtkMain Display, Log, Embed IO, Final IO] r =>
   InterpreterFor (Scoped_ GtkClipboard !! Text) r
 interpretGtkClipboard =
   interpretWithGtk handleGtkClipboard
