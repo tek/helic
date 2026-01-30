@@ -2,6 +2,7 @@ self: { config, lib, pkgs, ... }:
 with lib;
 let
   cfg = config.services.helic;
+  nixStringListToJsonArray = xs: "[${concatMapStringsSep ", " (h: "'${h}'") xs}]";
 in {
   options.services.helic = {
     enable = mkEnableOption "Clipboard Manager";
@@ -67,6 +68,12 @@ in {
         default = ":0";
         description = "The X11 display to connect to if there is no active display in the environment.";
       };
+      subscribedSelections = mkOption {
+        type = types.listOf types.str;
+        default = ["Clipboard" "Primary" "Selection"];
+        description = "A list of unique X11 selections from which to listen to events for.";
+        example = literalExpression ["Clipboard"];
+      };
     };
   };
   config = mkIf cfg.enable {
@@ -81,11 +88,12 @@ in {
     net:
       enable: ${if cfg.net.enable then "true" else "false"}
       port: ${toString cfg.net.port}
-      hosts: [${concatMapStringsSep ", " (h: "'${h}'") cfg.net.hosts}]
+      hosts: ${nixStringListToJsonArray cfg.net.hosts}
       ${if cfg.net.timeout == null then "" else "timeout: ${toString cfg.net.timeout}"}
     x11:
       enable: ${if cfg.x11.enable then "true" else "false"}
       display: ${cfg.x11.display}
+      subscribedSelections: ${nixStringListToJsonArray cfg.x11.subscribedSelections}
     '';
     systemd.user.services.helic = {
       description = "Clipboard Manager";

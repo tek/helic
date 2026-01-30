@@ -14,6 +14,8 @@ data Selection =
   Secondary
   deriving stock (Eq, Show, Ord, Enum, Bounded)
 
+json ''Selection
+
 -- |Convert a 'Selection' into the string that X11 uses to identify it.
 toXString :: Selection -> Text
 toXString = \case
