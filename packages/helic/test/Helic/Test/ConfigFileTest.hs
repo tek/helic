@@ -10,6 +10,8 @@ import Helic.Data.Config (Config (Config))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Data.TmuxConfig (TmuxConfig (TmuxConfig))
 import Helic.Data.X11Config (X11Config (X11Config))
+import qualified Helic.Data.Selection as Selection
+import qualified Data.Set as Set
 
 target :: Config
 target =
@@ -20,7 +22,7 @@ target =
     net =
       NetConfig (Just True) (Just 10001) (Just 5) (Just ["remote:1000"])
     x =
-      X11Config (Just True) (Just ":1")
+      X11Config (Just True) (Just ":1") (Just (Set.fromList [Selection.Clipboard, Selection.Primary, Selection.Secondary]))
 
 test_readConfigFile :: UnitTest
 test_readConfigFile = do

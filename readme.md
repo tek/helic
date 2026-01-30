@@ -9,6 +9,7 @@ Selections are used when text is selected with the mouse, while the clipboard is
 When some text is copied or selected in *X11*, the daemon receives an event that it proceeds to broadcast to the
 configured targets.
 If the source was a selection, the *X11* clipboard is updated as well.
+The choice of which *X11* selections to listen to is configurable via `subscribedSelections`.
 
 The CLI program `hel` can be used to manually send text to the daemon, for example from *tmux* or *Neovim*.
 If remote hosts are configured, each yank event is sent over the network to update their clipboards.
@@ -170,6 +171,8 @@ For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
     x11 = {
       enable = true;
       display = ":0";
+      subscribedSelections = ["Clipboard" "Primary" "Selection"];
+
     };
   };
 }
@@ -193,6 +196,7 @@ The meaning of these options is:
 |`tmux.exe`|`tmux`|Only for YAML file: The path to the *tmux* executable|
 |`x11.enable`|`true`|Whether to synchronize the X11 clipboard.|
 |`x11.display`|`:0`|The display identifier used when connecting to the default display via GTK fails.|
+|`x11.subscribedSelections`|`["Clipboard" "Primary" "Selection"]`|Which X11 selections to listen to.|
 
 # Neovim
 
