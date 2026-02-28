@@ -15,14 +15,14 @@ import qualified Data.Set as Set
 
 target :: Config
 target =
-  Config (Just "name") (Just tmux) (Just net) (Just x) (Just 1000) (Just 5000) (Just False)
+  Config (Just "name") (Just tmux) (Just net) (Just x) Nothing (Just 1000) (Just 5000) (Just False)
   where
     tmux =
       TmuxConfig (Just True) (Just [absfile|/bin/tmux|])
     net =
       NetConfig (Just True) (Just 10001) (Just 5) (Just ["remote:1000"])
     x =
-      X11Config (Just True) (Just ":1") (Just (Set.fromList [Selection.Clipboard, Selection.Primary, Selection.Secondary]))
+      X11Config (Just True) (Just (Set.fromList [Selection.Clipboard, Selection.Primary, Selection.Secondary]))
 
 test_readConfigFile :: UnitTest
 test_readConfigFile = do

@@ -14,7 +14,7 @@ import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
 import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Data.NetConfig (NetConfig (NetConfig))
-import Helic.Effect.Agent (AgentNet, AgentTmux, AgentX)
+import Helic.Effect.Agent (AgentNet, AgentTmux, AgentWayland, AgentX)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 import qualified Helic.Effect.History as History
@@ -40,6 +40,7 @@ test_stream =
   interpretAgentNull @AgentNet $
   interpretAgentNull @AgentTmux $
   interpretAgentNull @AgentX $
+  interpretAgentNull @AgentWayland $
   interpretHistory Nothing Nothing $
   interpretSync do
     let port = 10002
@@ -47,13 +48,13 @@ test_stream =
     runReader (NetConfig (Just True) (Just port) Nothing Nothing) $ withAsync_ serve do
       ServerReady <- Sync.takeBlock
       interpretClientNet $ interpretQueueTBM 4 $ withAsyncGated_ stream do
-        ev1 <- Event.now "x" "line 1"
+        ev1 <- Event.nowText "x" "line 1"
         History.receive ev1
         assertEq (Success ev1) =<< Queue.readTimeout (Seconds 1)
-        ev2 <- Event.now "x" "line 2"
+        ev2 <- Event.nowText "x" "line 2"
         History.receive ev2
         assertEq (Success ev2) =<< Queue.readTimeout (Seconds 1)
         History.receive ev1
-        ev3 <- Event.now "x" "line 3"
+        ev3 <- Event.nowText "x" "line 3"
         History.receive ev3
         assertEq (Success ev3) =<< Queue.readTimeout (Seconds 1)

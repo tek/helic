@@ -24,5 +24,5 @@ yank ::
   Sem r ()
 yank conf = do
   text <- fromMaybeA (embed (Text.hGetContents stdin)) conf.text
-  event <- Event.now (AgentId (fromMaybe "cli" conf.agent)) text
+  event <- Event.nowText (AgentId (fromMaybe "cli" conf.agent)) text
   Client.yank event >>= leftA \ err -> Log.debug [exon|Http client error: #{err}|]

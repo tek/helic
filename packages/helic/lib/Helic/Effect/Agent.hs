@@ -1,19 +1,19 @@
 {-# options_haddock prune #-}
 
--- |The 'Agent' effect abstracts a clipboard synchronization target.
+-- | The 'Agent' effect abstracts a clipboard synchronization target.
 module Helic.Effect.Agent where
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.Event (Event)
 
--- |Used to disambiguate 'Agent's via 'Tagged'.
+-- | Used to disambiguate 'Agent's via 'Tagged'.
 data AgentTag =
   AgentTag Symbol
 
--- |An agent is an interface to an external entity that can receive clipboard events.
+-- | An agent is an interface to an external entity that can receive clipboard events.
 -- The Helic CLI uses agents for remote hosts over network, tmux, and X11.
 data Agent :: Effect where
-  -- |Send an event to an agent.
+  -- | Send an event to an agent.
   Update :: Event -> Agent m ()
 
 makeSem ''Agent
@@ -27,12 +27,16 @@ type AgentX =
 type AgentNet =
   'AgentTag "net"
 
--- |The default agents for the Helic CLI.
+type AgentWayland =
+  'AgentTag "wayland"
+
+-- | The default agents for the Helic CLI.
 type Agents =
   [
     Agent @@ AgentTmux,
     Agent @@ AgentX,
-    Agent @@ AgentNet
+    Agent @@ AgentNet,
+    Agent @@ AgentWayland
   ]
 
 class AgentName (tag :: AgentTag) where
@@ -55,3 +59,7 @@ agentIdX =
 agentIdNet :: AgentId
 agentIdNet =
   AgentId "net"
+
+agentIdWayland :: AgentId
+agentIdWayland =
+  AgentId "wayland"

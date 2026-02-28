@@ -1,9 +1,17 @@
 {
   bounds = {
     helic = {
+      aeson = {
+        lower = null;
+        upper = "2.3";
+      };
       base = {
         lower = "4.17.2.1";
-        upper = "4.21";
+        upper = "4.22";
+      };
+      base64-bytestring = {
+        lower = null;
+        upper = "1.3";
       };
       chronos = {
         lower = "1.1.5";
@@ -23,7 +31,11 @@
       };
       gi-gdk = {
         lower = "3.0.29";
-        upper = "3.1";
+        upper = "4.1";
+      };
+      gi-gio = {
+        lower = null;
+        upper = "2.1";
       };
       gi-glib = {
         lower = "2.0.30";
@@ -31,7 +43,11 @@
       };
       gi-gtk = {
         lower = "3.0.43";
-        upper = "3.1";
+        upper = "4.1";
+      };
+      haskell-gi-base = {
+        lower = null;
+        upper = "0.27";
       };
       helic = {
         lower = null;
@@ -43,7 +59,7 @@
       };
       network = {
         lower = "3.1.4.0";
-        upper = "3.2";
+        upper = "3.3";
       };
       optparse-applicative = {
         lower = "0.16.1.0";
@@ -137,6 +153,10 @@
         lower = "0.2.12.0";
         upper = "0.3";
       };
+      unix = {
+        lower = null;
+        upper = "2.9";
+      };
       wai-extra = {
         lower = "3.1.12.1";
         upper = "3.2";
@@ -157,16 +177,20 @@
   };
   versions = {
     latest = {
-      base = "4.20.0.0";
-      chronos = "1.1.6.2";
+      aeson = "2.2.3.0";
+      base = "4.21.0.0";
+      base64-bytestring = "1.2.1.0";
+      chronos = "1.1.7.0";
       containers = "0.7";
       exon = "1.7.2.0";
       fast-logger = "3.2.6";
-      gi-gdk = "3.0.29";
+      gi-gdk = "4.0.10";
+      gi-gio = "2.0.38";
       gi-glib = "2.0.30";
-      gi-gtk = "3.0.43";
+      gi-gtk = "4.0.12";
+      haskell-gi-base = "0.26.9";
       hostname = "1.0";
-      network = "3.1.4.0";
+      network = "3.2.8.0";
       optparse-applicative = "0.19.0.0";
       path = "0.9.6";
       path-io = "1.8.2";
@@ -180,7 +204,7 @@
       polysemy-test = "0.10.0.1";
       polysemy-time = "0.7.0.1";
       prelate = "0.8.0.0";
-      random = "1.2.1.2";
+      random = "1.2.1.3";
       servant = "0.20.3.0";
       servant-client = "0.20.3.0";
       servant-server = "0.20.3.0";
@@ -188,10 +212,11 @@
       tasty = "1.5.3";
       terminal-size = "0.3.4";
       torsor = "0.1.0.1";
-      transformers = "0.6.1.1";
-      typed-process = "0.2.12.0";
-      wai-extra = "3.1.17";
-      warp = "3.4.8";
+      transformers = "0.6.1.2";
+      typed-process = "0.2.13.0";
+      unix = "2.8.6.0";
+      wai-extra = "3.1.18";
+      warp = "3.4.12";
       yaml = "0.11.11.2";
       zeugma = "0.10.0.1";
     };
@@ -282,7 +307,6 @@
         version = "0.3.16.2";
         hash = "0r14dmwywpr91qrnck3lb269hn8nmfmfwww11yglggn6fmjv6ks7";
         repo = "hackage.haskell.org";
-        revision = true;
       };
       cabal-doctest = {
         version = "1.0.11";
@@ -290,8 +314,8 @@
         repo = "hackage.haskell.org";
       };
       chronos = {
-        version = "1.1.6.2";
-        hash = "1pbfp25py682d17visa4i9rjxmiim8aykrgs7nv2q9anajv88kdx";
+        version = "1.1.7.0";
+        hash = "0kazqi6adm7ph19gm830cm44jy7zqiwib53gk495zghiz0rinhsr";
         repo = "hackage.haskell.org";
       };
       exon = {
@@ -299,46 +323,25 @@
         hash = "0hg271cvjqm4ps75qpnirq9nvjwpwb03mcbn1a364jrysrj6bg3b";
         repo = "hackage.haskell.org";
       };
-      fast-logger = {
-        version = "3.2.6";
-        hash = "0i2lcjrg2ll4ccwqk9lzqq862yhjiyhqk4222g90rvk379qphhg0";
+      http-semantics = {
+        version = "0.4.0";
+        hash = "0p9qb38z9khk91cy78lv8f66693xyxn9yy87mnwwpghaa7kk67df";
         repo = "hackage.haskell.org";
       };
-      generics-sop = {
-        version = "0.5.1.4";
-        hash = "0ai089kly1cajn4djqnplkg2jmnapqlb3crrsyvfnadcyzc9h3km";
+      http2 = {
+        version = "5.4.0";
+        hash = "1wa88jb5hk64g4v320jsj4sfldcpwkjjvpxvxh30yvdmvraidq9x";
         repo = "hackage.haskell.org";
       };
       incipit = {
         version = "0.10.0.1";
         hash = "0vr1balwy6v9l15pjlyy372w0scli1wcl6395jqdkjncqm3ymdin";
         repo = "hackage.haskell.org";
-      };
-      incipit-base = {
-        version = "0.5.1.0";
-        hash = "0hkqnqpdw8rvg4xzslw9sp3684ggyk9n4hr0lczwm8b0pzakzs0l";
-        repo = "hackage.haskell.org";
-        revision = true;
-      };
-      incipit-core = {
-        version = "0.5.1.0";
-        hash = "04lyzycvqxyjqcd703cd33lnlk5va9wj3czpsybah0ybydnrwabd";
-        repo = "hackage.haskell.org";
         revision = true;
       };
       optparse-applicative = {
         version = "0.19.0.0";
         hash = "0cs8fqipakad38lvm75nz98hmvf881mgjhnc7icblxfzh92ay6kn";
-        repo = "hackage.haskell.org";
-      };
-      path = {
-        version = "0.9.6";
-        hash = "16hgrkvd27c9vp5447d1dv3b3fi0fv0jfig10h2j37mzk4850wg8";
-        repo = "hackage.haskell.org";
-      };
-      path-io = {
-        version = "1.8.2";
-        hash = "063ma7gzqr5c6s8a1yv72jgll3xdajvgclbc8w0ddmqgcrb62x2k";
         repo = "hackage.haskell.org";
       };
       polysemy-chronos = {
@@ -350,6 +353,7 @@
         version = "0.14.1.1";
         hash = "1xli6ja9f7qx2k9956lw4h9y5ywdglhgw769afxw9d4w9avclx28";
         repo = "hackage.haskell.org";
+        revision = true;
       };
       polysemy-http = {
         version = "0.13.1.0";
@@ -360,20 +364,17 @@
         version = "0.11.1.0";
         hash = "09jdy3jzry31knaydjqka0mj8jwscdys5wq2xij21lxbxr5msy1m";
         repo = "hackage.haskell.org";
-      };
-      polysemy-plugin = {
-        version = "0.4.5.3";
-        hash = "1c2agk21jj7fwdj6xkagq0prvxknp3zr6q1f480wizssibcvm7y6";
-        repo = "hackage.haskell.org";
+        revision = true;
       };
       polysemy-process = {
         version = "0.14.1.1";
         hash = "1qvbkldhai77r2pr7wbznsb9pr0pawynmvcd31v3v8jpki3xaycr";
         repo = "hackage.haskell.org";
+        revision = true;
       };
       polysemy-resume = {
-        version = "0.9.0.0";
-        hash = "1achlwdkycbgjlcdkq641r481m1bl9rb7fklbwfb9nnb6xmqyzms";
+        version = "0.9.0.1";
+        hash = "1i2bnpd3l357jhln8xl92z65b3mskz9y8z1xlha4lm0m855qyk15";
         repo = "hackage.haskell.org";
         revision = true;
       };
@@ -386,35 +387,16 @@
         version = "0.7.0.1";
         hash = "0cw39gvmr9rgh3hc0gd55wimm4lxzw9nyrczixk42nw170bpls40";
         repo = "hackage.haskell.org";
+        revision = true;
       };
       prelate = {
         version = "0.8.0.0";
         hash = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
         repo = "hackage.haskell.org";
       };
-      servant = {
-        version = "0.20.3.0";
-        hash = "0vgppwv8fzfi1wc7n72lqrj49xfn8ymjh1balpsphhj4bc7n6lvi";
-        repo = "hackage.haskell.org";
-      };
-      servant-client = {
-        version = "0.20.3.0";
-        hash = "0xlf354mcvg3cg8nqfi1aqfym686qcyy1yv46fg9fxchms9njczr";
-        repo = "hackage.haskell.org";
-      };
-      servant-client-core = {
-        version = "0.20.3.0";
-        hash = "0yv0asv77zjclnvadjb2hxjghnmz5rnba4akg237x3ssh50i52ca";
-        repo = "hackage.haskell.org";
-      };
       servant-server = {
         version = "0.20.3.0";
         hash = "053d5j5sxki31v8d5b73jx53bfhz76pm8xyb99n0rk1gxc8rg18x";
-        repo = "hackage.haskell.org";
-      };
-      table-layout = {
-        version = "1.0.0.2";
-        hash = "1kz5njn1y1f8n920nmsb59yljwmb3xycrjxl71j573jbm1dx9bsn";
         repo = "hackage.haskell.org";
       };
       tasty = {
@@ -432,24 +414,24 @@
         hash = "04kg2qdnsqzzmj3xggy2jcgidlp21lsjkz4sfnbq7b1yhrv2vbbc";
         repo = "hackage.haskell.org";
       };
+      time-manager = {
+        version = "0.3.1.1";
+        hash = "1lw1xx9p5qqznrg04s7phki2rljxzx29z2xcd9qa46wjhhg54fds";
+        repo = "hackage.haskell.org";
+      };
       wai-app-static = {
         version = "3.1.9";
         hash = "1kwvzy9w4v76q5bk4xwq7kz9q9l8867my6zvsv731x6xkhy7wr2c";
         repo = "hackage.haskell.org";
       };
       wai-extra = {
-        version = "3.1.17";
-        hash = "0lvsv014k2fpd3rm99qkfkh47zic7wg39zgv7g7ll06515ly23w9";
-        repo = "hackage.haskell.org";
-      };
-      wai-logger = {
-        version = "2.5.0";
-        hash = "1l0gspzbwkrs1dqay2rv5wz1gg49a31l3vyl741b2j2apkgamf3p";
+        version = "3.1.18";
+        hash = "0ba54l3hbpv66lysdp3s7jhyry554ksc5a2f9fps9q7phl3gzak9";
         repo = "hackage.haskell.org";
       };
       warp = {
-        version = "3.4.8";
-        hash = "1sx9kv01ic8d588sfzn6hrbl0g0nnmz864xslrgviw0krix9v6i5";
+        version = "3.4.12";
+        hash = "0m4wj459j7fhav4i05df5nmbnzb1j8qwjdxcwacx81jv03bm1p33";
         repo = "hackage.haskell.org";
       };
       zeugma = {
@@ -743,6 +725,11 @@
         hash = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
         repo = "hackage.haskell.org";
       };
+    };
+  };
+  packages = {
+    helic = {
+      version = "0.6.1.0";
     };
   };
   resolving = false;

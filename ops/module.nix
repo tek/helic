@@ -2,7 +2,25 @@ self: { config, lib, pkgs, ... }:
 with lib;
 let
   cfg = config.services.helic;
+
   nixStringListToJsonArray = xs: "[${concatMapStringsSep ", " (h: "'${h}'") xs}]";
+
+  packages = self.packages.${pkgs.system};
+
+  defaultPackage =
+    if cfg.wayland.enable
+    then packages.helic-wayland
+    else if cfg.x11.enable
+    then packages.helic-x11
+    else packages.helic
+    ;
+
+  waylandEnabled =
+    (config.programs.sway.enable or false)
+    || (config.programs.hyprland.enable or false);
+
+  x11Enabled = config.services.xserver.enable or false;
+
 in {
   options.services.helic = {
     enable = mkEnableOption "Clipboard Manager";
@@ -15,8 +33,11 @@ in {
     };
     package = mkOption {
       type = types.package;
-      default = self.packages.${pkgs.system}.helic;
-      description = "The package to use for helic.";
+      default = defaultPackage;
+      description = ''
+      The package to use for helic.
+      The default applies Cabal flags based on the `x11`/`wayland` config.
+      '';
     };
     name = mkOption {
       type = types.nullOr types.str;
@@ -62,18 +83,16 @@ in {
       };
     };
     x11 = {
-      enable = mkEnableOption "X11 integration" // { default = true; };
-      display = mkOption {
-        type = types.str;
-        default = ":0";
-        description = "The X11 display to connect to if there is no active display in the environment.";
-      };
+      enable = mkEnableOption "X11 integration" // { default = x11Enabled; };
       subscribedSelections = mkOption {
         type = types.listOf types.str;
         default = ["Clipboard" "Primary" "Selection"];
         description = "A list of unique X11 selections from which to listen to events for.";
         example = literalExpression ["Clipboard"];
       };
+    };
+    wayland = {
+      enable = mkEnableOption "Wayland integration" // { default = waylandEnabled; };
     };
   };
   config = mkIf cfg.enable {
@@ -92,9 +111,11 @@ in {
       ${if cfg.net.timeout == null then "" else "timeout: ${toString cfg.net.timeout}"}
     x11:
       enable: ${if cfg.x11.enable then "true" else "false"}
-      display: ${cfg.x11.display}
       subscribedSelections: ${nixStringListToJsonArray cfg.x11.subscribedSelections}
+    wayland:
+      enable: ${if cfg.wayland.enable then "true" else "false"}
     '';
+
     systemd.user.services.helic = {
       description = "Clipboard Manager";
       wantedBy = ["graphical-session.target"];

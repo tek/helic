@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |An interpreter for 'GtkMain' that uses 'MVar's.
+-- | An interpreter for 'GtkMain' that uses 'MVar's.
 -- Internal.
 module Helic.Interpreter.GtkMain where
 
@@ -24,10 +24,7 @@ newtype GtkResource s =
   GtkResource { unGtkResource :: s }
   deriving stock (Eq, Show)
 
--- TODO Access needs to be a scope to ensure it must be executed
--- this means that access/request and run/running must be two separate effects
-
--- |Interpret the GTK main loop communication bridge with 'MVar's.
+-- | Interpret the GTK main loop communication bridge with 'MVar's.
 handleGtkMain ::
   ∀ s wait restart e m r a .
   TimeUnit wait =>
@@ -62,7 +59,7 @@ handleGtkMain wait restart = \case
   GtkMain.Running s ->
     pureT =<< Sync.putBlock (GtkResource s)
 
--- |Interpret the GTK main loop communication bridge with 'MVar's.
+-- | Interpret the GTK main loop communication bridge with 'MVar's.
 interpretGtkMain ::
   ∀ s wait restart r .
   TimeUnit wait =>
@@ -78,7 +75,7 @@ interpretGtkMain wait restart =
   interpretH (handleGtkMain wait restart) .
   raiseUnder3
 
--- |Scope an effect that uses a GTK main loop resource by acquiring it via 'GtkMain'.
+-- | Scope an effect that uses a GTK main loop resource by acquiring it via 'GtkMain'.
 interpretWithGtk ::
   ∀ e s r .
   Members [GtkMain s, Log] r =>

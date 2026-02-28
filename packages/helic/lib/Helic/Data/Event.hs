@@ -1,4 +1,4 @@
--- |The data type 'Event' consists of a yank text and metadata identifying its source and time.
+-- | The data type 'Event' consists of a yank text and metadata identifying its source and time.
 module Helic.Data.Event where
 
 import qualified Chronos
@@ -6,35 +6,45 @@ import Polysemy.Chronos (ChronosTime)
 import qualified Polysemy.Time as Time
 
 import Helic.Data.AgentId (AgentId)
+import Helic.Data.ContentType (Content (..))
 import Helic.Data.InstanceName (InstanceName)
 import Exon (exon)
 
--- |The central data type representing a clipboard event.
+-- | The central data type representing a clipboard event.
 data Event =
   Event {
-    -- |The host from which the event originated.
+    -- | The host from which the event originated.
     sender :: InstanceName,
-    -- |The entity that caused the event.
+    -- | The entity that caused the event.
     source :: AgentId,
-    -- |Timestamp.
+    -- | Timestamp.
     time :: Chronos.Time,
-    -- |Payload.
-    content :: Text
+    -- | Payload.
+    content :: Content
   }
   deriving stock (Eq, Show)
 
 json ''Event
 
--- |Construct an event for the current host and time.
+-- | Construct an event for the current host and time.
 now ::
   Members [ChronosTime, Reader InstanceName] r =>
   AgentId ->
-  Text ->
+  Content ->
   Sem r Event
 now source content = do
   sender <- ask
   time <- Time.now
   pure Event {..}
+
+-- | Construct a text event for the current host and time.
+nowText ::
+  Members [ChronosTime, Reader InstanceName] r =>
+  AgentId ->
+  Text ->
+  Sem r Event
+nowText source =
+  now source . TextContent
 
 -- | Render the event source.
 describe :: Event -> Text

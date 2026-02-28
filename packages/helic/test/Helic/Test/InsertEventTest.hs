@@ -2,13 +2,14 @@ module Helic.Test.InsertEventTest where
 
 import qualified Chronos
 import Data.Sequence ((|>))
-import Exon (exon)
+
 import Polysemy.Test (UnitTest, assertJust, (===))
 import qualified Time
 import Time (Days (Days), Hours (Hours), MilliSeconds (MilliSeconds), convert)
 import Torsor (add)
 import Zeugma (runTestFrozen, testTime)
 
+import Helic.Data.ContentType (Content (..))
 import Helic.Data.Event (Event (Event))
 import Helic.Interpreter.History (appendIfValid)
 
@@ -18,19 +19,19 @@ old =
 
 event1 :: Event
 event1 =
-  Event "me" "test" old "event1"
+  Event "me" "test" old (TextContent "event1")
 
 event2 :: Event
 event2 =
-  Event "me" "test" old "event2"
+  Event "me" "test" old (TextContent "event2")
 
 eventMixedNl :: Event
 eventMixedNl =
-  Event "me" "test" old ("line1\r\nline2\rline3\nline4" <> [exon|line5|])
+  Event "me" "test" old (TextContent "line1\r\nline2\rline3\nline4\rline5")
 
 eventNl :: Event
 eventNl =
-  Event "me" "test" old "line1\nline2\nline3\nline4\nline5"
+  Event "me" "test" old (TextContent "line1\nline2\nline3\nline4\nline5")
 
 historyLatest :: Seq Event
 historyLatest =
@@ -43,10 +44,10 @@ test_insertEvent :: UnitTest
 test_insertEvent =
   runTestFrozen do
     now <- Time.now
-    assertJust [Event "me" "test" now "string"] (appendIfValid now debounce (Event "me" "test" now "string") mempty)
+    assertJust [Event "me" "test" now (TextContent "string")] (appendIfValid now debounce (Event "me" "test" now (TextContent "string")) mempty)
     Nothing === appendIfValid now debounce event1 historyLatest
     assertJust (historyLatest |> event2) (appendIfValid now debounce event2 historyLatest)
     Nothing === appendIfValid (add (convert (MilliSeconds 100)) old) debounce event2 historyLatest
     assertJust (historyLatest |> event2) (appendIfValid (add (convert (MilliSeconds 1100)) old) debounce event2 historyLatest)
     assertJust (historyLatest |> eventNl) (appendIfValid now debounce eventMixedNl historyLatest)
-    Nothing === appendIfValid now debounce (Event "me" "test" (add (convert (Hours (-1))) old) "event3") historyLatest
+    Nothing === appendIfValid now debounce (Event "me" "test" (add (convert (Hours (-1))) old) (TextContent "event3")) historyLatest

@@ -8,10 +8,11 @@ import qualified Queue
 import Zeugma (runTestFrozen, testTime)
 
 import Helic.Data.AgentId (AgentId (AgentId))
+import Helic.Data.ContentType (contentSummary)
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (Event, content))
 import Helic.Data.HistoryUpdate (HistoryUpdate)
-import Helic.Effect.Agent (AgentNet, AgentTmux, AgentX)
+import Helic.Effect.Agent (AgentNet, AgentTmux, AgentWayland, AgentX)
 import Helic.Interpreter.Agent (interpretAgent)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Listen (withListen)
@@ -28,7 +29,7 @@ handleLog ::
   Event ->
   Sem r ()
 handleLog Event {content} =
-  Queue.write content
+  Queue.write (contentSummary content)
 
 test_listen :: UnitTest
 test_listen =
@@ -42,11 +43,12 @@ test_listen =
   interpretAgent @AgentNet handleNet $
   interpretAgent @AgentTmux handleLog $
   interpretAgent @AgentX (const unit) $
+  interpretAgent @AgentWayland (const unit) $
   interpretHistory (Just 5) Nothing do
     result <- withListen do
       let
         pub n =
-          Conc.publish =<< Event.now (AgentId "nvim") (show n)
+          Conc.publish =<< Event.nowText (AgentId "nvim") (show n)
       traverse_ pub ([1..10] :: [Int])
       traverse resultToMaybe <$> replicateM 10 Queue.read
     assertEq Nothing . resultToMaybe =<< Queue.tryRead

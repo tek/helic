@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |App entry points.
+-- | App entry points.
 -- Internal.
 module Helic.App where
 
@@ -9,6 +9,7 @@ import Conc (interpretAtomic, interpretEventsChan, interpretSync, withAsync_)
 import Polysemy.Http (Manager)
 import Polysemy.Http.Interpreter.Manager (interpretManager)
 
+import Helic.Compat.Display (interpretDisplay)
 import qualified Helic.Data.Config
 import Helic.Data.Config (Config (Config, debounceMillis))
 import Helic.Data.Event (Event)
@@ -22,7 +23,6 @@ import Helic.Effect.Client (Client)
 import qualified Helic.Effect.History as History
 import Helic.Interpreter.AgentNet (interpretAgentNetIfEnabled)
 import Helic.Interpreter.AgentTmux (interpretAgentTmuxIfEnabled)
-import Helic.Interpreter.AgentX (interpretX)
 import Helic.Interpreter.Client (interpretClientNet)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Interpreter.InstanceName (interpretInstanceName)
@@ -36,13 +36,14 @@ listenApp ::
 listenApp Config {..} =
   runReader (fromMaybe def net) $
   runReader (fromMaybe def x11) $
+  runReader (fromMaybe def wayland) $
   runReader (fromMaybe def tmux) $
   interpretEventsChan @Event $
   interpretEventsChan @HistoryUpdate $
   interpretAtomic mempty $
   interpretInstanceName name $
   interpretManager $
-  interpretX $
+  interpretDisplay $
   interpretAgentNetIfEnabled $
   interpretAgentTmuxIfEnabled $
   interpretHistory maxHistory debounceMillis $

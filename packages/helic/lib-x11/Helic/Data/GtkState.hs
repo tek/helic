@@ -1,10 +1,9 @@
 {-# options_haddock prune #-}
 
--- |GtkState Data Type, Internal
+-- | GtkState Data Type, Internal
 module Helic.Data.GtkState where
 
-import GI.Gdk (Display)
-import GI.Gtk (Clipboard)
+import GI.Gdk (Clipboard, Display)
 
 data GtkState =
   GtkState {

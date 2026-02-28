@@ -1,4 +1,6 @@
--- |Utilities for 'GtkClipboard'.
+{-# options_haddock prune #-}
+
+-- | Utilities for 'GtkClipboard'.
 -- Internal.
 module Helic.GtkClipboard where
 
@@ -10,7 +12,7 @@ import qualified Helic.Effect.GtkClipboard as GtkClipboard
 import Helic.Effect.GtkClipboard (GtkClipboard)
 import Helic.Interpreter.GtkClipboard (withGtkClipboard)
 
--- |Registers a callback with GTK's clipboard event system that converts each update into an 'XClipboardEvent' published
+-- | Registers a callback with GTK's clipboard event system that converts each update into an 'XClipboardEvent' published
 -- through 'Events'.
 subscribeEvents ::
   Members [Scoped_ GtkClipboard !! Text, Events XClipboardEvent, Log] r =>

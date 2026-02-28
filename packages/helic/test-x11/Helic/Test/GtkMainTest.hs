@@ -70,8 +70,8 @@ test_gtkMain =
   gtkMainLoop subscribeEvents $
   interpretXClipboardGtk $
   interpretAgentX do
-    Agent.update =<< Event.now agentIdNet "not running"
+    Agent.update =<< Event.nowText agentIdNet "not running"
     atomicPut True
-    let pub = Agent.update <=< Event.now agentIdNet . show
+    let pub = Agent.update <=< Event.nowText agentIdNet . show
     sequenceConcurrently @[] (pub <$> [1..5 :: Int])
     assertEq ["1", "2", "3", "4", "5"] . Set.fromList =<< atomicGet @[Text]

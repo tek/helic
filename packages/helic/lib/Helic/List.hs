@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |List command logic, Internal
+-- | List command logic, Internal
 module Helic.List where
 
 import Chronos (Datetime (Datetime), SubsecondPrecision (SubsecondPrecisionFixed), builder_HMS, timeToDatetime)
@@ -23,6 +23,7 @@ import Text.Layout.Table (
   )
 
 import Helic.Data.AgentId (AgentId (AgentId))
+import Helic.Data.ContentType (contentSummary)
 import Helic.Data.Event (Event (..))
 import Helic.Data.InstanceName (InstanceName (InstanceName))
 import qualified Helic.Data.ListConfig as ListConfig
@@ -47,7 +48,13 @@ truncateLines maxWidth a =
 
 eventColumns :: Int -> Int -> Event -> [Text]
 eventColumns maxWidth i Event {..} =
-  [show i, coerce sender, coerce source, toStrict (formatTime (timeToDatetime time)), truncateLines maxWidth content]
+  [
+    show i,
+    coerce sender,
+    coerce source,
+    toStrict (formatTime (timeToDatetime time)),
+    truncateLines maxWidth (contentSummary content)
+  ]
   where
     formatTime (Datetime _ tod) =
       toLazyText (builder_HMS (SubsecondPrecisionFixed 0) (Just ':') tod)
@@ -69,7 +76,7 @@ format width (toList -> events) =
     contentWidth =
       min 100 (max 20 (width - 40))
 
--- |Fetch all events from the server, limit them to the configured number and format them in a nice table.
+-- | Fetch all events from the server, limit them to the configured number and format them in a nice table.
 buildList ::
   Members [Reader ListConfig, Client, Error Text, Embed IO] r =>
   Sem r String
@@ -84,7 +91,7 @@ buildList = do
   width <- fromMaybe 80 . fmap TerminalSize.width <$> embed TerminalSize.size
   pure (maybe "No events yet!" (format width) (nonEmpty events))
 
--- |Print a number of events to stdout.
+-- | Print a number of events to stdout.
 list ::
   Members [Reader ListConfig, Client, Error Text, Embed IO] r =>
   Sem r ()

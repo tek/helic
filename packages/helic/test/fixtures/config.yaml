@@ -12,5 +12,4 @@ net:
   timeout: 5
 x11:
   enable: true
-  display: ":1"
   subscribedSelections: ['Clipboard', 'Primary', 'Secondary']

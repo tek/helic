@@ -40,6 +40,6 @@ test_list =
   runTestFrozen $
   runReader "test" $
   runReader (ListConfig (Just 3)) do
-    events <- traverse (Event.now (AgentId "nvim")) eventContents
+    events <- traverse (Event.nowText (AgentId "nvim")) eventContents
     interpretClientConst events do
       assertRight target =<< errorToIOFinal buildList

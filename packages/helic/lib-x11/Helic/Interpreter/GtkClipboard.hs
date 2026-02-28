@@ -1,4 +1,7 @@
--- |Native interpreters for 'GtkClipboard', for scoped interpretation with 'interpretWithGtk'.
+{-# options_haddock prune #-}
+
+-- | Native interpreters for 'GtkClipboard', for scoped interpretation with 'interpretWithGtk'.
+-- Internal.
 module Helic.Interpreter.GtkClipboard where
 
 import GI.Gdk (Display)
@@ -12,14 +15,14 @@ import Helic.Data.X11Config (X11Config(..))
 import Helic.Data.Selection (Selection)
 import qualified Data.Set as Set
 
--- |Specialization of 'scoped_' to 'GtkClipboard' for syntactic sugar.
+-- | Specialization of 'scoped_' to 'GtkClipboard' for syntactic sugar.
 withGtkClipboard ::
   Member (Scoped_ GtkClipboard) r =>
   InterpreterFor GtkClipboard r
 withGtkClipboard =
   scoped_
 
--- |This handler for 'GtkClipboard' depends on a 'Display', which should optimally be provided by a 'Scoped'
+-- | This handler for 'GtkClipboard' depends on a 'Display', which should optimally be provided by a 'Scoped'
 -- interpreter to ensure safe acquisition of the resource.
 -- The effect then needs to be scoped using 'withGtkClipboard'.
 -- The default implementation for this purpose is 'interpretWithGtk'.
@@ -43,7 +46,7 @@ handleGtkClipboard display = \case
       for_ @Set targetSelections (subscribeToClipboard f')
     pureT ()
 
--- |Native interpreter for 'GtkClipboard' that requires the effect to be used within a 'withGtkClipboard' region.
+-- | Native interpreter for 'GtkClipboard' that requires the effect to be used within a 'withGtkClipboard' region.
 interpretGtkClipboard ::
   Members [Reader X11Config, GtkMain Display, Log, Embed IO, Final IO] r =>
   InterpreterFor (Scoped_ GtkClipboard !! Text) r

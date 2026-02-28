@@ -1,1 +1,3 @@
 packages: packages/*
+
+flags: +wayland

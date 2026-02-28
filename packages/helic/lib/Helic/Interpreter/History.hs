@@ -6,7 +6,7 @@ module Helic.Interpreter.History where
 import qualified Chronos
 import qualified Data.Sequence as Seq
 import Data.Sequence (Seq ((:|>)), (!?), (|>))
-import qualified Data.Text as Text
+
 import Exon (exon)
 import qualified Log
 import Polysemy.Chronos (ChronosTime)
@@ -14,12 +14,14 @@ import qualified Time
 import Time (MilliSeconds (MilliSeconds), diff)
 
 import Helic.Data.AgentId (AgentId (AgentId))
+import qualified Helic.Data.ContentType as ContentType
+import Helic.Data.ContentType (contentSummary)
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (Event, content, time))
 import Helic.Data.HistoryUpdate (HistoryUpdate (HistoryUpdate))
 import Helic.Data.InstanceName (InstanceName)
 import qualified Helic.Effect.Agent as Agent
-import Helic.Effect.Agent (Agent, AgentName, AgentNet, AgentTag, AgentTmux, AgentX, Agents, agentIdNet, agentName)
+import Helic.Effect.Agent (Agent, AgentName, AgentNet, AgentTag, AgentTmux, AgentWayland, AgentX, Agents, agentIdNet, agentName)
 import qualified Helic.Effect.History as History
 import Helic.Effect.History (History)
 
@@ -41,11 +43,12 @@ broadcast ::
   Members [Events HistoryUpdate, Log] r =>
   Event ->
   Sem r ()
-broadcast event@(Event _ (AgentId ag) _ text) = do
-  Log.debug [exon|broadcasting from #{ag}: #{show text}|]
+broadcast event@(Event _ (AgentId ag) _ c) = do
+  Log.debug [exon|broadcasting from #{ag}: #{contentSummary c}|]
   runAgent @AgentTmux event
   runAgent @AgentNet event
   runAgent @AgentX event
+  runAgent @AgentWayland event
   publish (HistoryUpdate event)
 
 -- | Whether there was an event within the last second that contained the same text as the current event.
@@ -61,13 +64,10 @@ inRecent now debounce (Event _ _ _ c) =
     newer (Event _ _ t _) =
       diff now t <= debounce
 
-sanitizeNewlines :: Text -> Text
-sanitizeNewlines =
-  Text.replace "\r" "\n" . Text.replace "\r\n" "\n"
 
 sanitize :: Event -> Event
 sanitize event@Event {content} =
-  event { content = sanitizeNewlines content }
+  event { content = ContentType.sanitize content }
 
 -- | Append an event to the history unless the latest event contains the same text, or there was an event within the last
 -- @debounce@ milliseconds that contained the same text, or the new event has an earlier time stamp than the latest

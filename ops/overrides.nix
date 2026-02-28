@@ -1,5 +1,30 @@
 {
-dev = {
+dev-extends-ghc912 = {
+  polysemy-chronos = {
+  meta = {
+    sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+    ver = "0.7.0.1";
+  };
+  drv = { mkDerivation, base, chronos, incipit-core, lib, polysemy-test
+, polysemy-time, tasty
+}:
+mkDerivation {
+  pname = "polysemy-chronos";
+  version = "0.7.0.1";
+  src = /nix/store/9ak6ggpj2yvh253phy9vdy62gylf8xci-source;
+  libraryHaskellDepends = [
+    base chronos incipit-core polysemy-time
+  ];
+  testHaskellDepends = [
+    base chronos incipit-core polysemy-test polysemy-time tasty
+  ];
+  homepage = "https://github.com/tek/polysemy-time#readme";
+  description = "A Polysemy effect for Chronos";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
   polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
@@ -57,65 +82,34 @@ mkDerivation {
 }
 ;
 };
-ghc94 = {
-  polysemy-http = {
+ghc910 = {
+};
+ghc912 = {
+  polysemy-chronos = {
   meta = {
-    sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
-    ver = "0.13.1.0";
+    sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+    ver = "0.7.0.1";
   };
-  drv = { mkDerivation, aeson, base, case-insensitive, exon, hedgehog
-, http-client, http-client-tls, http-types, lib, network, polysemy
-, polysemy-plugin, prelate, servant, servant-client, servant-server
-, tasty, tasty-hedgehog, time, warp
+  drv = { mkDerivation, base, chronos, incipit-core, lib, polysemy-test
+, polysemy-time, tasty
 }:
 mkDerivation {
-  pname = "polysemy-http";
-  version = "0.13.1.0";
-  src = /nix/store/7bb0n2i5c8cgf3xyjvki147vw3kcmz4h-source;
+  pname = "polysemy-chronos";
+  version = "0.7.0.1";
+  src = /nix/store/9ak6ggpj2yvh253phy9vdy62gylf8xci-source;
   libraryHaskellDepends = [
-    aeson base case-insensitive exon http-client http-client-tls
-    http-types polysemy polysemy-plugin prelate time
+    base chronos incipit-core polysemy-time
   ];
   testHaskellDepends = [
-    aeson base exon hedgehog http-client network polysemy
-    polysemy-plugin prelate servant servant-client servant-server tasty
-    tasty-hedgehog warp
+    base chronos incipit-core polysemy-test polysemy-time tasty
   ];
-  homepage = "https://github.com/tek/polysemy-http#readme";
-  description = "Polysemy effects for HTTP clients";
+  homepage = "https://github.com/tek/polysemy-time#readme";
+  description = "A Polysemy effect for Chronos";
   license = "BSD-2-Clause-Patent";
 }
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
-    ver = "0.8.0.0";
-  };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.8.0.0";
-  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-ghc96 = {
   polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
@@ -174,62 +168,6 @@ mkDerivation {
 ;
 };
 ghc98 = {
-  polysemy-http = {
-  meta = {
-    sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
-    ver = "0.13.1.0";
-  };
-  drv = { mkDerivation, aeson, base, case-insensitive, exon, hedgehog
-, http-client, http-client-tls, http-types, lib, network, polysemy
-, polysemy-plugin, prelate, servant, servant-client, servant-server
-, tasty, tasty-hedgehog, time, warp
-}:
-mkDerivation {
-  pname = "polysemy-http";
-  version = "0.13.1.0";
-  src = /nix/store/7bb0n2i5c8cgf3xyjvki147vw3kcmz4h-source;
-  libraryHaskellDepends = [
-    aeson base case-insensitive exon http-client http-client-tls
-    http-types polysemy polysemy-plugin prelate time
-  ];
-  testHaskellDepends = [
-    aeson base exon hedgehog http-client network polysemy
-    polysemy-plugin prelate servant servant-client servant-server tasty
-    tasty-hedgehog warp
-  ];
-  homepage = "https://github.com/tek/polysemy-http#readme";
-  description = "Polysemy effects for HTTP clients";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-  prelate = {
-  meta = {
-    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
-    ver = "0.8.0.0";
-  };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.8.0.0";
-  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
 };
 hix-build-tools = {
 };
@@ -293,9 +231,9 @@ mkDerivation {
 ;
   chronos = {
   meta = {
-    sha256 = "1pbfp25py682d17visa4i9rjxmiim8aykrgs7nv2q9anajv88kdx";
+    sha256 = "0kazqi6adm7ph19gm830cm44jy7zqiwib53gk495zghiz0rinhsr";
     url = "https://hackage.haskell.org";
-    ver = "1.1.6.2";
+    ver = "1.1.7.0";
   };
   drv = { mkDerivation, aeson, attoparsec, base, bytebuild, byteslice
 , bytesmith, bytestring, criterion, deepseq, hashable, HUnit, lib
@@ -305,8 +243,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chronos";
-  version = "1.1.6.2";
-  src = /nix/store/4lqja84257d3yzxlf1vsz8687hydv3aj-source;
+  version = "1.1.7.0";
+  src = /nix/store/8q5xhxw250c994vjcqhm0iz5d4w2mhbc-source;
   libraryHaskellDepends = [
     aeson attoparsec base bytebuild byteslice bytesmith bytestring
     deepseq hashable natural-arithmetic primitive text text-short
@@ -354,54 +292,69 @@ mkDerivation {
 ;
 }
 ;
-  fast-logger = {
+  http-semantics = {
   meta = {
-    sha256 = "0i2lcjrg2ll4ccwqk9lzqq862yhjiyhqk4222g90rvk379qphhg0";
+    sha256 = "0p9qb38z9khk91cy78lv8f66693xyxn9yy87mnwwpghaa7kk67df";
     url = "https://hackage.haskell.org";
-    ver = "3.2.6";
+    ver = "0.4.0";
   };
-  drv = { mkDerivation, array, async, auto-update, base, bytestring
-, directory, easy-file, filepath, hspec, hspec-discover, lib, stm
-, text, unix-compat, unix-time
+  drv = { mkDerivation, array, base, bytestring, case-insensitive
+, http-types, lib, network, network-byte-order, time-manager
+, utf8-string
 }:
 mkDerivation {
-  pname = "fast-logger";
-  version = "3.2.6";
-  src = /nix/store/rzjzxm842086yd8iq3gnng6dapj1s6rm-source;
+  pname = "http-semantics";
+  version = "0.4.0";
+  src = /nix/store/35kaqbzwiimp8g5wrmr0kcb3sbzxrg6a-source;
   libraryHaskellDepends = [
-    array auto-update base bytestring directory easy-file filepath stm
-    text unix-compat unix-time
+    array base bytestring case-insensitive http-types network
+    network-byte-order time-manager utf8-string
   ];
-  testHaskellDepends = [ async base bytestring directory hspec ];
-  testToolDepends = [ hspec-discover ];
-  homepage = "https://github.com/kazu-yamamoto/logger";
-  description = "A fast logging system";
+  homepage = "https://github.com/kazu-yamamoto/http-semantics";
+  description = "HTTP semantics library";
   license = lib.licenses.bsd3;
 }
 ;
 }
 ;
-  generics-sop = {
+  http2 = {
   meta = {
-    sha256 = "0ai089kly1cajn4djqnplkg2jmnapqlb3crrsyvfnadcyzc9h3km";
+    sha256 = "1wa88jb5hk64g4v320jsj4sfldcpwkjjvpxvxh30yvdmvraidq9x";
     url = "https://hackage.haskell.org";
-    ver = "0.5.1.4";
+    ver = "5.4.0";
   };
-  drv = { mkDerivation, base, criterion, deepseq, ghc-prim, lib, sop-core
-, template-haskell, th-abstraction
+  drv = { mkDerivation, aeson, aeson-pretty, array, async, base
+, base16-bytestring, bytestring, case-insensitive, containers
+, criterion, crypton, directory, filepath, Glob, hspec
+, hspec-discover, http-semantics, http-types, iproute, lib, network
+, network-byte-order, network-control, network-run, random, stm
+, text, time-manager, typed-process, unix-time
+, unordered-containers, utf8-string, vector
 }:
 mkDerivation {
-  pname = "generics-sop";
-  version = "0.5.1.4";
-  src = /nix/store/qky7s4rv2qdyxl5wx3jbd5c46j7bglrx-source;
+  pname = "http2";
+  version = "5.4.0";
+  src = /nix/store/4pzq6yz3cn52w31fqnd99jx3fdxhrmrl-source;
+  isLibrary = true;
+  isExecutable = true;
   libraryHaskellDepends = [
-    base ghc-prim sop-core template-haskell th-abstraction
+    array async base bytestring case-insensitive containers
+    http-semantics http-types iproute network network-byte-order
+    network-control stm time-manager unix-time utf8-string
   ];
-  testHaskellDepends = [ base ];
+  testHaskellDepends = [
+    aeson aeson-pretty async base base16-bytestring bytestring crypton
+    directory filepath Glob hspec http-semantics http-types network
+    network-byte-order network-run random text typed-process
+    unordered-containers vector
+  ];
+  testToolDepends = [ hspec-discover ];
   benchmarkHaskellDepends = [
-    base criterion deepseq template-haskell
+    array base bytestring case-insensitive containers criterion
+    network-byte-order stm
   ];
-  description = "Generic Programming using True Sums of Products";
+  homepage = "https://github.com/kazu-yamamoto/http2";
+  description = "HTTP/2 library";
   license = lib.licenses.bsd3;
 }
 ;
@@ -431,48 +384,6 @@ mkDerivation {
 ;
 }
 ;
-  incipit-base = {
-  meta = {
-    sha256 = "0hkqnqpdw8rvg4xzslw9sp3684ggyk9n4hr0lczwm8b0pzakzs0l";
-    url = "https://hackage.haskell.org";
-    ver = "0.5.1.0";
-  };
-  drv = { mkDerivation, base, bytestring, containers, data-default, lib
-, stm, text
-}:
-mkDerivation {
-  pname = "incipit-base";
-  version = "0.5.1.0";
-  src = /nix/store/fs6gal70xx982m6ssnb49w7w8fc8alps-source;
-  libraryHaskellDepends = [
-    base bytestring containers data-default stm text
-  ];
-  homepage = "https://github.com/tek/incipit-core#readme";
-  description = "A Prelude for Polysemy – Base Reexports";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-  incipit-core = {
-  meta = {
-    sha256 = "04lyzycvqxyjqcd703cd33lnlk5va9wj3czpsybah0ybydnrwabd";
-    url = "https://hackage.haskell.org";
-    ver = "0.5.1.0";
-  };
-  drv = { mkDerivation, base, incipit-base, lib, polysemy }:
-mkDerivation {
-  pname = "incipit-core";
-  version = "0.5.1.0";
-  src = /nix/store/1934h3k3jsxg36y3bsbsn30l9b40jch6-source;
-  libraryHaskellDepends = [ base incipit-base polysemy ];
-  homepage = "https://github.com/tek/incipit-core#readme";
-  description = "A Prelude for Polysemy";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
   optparse-applicative = {
   meta = {
     sha256 = "0cs8fqipakad38lvm75nz98hmvf881mgjhnc7icblxfzh92ay6kn";
@@ -494,62 +405,6 @@ mkDerivation {
   testHaskellDepends = [ base QuickCheck ];
   homepage = "https://github.com/pcapriotti/optparse-applicative";
   description = "Utilities and combinators for parsing command line options";
-  license = lib.licenses.bsd3;
-}
-;
-}
-;
-  path = {
-  meta = {
-    sha256 = "16hgrkvd27c9vp5447d1dv3b3fi0fv0jfig10h2j37mzk4850wg8";
-    url = "https://hackage.haskell.org";
-    ver = "0.9.6";
-  };
-  drv = { mkDerivation, aeson, base, bytestring, deepseq, exceptions
-, filepath, genvalidity, genvalidity-hspec, hashable, hspec, lib
-, QuickCheck, template-haskell, text, validity-bytestring
-}:
-mkDerivation {
-  pname = "path";
-  version = "0.9.6";
-  src = /nix/store/17x0d7bdy3wg6nq9zw20ndi417gy13ck-source;
-  libraryHaskellDepends = [
-    aeson base deepseq exceptions filepath hashable template-haskell
-    text
-  ];
-  testHaskellDepends = [
-    aeson base bytestring exceptions filepath genvalidity
-    genvalidity-hspec hspec QuickCheck template-haskell
-    validity-bytestring
-  ];
-  doHaddock = false;
-  description = "Support for well-typed paths";
-  license = lib.licenses.bsd3;
-}
-;
-}
-;
-  path-io = {
-  meta = {
-    sha256 = "063ma7gzqr5c6s8a1yv72jgll3xdajvgclbc8w0ddmqgcrb62x2k";
-    url = "https://hackage.haskell.org";
-    ver = "1.8.2";
-  };
-  drv = { mkDerivation, base, containers, directory, dlist, exceptions
-, filepath, hspec, lib, path, temporary, time, transformers
-, unix-compat
-}:
-mkDerivation {
-  pname = "path-io";
-  version = "1.8.2";
-  src = /nix/store/y2n6qszdsqdfhhbw4fl146qzyj1sa7zb-source;
-  libraryHaskellDepends = [
-    base containers directory dlist exceptions filepath path temporary
-    time transformers unix-compat
-  ];
-  testHaskellDepends = [ base exceptions hspec path unix-compat ];
-  homepage = "https://github.com/mrkkrp/path-io";
-  description = "Interface to ‘directory’ package for users of ‘path’";
   license = lib.licenses.bsd3;
 }
 ;
@@ -673,38 +528,6 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-plugin = {
-  meta = {
-    sha256 = "1c2agk21jj7fwdj6xkagq0prvxknp3zr6q1f480wizssibcvm7y6";
-    url = "https://hackage.haskell.org";
-    ver = "0.4.5.3";
-  };
-  drv = { mkDerivation, base, Cabal, cabal-doctest, containers, doctest
-, ghc, ghc-tcplugins-extra, hspec, hspec-discover
-, inspection-testing, lib, polysemy, should-not-typecheck, syb
-, transformers
-}:
-mkDerivation {
-  pname = "polysemy-plugin";
-  version = "0.4.5.3";
-  src = /nix/store/vhdv7p7lqiarmgai5l0n44yqgczljkb5-source;
-  setupHaskellDepends = [ base Cabal cabal-doctest ];
-  libraryHaskellDepends = [
-    base containers ghc ghc-tcplugins-extra polysemy syb transformers
-  ];
-  testHaskellDepends = [
-    base containers doctest ghc ghc-tcplugins-extra hspec
-    hspec-discover inspection-testing polysemy should-not-typecheck syb
-    transformers
-  ];
-  testToolDepends = [ hspec-discover ];
-  homepage = "https://github.com/polysemy-research/polysemy#readme";
-  description = "Disambiguate obvious uses of effects";
-  license = lib.licenses.bsd3;
-}
-;
-}
-;
   polysemy-process = {
   meta = {
     sha256 = "1qvbkldhai77r2pr7wbznsb9pr0pawynmvcd31v3v8jpki3xaycr";
@@ -740,17 +563,17 @@ mkDerivation {
 ;
   polysemy-resume = {
   meta = {
-    sha256 = "1achlwdkycbgjlcdkq641r481m1bl9rb7fklbwfb9nnb6xmqyzms";
+    sha256 = "1i2bnpd3l357jhln8xl92z65b3mskz9y8z1xlha4lm0m855qyk15";
     url = "https://hackage.haskell.org";
-    ver = "0.9.0.0";
+    ver = "0.9.0.1";
   };
   drv = { mkDerivation, base, incipit-core, lib, polysemy, polysemy-plugin
 , polysemy-test, stm, tasty, transformers
 }:
 mkDerivation {
   pname = "polysemy-resume";
-  version = "0.9.0.0";
-  src = /nix/store/6iizg7w3a4l1l5w6wf42rn9a2fimh2hd-source;
+  version = "0.9.0.1";
+  src = /nix/store/mxw7kjiqx9gr4p06crj2j0f34rkdrdqn-source;
   libraryHaskellDepends = [
     base incipit-core polysemy transformers
   ];
@@ -845,111 +668,6 @@ mkDerivation {
 ;
 }
 ;
-  servant = {
-  meta = {
-    sha256 = "0vgppwv8fzfi1wc7n72lqrj49xfn8ymjh1balpsphhj4bc7n6lvi";
-    url = "https://hackage.haskell.org";
-    ver = "0.20.3.0";
-  };
-  drv = { mkDerivation, aeson, attoparsec, base, bifunctors, bytestring
-, case-insensitive, constraints, containers, deepseq, generics-sop
-, hspec, hspec-discover, http-api-data, http-media, http-types, lib
-, mmorph, mtl, network-uri, QuickCheck, quickcheck-instances
-, singleton-bool, sop-core, text, transformers, vault
-}:
-mkDerivation {
-  pname = "servant";
-  version = "0.20.3.0";
-  src = /nix/store/87zpmsmv6h0c3zfwvz44195cd127xl35-source;
-  libraryHaskellDepends = [
-    aeson attoparsec base bifunctors bytestring case-insensitive
-    constraints containers deepseq generics-sop http-api-data
-    http-media http-types mmorph mtl network-uri QuickCheck
-    singleton-bool sop-core text transformers vault
-  ];
-  testHaskellDepends = [
-    aeson base bytestring hspec http-media mtl network-uri QuickCheck
-    quickcheck-instances text
-  ];
-  testToolDepends = [ hspec-discover ];
-  homepage = "http://docs.servant.dev/";
-  description = "A family of combinators for defining webservices APIs";
-  license = lib.licenses.bsd3;
-}
-;
-}
-;
-  servant-client = {
-  meta = {
-    sha256 = "0xlf354mcvg3cg8nqfi1aqfym686qcyy1yv46fg9fxchms9njczr";
-    url = "https://hackage.haskell.org";
-    ver = "0.20.3.0";
-  };
-  drv = { mkDerivation, aeson, base, base-compat, bytestring, containers
-, deepseq, entropy, exceptions, generics-sop, hspec, hspec-discover
-, http-api-data, http-client, http-media, http-types, HUnit
-, kan-extensions, lib, markdown-unlit, monad-control, mtl, network
-, QuickCheck, semigroupoids, servant, servant-client-core
-, servant-server, sop-core, stm, text, time, transformers
-, transformers-base, wai, warp
-}:
-mkDerivation {
-  pname = "servant-client";
-  version = "0.20.3.0";
-  src = /nix/store/y0azgrrnkv9wq5wy4fz962k9v9s0ck3z-source;
-  libraryHaskellDepends = [
-    base base-compat bytestring containers deepseq exceptions
-    http-client http-media http-types kan-extensions monad-control mtl
-    semigroupoids servant servant-client-core stm time transformers
-    transformers-base
-  ];
-  testHaskellDepends = [
-    aeson base base-compat bytestring entropy generics-sop hspec
-    http-api-data http-client http-types HUnit markdown-unlit mtl
-    network QuickCheck servant servant-client-core servant-server
-    sop-core stm text transformers wai warp
-  ];
-  testToolDepends = [ hspec-discover markdown-unlit ];
-  homepage = "http://docs.servant.dev/";
-  description = "Automatic derivation of querying functions for servant";
-  license = lib.licenses.bsd3;
-}
-;
-}
-;
-  servant-client-core = {
-  meta = {
-    sha256 = "0yv0asv77zjclnvadjb2hxjghnmz5rnba4akg237x3ssh50i52ca";
-    url = "https://hackage.haskell.org";
-    ver = "0.20.3.0";
-  };
-  drv = { mkDerivation, aeson, attoparsec, base, base-compat
-, base64-bytestring, bytestring, constraints, containers, deepseq
-, exceptions, free, hspec, hspec-discover, http-media, http-types
-, lib, network-uri, QuickCheck, safe, servant, sop-core
-, template-haskell, text, transformers
-}:
-mkDerivation {
-  pname = "servant-client-core";
-  version = "0.20.3.0";
-  src = /nix/store/9dr7w7j8242pv1aypymsml7z4bh17jyf-source;
-  libraryHaskellDepends = [
-    aeson attoparsec base base-compat base64-bytestring bytestring
-    constraints containers deepseq exceptions free http-media
-    http-types network-uri safe servant sop-core template-haskell text
-  ];
-  testHaskellDepends = [
-    base base-compat bytestring deepseq hspec QuickCheck servant
-    transformers
-  ];
-  testToolDepends = [ hspec-discover ];
-  homepage = "http://docs.servant.dev/";
-  description = "Core functionality and class for client function generation for servant APIs";
-  license = lib.licenses.bsd3;
-}
-;
-}
-;
   servant-server = {
   meta = {
     sha256 = "053d5j5sxki31v8d5b73jx53bfhz76pm8xyb99n0rk1gxc8rg18x";
@@ -989,36 +707,6 @@ mkDerivation {
   description = "A family of combinators for defining webservices APIs and serving them";
   license = lib.licenses.bsd3;
   mainProgram = "greet";
-}
-;
-}
-;
-  table-layout = {
-  meta = {
-    sha256 = "1kz5njn1y1f8n920nmsb59yljwmb3xycrjxl71j573jbm1dx9bsn";
-    url = "https://hackage.haskell.org";
-    ver = "1.0.0.2";
-  };
-  drv = { mkDerivation, base, data-default-class, doclayout, hspec, HUnit
-, lib, QuickCheck, text
-}:
-mkDerivation {
-  pname = "table-layout";
-  version = "1.0.0.2";
-  src = /nix/store/qyylxg89cky1sn8mrj7q8rl634jdw51q-source;
-  isLibrary = true;
-  isExecutable = true;
-  libraryHaskellDepends = [ base data-default-class doclayout text ];
-  executableHaskellDepends = [
-    base data-default-class doclayout text
-  ];
-  testHaskellDepends = [
-    base data-default-class doclayout hspec HUnit QuickCheck text
-  ];
-  homepage = "https://github.com/muesli4/table-layout";
-  description = "Format tabular data as grid or table";
-  license = lib.licenses.bsd3;
-  mainProgram = "table-layout-test-styles";
 }
 ;
 }
@@ -1095,6 +783,26 @@ mkDerivation {
 ;
 }
 ;
+  time-manager = {
+  meta = {
+    sha256 = "1lw1xx9p5qqznrg04s7phki2rljxzx29z2xcd9qa46wjhhg54fds";
+    url = "https://hackage.haskell.org";
+    ver = "0.3.1.1";
+  };
+  drv = { mkDerivation, base, containers, hspec, HUnit, lib, stm }:
+mkDerivation {
+  pname = "time-manager";
+  version = "0.3.1.1";
+  src = /nix/store/1k5zhmfykz5ll7wsixwccd6l2vsd1j65-source;
+  libraryHaskellDepends = [ base containers stm ];
+  testHaskellDepends = [ base hspec HUnit ];
+  homepage = "http://github.com/yesodweb/wai";
+  description = "Scalable timer";
+  license = lib.licenses.mit;
+}
+;
+}
+;
   wai-app-static = {
   meta = {
     sha256 = "1kwvzy9w4v76q5bk4xwq7kz9q9l8867my6zvsv731x6xkhy7wr2c";
@@ -1136,9 +844,9 @@ mkDerivation {
 ;
   wai-extra = {
   meta = {
-    sha256 = "0lvsv014k2fpd3rm99qkfkh47zic7wg39zgv7g7ll06515ly23w9";
+    sha256 = "0ba54l3hbpv66lysdp3s7jhyry554ksc5a2f9fps9q7phl3gzak9";
     url = "https://hackage.haskell.org";
-    ver = "3.1.17";
+    ver = "3.1.18";
   };
   drv = { mkDerivation, aeson, ansi-terminal, base, base64-bytestring
 , bytestring, call-stack, case-insensitive, containers, cookie
@@ -1149,8 +857,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "wai-extra";
-  version = "3.1.17";
-  src = /nix/store/7jbhd188681dkrrvwrgl1drjrs8da4kn-source;
+  version = "3.1.18";
+  src = /nix/store/9c5pxsjb2nx2d0b1i271mx5nvj9q91s9-source;
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
@@ -1173,33 +881,11 @@ mkDerivation {
 ;
 }
 ;
-  wai-logger = {
-  meta = {
-    sha256 = "1l0gspzbwkrs1dqay2rv5wz1gg49a31l3vyl741b2j2apkgamf3p";
-    url = "https://hackage.haskell.org";
-    ver = "2.5.0";
-  };
-  drv = { mkDerivation, base, byteorder, bytestring, fast-logger
-, http-types, lib, network, wai
-}:
-mkDerivation {
-  pname = "wai-logger";
-  version = "2.5.0";
-  src = /nix/store/80ds0alfmnajyql6zb5yrw2wqfa0hp48-source;
-  libraryHaskellDepends = [
-    base byteorder bytestring fast-logger http-types network wai
-  ];
-  description = "A logging system for WAI";
-  license = lib.licenses.bsd3;
-}
-;
-}
-;
   warp = {
   meta = {
-    sha256 = "1sx9kv01ic8d588sfzn6hrbl0g0nnmz864xslrgviw0krix9v6i5";
+    sha256 = "0m4wj459j7fhav4i05df5nmbnzb1j8qwjdxcwacx81jv03bm1p33";
     url = "https://hackage.haskell.org";
-    ver = "3.4.8";
+    ver = "3.4.12";
   };
   drv = { mkDerivation, array, async, auto-update, base, bsb-http-chunked
 , bytestring, case-insensitive, containers, criterion, crypton-x509
@@ -1210,8 +896,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "warp";
-  version = "3.4.8";
-  src = /nix/store/wvj0vs4cvy7qiv38yci171zbm4q7wgm3-source;
+  version = "3.4.12";
+  src = /nix/store/kq79facjidfd5zmkkmfv9ng9wsz42vw2-source;
   libraryHaskellDepends = [
     array async auto-update base bsb-http-chunked bytestring
     case-insensitive containers crypton-x509 ghc-prim hashable
@@ -1229,7 +915,7 @@ mkDerivation {
   benchmarkHaskellDepends = [
     array auto-update base bytestring case-insensitive containers
     criterion crypton-x509 ghc-prim hashable http-date http-types
-    network recv streaming-commons text time-manager unix vault wai
+    network recv stm streaming-commons text time-manager unix vault wai
     word8
   ];
   homepage = "http://github.com/yesodweb/wai";
@@ -2522,64 +2208,35 @@ mkDerivation {
 ;
 };
 min = {
-  polysemy-http = {
-  meta = {
-    sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
-    ver = "0.13.1.0";
-  };
-  drv = { mkDerivation, aeson, base, case-insensitive, exon, hedgehog
-, http-client, http-client-tls, http-types, lib, network, polysemy
-, polysemy-plugin, prelate, servant, servant-client, servant-server
-, tasty, tasty-hedgehog, time, warp
-}:
-mkDerivation {
-  pname = "polysemy-http";
-  version = "0.13.1.0";
-  src = /nix/store/7bb0n2i5c8cgf3xyjvki147vw3kcmz4h-source;
-  libraryHaskellDepends = [
-    aeson base case-insensitive exon http-client http-client-tls
-    http-types polysemy polysemy-plugin prelate time
-  ];
-  testHaskellDepends = [
-    aeson base exon hedgehog http-client network polysemy
-    polysemy-plugin prelate servant servant-client servant-server tasty
-    tasty-hedgehog warp
-  ];
-  homepage = "https://github.com/tek/polysemy-http#readme";
-  description = "Polysemy effects for HTTP clients";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-  prelate = {
-  meta = {
-    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
-    ver = "0.8.0.0";
-  };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.8.0.0";
-  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
 };
 profiled = {
+};
+wayland-test-extends-ghc912 = {
+  polysemy-chronos = {
+  meta = {
+    sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+    ver = "0.7.0.1";
+  };
+  drv = { mkDerivation, base, chronos, incipit-core, lib, polysemy-test
+, polysemy-time, tasty
+}:
+mkDerivation {
+  pname = "polysemy-chronos";
+  version = "0.7.0.1";
+  src = /nix/store/9ak6ggpj2yvh253phy9vdy62gylf8xci-source;
+  libraryHaskellDepends = [
+    base chronos incipit-core polysemy-time
+  ];
+  testHaskellDepends = [
+    base chronos incipit-core polysemy-test polysemy-time tasty
+  ];
+  homepage = "https://github.com/tek/polysemy-time#readme";
+  description = "A Polysemy effect for Chronos";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
   polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
@@ -2637,7 +2294,115 @@ mkDerivation {
 }
 ;
 };
-system-test = {
+x11-extends-ghc912 = {
+  polysemy-chronos = {
+  meta = {
+    sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+    ver = "0.7.0.1";
+  };
+  drv = { mkDerivation, base, chronos, incipit-core, lib, polysemy-test
+, polysemy-time, tasty
+}:
+mkDerivation {
+  pname = "polysemy-chronos";
+  version = "0.7.0.1";
+  src = /nix/store/9ak6ggpj2yvh253phy9vdy62gylf8xci-source;
+  libraryHaskellDepends = [
+    base chronos incipit-core polysemy-time
+  ];
+  testHaskellDepends = [
+    base chronos incipit-core polysemy-test polysemy-time tasty
+  ];
+  homepage = "https://github.com/tek/polysemy-time#readme";
+  description = "A Polysemy effect for Chronos";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  polysemy-http = {
+  meta = {
+    sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+    ver = "0.13.1.0";
+  };
+  drv = { mkDerivation, aeson, base, case-insensitive, exon, hedgehog
+, http-client, http-client-tls, http-types, lib, network, polysemy
+, polysemy-plugin, prelate, servant, servant-client, servant-server
+, tasty, tasty-hedgehog, time, warp
+}:
+mkDerivation {
+  pname = "polysemy-http";
+  version = "0.13.1.0";
+  src = /nix/store/7bb0n2i5c8cgf3xyjvki147vw3kcmz4h-source;
+  libraryHaskellDepends = [
+    aeson base case-insensitive exon http-client http-client-tls
+    http-types polysemy polysemy-plugin prelate time
+  ];
+  testHaskellDepends = [
+    aeson base exon hedgehog http-client network polysemy
+    polysemy-plugin prelate servant servant-client servant-server tasty
+    tasty-hedgehog warp
+  ];
+  homepage = "https://github.com/tek/polysemy-http#readme";
+  description = "Polysemy effects for HTTP clients";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+};
+x11-test-extends-ghc912 = {
+  polysemy-chronos = {
+  meta = {
+    sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+    ver = "0.7.0.1";
+  };
+  drv = { mkDerivation, base, chronos, incipit-core, lib, polysemy-test
+, polysemy-time, tasty
+}:
+mkDerivation {
+  pname = "polysemy-chronos";
+  version = "0.7.0.1";
+  src = /nix/store/9ak6ggpj2yvh253phy9vdy62gylf8xci-source;
+  libraryHaskellDepends = [
+    base chronos incipit-core polysemy-time
+  ];
+  testHaskellDepends = [
+    base chronos incipit-core polysemy-test polysemy-time tasty
+  ];
+  homepage = "https://github.com/tek/polysemy-time#readme";
+  description = "A Polysemy effect for Chronos";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
   polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";

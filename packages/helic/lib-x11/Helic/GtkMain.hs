@@ -1,4 +1,6 @@
--- |API for the GTK main loop.
+{-# options_haddock prune #-}
+
+-- | API for the GTK main loop.
 module Helic.GtkMain where
 
 import Conc (withAsync_)
@@ -10,7 +12,7 @@ import Helic.Effect.Gtk (Gtk)
 import qualified Helic.Effect.GtkMain as GtkMain
 import Helic.Effect.GtkMain (GtkMain)
 
--- |Run the GTK main loop.
+-- | Run the GTK main loop.
 -- Before that, initialize the GTK client environment, store the default display in the state of 'GtkMain', and execute
 -- the user-supplied initialization action.
 gtkMain ::
@@ -23,7 +25,7 @@ gtkMain onInit =
     raise onInit
     Gtk.main
 
--- |Run the GTK main loop in an infinite loop, recovering from errors by logging them.
+-- | Run the GTK main loop in an infinite loop, recovering from errors by logging them.
 -- After the loop has failed or was terminated, the default implementation waits for 10 seconds before restarting it,
 -- but can be forced to start when a consumer tries to use it.
 loopGtkMain ::
@@ -36,7 +38,7 @@ loopGtkMain onInit =
       gtkMain @_ @(Scoped_ (Gtk _) : _) (raise onInit) !! \ e ->
         Log.error [exon|Gtk main loop failed: #{e}|]
 
--- |Acquire a GTK resource by first examining the value currently stored in 'GtkMain', and if there is none, requesting
+-- | Acquire a GTK resource by first examining the value currently stored in 'GtkMain', and if there is none, requesting
 -- the GTK main loop to be started.
 gtkResource ::
   Members [GtkMain s, Log, Stop Text] r =>
@@ -46,7 +48,7 @@ gtkResource =
     Log.info "Gtk main loop inactive, requesting restart"
     GtkMain.request (stop "Gtk main loop didn't start") <* Log.info "Gtk main loop started"
 
--- |Run 'loopGtkMain' in a thread.
+-- | Run 'loopGtkMain' in a thread.
 gtkMainLoop ::
   Members [Scoped_ (Gtk s) !! Text, GtkMain s, Log, Race, Resource, Async] r =>
   Sem r () ->

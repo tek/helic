@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.36.1.
+-- This file has been generated from package.yaml by hpack version 0.38.2.
 --
 -- see: https://github.com/sol/hpack
 
@@ -25,6 +25,16 @@ source-repository head
   type: git
   location: https://github.com/tek/helic
 
+flag wayland
+  description: Enable Wayland clipboard integratoin (mutually exclusive with x11)
+  manual: True
+  default: False
+
+flag x11
+  description: Enable X11 clipboard integration (mutually exclusive with wayland)
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Helic
@@ -34,8 +44,8 @@ library
       Helic.Config.File
       Helic.Data.AgentId
       Helic.Data.Config
+      Helic.Data.ContentType
       Helic.Data.Event
-      Helic.Data.GtkState
       Helic.Data.HistoryUpdate
       Helic.Data.Host
       Helic.Data.InstanceName
@@ -44,31 +54,19 @@ library
       Helic.Data.NetConfig
       Helic.Data.Selection
       Helic.Data.TmuxConfig
+      Helic.Data.WaylandConfig
       Helic.Data.X11Config
-      Helic.Data.XClipboardEvent
       Helic.Data.YankConfig
       Helic.Effect.Agent
       Helic.Effect.Client
-      Helic.Effect.Gtk
-      Helic.Effect.GtkClipboard
-      Helic.Effect.GtkMain
       Helic.Effect.History
-      Helic.Effect.XClipboard
-      Helic.Gtk
-      Helic.GtkClipboard
-      Helic.GtkMain
       Helic.Interpreter
       Helic.Interpreter.Agent
       Helic.Interpreter.AgentNet
       Helic.Interpreter.AgentTmux
-      Helic.Interpreter.AgentX
       Helic.Interpreter.Client
-      Helic.Interpreter.Gtk
-      Helic.Interpreter.GtkClipboard
-      Helic.Interpreter.GtkMain
       Helic.Interpreter.History
       Helic.Interpreter.InstanceName
-      Helic.Interpreter.XClipboard
       Helic.List
       Helic.Listen
       Helic.Net.Api
@@ -117,20 +115,23 @@ library
       ViewPatterns
   ghc-options: -fplugin=Polysemy.Plugin -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
-      base >=4.17.2.1 && <4.21
+      aeson <2.3
+    , base >=4.17.2.1 && <4.22
+    , base64-bytestring <1.3
     , chronos >=1.1.5 && <1.2
     , exon >=1.4.0.0 && <1.8
     , fast-logger >=3.0.3 && <3.3
-    , gi-gdk >=3.0.29 && <3.1
+    , gi-gdk >=3.0.29 && <4.1
+    , gi-gio <2.1
     , gi-glib >=2.0.30 && <2.1
-    , gi-gtk >=3.0.43 && <3.1
+    , gi-gtk >=3.0.43 && <4.1
+    , haskell-gi-base <0.27
     , hostname ==1.0.*
     , optparse-applicative >=0.16.1.0 && <0.20
     , path >=0.9.5 && <0.10
     , path-io >=1.6.3 && <1.9
     , polysemy >=1.9.2.0 && <1.10
     , polysemy-chronos >=0.5.0.0 && <0.8
-    , polysemy-conc >=0.14.1.0 && <0.15
     , polysemy-http >=0.5.0.0 && <0.14
     , polysemy-log >=0.11.0.0 && <0.12
     , polysemy-plugin >=0.4.4.0 && <0.5
@@ -152,6 +153,54 @@ library
     , prelate (Prelate as Prelude)
     , prelate hiding (Prelate)
   default-language: GHC2021
+  if false
+    other-modules:
+        Paths_helic
+    autogen-modules:
+        Paths_helic
+  if flag(x11)
+    exposed-modules:
+        Helic.Compat.Display
+        Helic.Data.GtkState
+        Helic.Data.XClipboardEvent
+        Helic.Effect.Gtk
+        Helic.Effect.GtkClipboard
+        Helic.Effect.GtkMain
+        Helic.Effect.XClipboard
+        Helic.Gtk
+        Helic.GtkClipboard
+        Helic.GtkMain
+        Helic.Interpreter.AgentX
+        Helic.Interpreter.Gtk
+        Helic.Interpreter.GtkClipboard
+        Helic.Interpreter.GtkMain
+        Helic.Interpreter.XClipboard
+    hs-source-dirs:
+        lib-x11
+    cpp-options: -DX11_NATIVE
+  if !flag(x11) && !flag(wayland)
+    other-modules:
+        Helic.Compat.Display
+    hs-source-dirs:
+        lib-no-display
+  if flag(wayland)
+    exposed-modules:
+        Helic.Compat.Display
+        Helic.Interpreter.AgentWayland
+        Helic.Wayland.Ffi
+        Helic.Wayland.Monitor
+        Helic.Wayland.Protocol
+    hs-source-dirs:
+        lib-wayland
+    cpp-options: -DWAYLAND_NATIVE
+    include-dirs:
+        cbits
+    c-sources:
+        cbits/ext-data-control-v1-protocol.c
+    extra-libraries:
+        wayland-client
+    build-depends:
+        unix
 
 executable hel
   main-is: Main.hs
@@ -195,7 +244,7 @@ executable hel
       ViewPatterns
   ghc-options: -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
-      base >=4.17.2.1 && <4.21
+      base >=4.17.2.1 && <4.22
     , helic
     , polysemy >=1.9.2.0 && <1.10
     , polysemy-plugin >=0.4.4.0 && <0.5
@@ -212,7 +261,7 @@ test-suite helic-test
   other-modules:
       Helic.Dev
       Helic.Test.ConfigFileTest
-      Helic.Test.GtkMainTest
+      Helic.Test.ContentTest
       Helic.Test.InsertEventTest
       Helic.Test.ListenTest
       Helic.Test.ListTest
@@ -259,12 +308,13 @@ test-suite helic-test
       ViewPatterns
   ghc-options: -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
-      base >=4.17.2.1 && <4.21
+      aeson <2.3
+    , base >=4.17.2.1 && <4.22
     , chronos >=1.1.5 && <1.2
     , containers >=0.6.7 && <0.8
     , exon >=1.4.0.0 && <1.8
     , helic
-    , network >=3.1.4.0 && <3.2
+    , network >=3.1.4.0 && <3.3
     , path >=0.9.5 && <0.10
     , polysemy >=1.9.2.0 && <1.10
     , polysemy-chronos >=0.5.0.0 && <0.8
@@ -283,3 +333,19 @@ test-suite helic-test
     , prelate (Prelate as Prelude)
     , prelate hiding (Prelate)
   default-language: GHC2021
+  if false
+    other-modules:
+        Paths_helic
+    autogen-modules:
+        Paths_helic
+  if flag(x11)
+    other-modules:
+        Helic.Test.GtkMainTest
+        Helic.Test.PlatformTests
+    hs-source-dirs:
+        test-x11
+  if !flag(x11)
+    other-modules:
+        Helic.Test.PlatformTests
+    hs-source-dirs:
+        test-no-x11
