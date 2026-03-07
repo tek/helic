@@ -1,4 +1,4 @@
--- |Client Interpreter, Internal
+-- | Client Interpreter, Internal
 module Helic.Interpreter.Client where
 
 import Exon (exon)
@@ -19,7 +19,7 @@ import Helic.Net.Api (ListenFrame (ListenConnected, ListenEvent))
 import qualified Helic.Net.Client as Api
 import Helic.Net.Client (localhost, localhostUrl, sendTo)
 
--- |Interpret 'Client' via HTTP.
+-- | Interpret 'Client' via HTTP.
 interpretClientNet ::
   Members [Manager, Reader NetConfig, Log, Error Text, Race, Embed IO, Final IO] r =>
   InterpreterFor Client r
@@ -56,7 +56,7 @@ interpretClientNet =
         pure (() <$ s)
       unitT
 
--- |Interpret 'Client' with a constant list of 'Event's and no capability to yank.
+-- | Interpret 'Client' with a constant list of 'Event's and no capability to yank.
 interpretClientConst ::
   [Event] ->
   InterpreterFor Client r

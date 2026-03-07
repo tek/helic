@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |NetConfig Data Type, Internal
+-- | NetConfig Data Type, Internal
 module Helic.Data.NetConfig where
 
 import Helic.Data.Host (Host)

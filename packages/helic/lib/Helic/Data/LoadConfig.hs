@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |LoadConfig Data Type, Internal
+-- | LoadConfig Data Type, Internal
 module Helic.Data.LoadConfig where
 
 data LoadConfig =

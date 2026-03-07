@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |ListConfig Data Type, Internal
+-- | ListConfig Data Type, Internal
 module Helic.Data.ListConfig where
 
 data ListConfig =

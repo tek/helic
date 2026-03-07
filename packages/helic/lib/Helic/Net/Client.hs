@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |HTTP Client, Internal
+-- | HTTP Client, Internal
 module Helic.Net.Client where
 
 import qualified Conc

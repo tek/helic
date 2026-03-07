@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |Listen, Internal
+-- | Listen, Internal
 module Helic.Listen where
 
 import qualified Conc
@@ -12,12 +12,12 @@ import Helic.Data.Event (Event)
 import qualified Helic.Effect.History as History
 import Helic.Effect.History (History)
 
--- |Signal type that indicates that the subscriber of 'listen' is running.
+-- | Signal type that indicates that the subscriber of 'listen' is running.
 data Listening =
   Listening
   deriving stock (Eq, Show)
 
--- |Listen for 'Event' via 'Polysemy.Conc.Events', broadcasting them to agents.
+-- | Listen for 'Event' via 'Polysemy.Conc.Events', broadcasting them to agents.
 listen ::
   Members [EventConsumer Event, History, Sync Listening] r =>
   Sem r ()
@@ -26,7 +26,7 @@ listen =
     Sync.putBlock Listening
     forever (History.receive =<< Conc.consume)
 
--- |Run an action with 'listen' in a thread, waiting for the event subscriber to be up and running before executing the
+-- | Run an action with 'listen' in a thread, waiting for the event subscriber to be up and running before executing the
 -- action.
 --
 -- TODO use subscribeLoopGated

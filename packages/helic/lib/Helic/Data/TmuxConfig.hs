@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |TmuxConfig Data Type, Internal
+-- | TmuxConfig Data Type, Internal
 module Helic.Data.TmuxConfig where
 
 import Path (Abs, File, Path)

@@ -1,4 +1,4 @@
--- |Agent Interpreter for Tmux, Internal
+-- | Agent Interpreter for Tmux, Internal
 module Helic.Interpreter.AgentTmux where
 
 import Exon (exon)
@@ -17,7 +17,7 @@ import Helic.Effect.Agent (Agent (Update), AgentTmux)
 import Helic.Interpreter.Agent (interpretAgentIf)
 import Helic.Tmux (sendToTmux)
 
--- |Process definition for running `tmux load-buffer -`.
+-- | Process definition for running `tmux load-buffer -`.
 tmuxProc ::
   Maybe (Path Abs File) ->
   ProcessConfig () () ()
@@ -27,7 +27,7 @@ tmuxProc exe =
     cmd =
       maybe "tmux" toFilePath exe
 
--- |Handle 'Agent' using a tmux server as the target.
+-- | Handle 'Agent' using a tmux server as the target.
 handleAgentTmux ::
   Members [Scoped_ (Process ByteString o) !! ProcessError, Log] r =>
   Agent m a ->
@@ -36,7 +36,7 @@ handleAgentTmux (Update event) =
   sendToTmux @_ @(_ _ : _) event !! \ (e :: ProcessError) ->
     Log.error [exon|Sending to tmux: #{show e}|]
 
--- |Interpret 'Agent' using a tmux server as the target.
+-- | Interpret 'Agent' using a tmux server as the target.
 interpretAgentTmux ::
   Members [Reader TmuxConfig, Log, Resource, Race, Async, Embed IO] r =>
   InterpreterFor Agent r

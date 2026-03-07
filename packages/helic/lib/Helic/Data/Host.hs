@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |Host Data Type, Internal
+-- | Host Data Type, Internal
 module Helic.Data.Host where
 
 newtype Host =

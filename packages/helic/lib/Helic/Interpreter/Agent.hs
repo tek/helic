@@ -1,4 +1,4 @@
--- |Simple Agent Interpreter, Internal
+-- | Simple Agent Interpreter, Internal
 module Helic.Interpreter.Agent where
 
 import GHC.Records (HasField)
@@ -7,7 +7,7 @@ import Helic.Data.Event (Event)
 import Helic.Effect.Agent (Agent (Update))
 import Helic.Interpreter (interpreting)
 
--- |Interpret 'Agent' with an action.
+-- | Interpret 'Agent' with an action.
 interpretAgent ::
   ∀ id r .
   (Event -> Sem r ()) ->

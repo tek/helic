@@ -1,6 +1,6 @@
 {-# options_haddock prune #-}
 
--- |Yank Logic, Internal
+-- | Yank Logic, Internal
 module Helic.Yank where
 
 import qualified Data.Text.IO as Text
@@ -17,7 +17,7 @@ import Helic.Data.YankConfig (YankConfig)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 
--- |Send an event to the server.
+-- | Send an event to the server.
 yank ::
   Members [Reader InstanceName, Client, ChronosTime, Log, Error Text, Embed IO] r =>
   YankConfig ->

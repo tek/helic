@@ -1,4 +1,4 @@
--- |HTTP API of the Daemon, Internal
+-- | HTTP API of the Daemon, Internal
 module Helic.Net.Api where
 
 import Polysemy.Final (getInspectorS, pureS, runS, withStrategicToFinal)
@@ -46,7 +46,7 @@ listenStream =
     let events = SourceT.mapMaybeStep (fmap ListenEvent . coerce . ins) (fromActionStep (const False) consumeIO)
     pureS (SourceT.fromStepT (Yield ListenConnected events))
 
--- |The Servant API of the daemon, providing endpoints for getting all events and creating one.
+-- | The Servant API of the daemon, providing endpoints for getting all events and creating one.
 type Api =
   "event" :> (
     Get '[JSON] [Event]
@@ -58,7 +58,7 @@ type Api =
     "listen" :> StreamGet NewlineFraming JSON (SourceIO ListenFrame)
   )
 
--- |The server implementation.
+-- | The server implementation.
 server ::
   Members [EventConsumer HistoryUpdate, History, Final IO] r =>
   ServerT Api (Sem r)
@@ -71,11 +71,11 @@ server =
   :<|>
   listenStream
 
--- |The default port, 9500.
+-- | The default port, 9500.
 defaultPort :: Int
 defaultPort = 9500
 
--- |Run the daemon API.
+-- | Run the daemon API.
 serve ::
   Members [History, EventConsumer HistoryUpdate, Reader NetConfig, Sync ServerReady, Log, Interrupt, Final IO] r =>
   Sem r ()

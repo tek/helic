@@ -23,7 +23,7 @@ import Helic.Effect.Agent (Agent, AgentName, AgentNet, AgentTag, AgentTmux, Agen
 import qualified Helic.Effect.History as History
 import Helic.Effect.History (History)
 
--- |Send an event to an agent unless it was published by that agent.
+-- | Send an event to an agent unless it was published by that agent.
 runAgent ::
   ∀ (tag :: AgentTag) r .
   AgentName tag =>
@@ -35,7 +35,7 @@ runAgent (Event _ (AgentId eId) _ _) | eId == agentName @tag =
 runAgent event =
   tag (Agent.update event)
 
--- |Send an event to all agents.
+-- | Send an event to all agents.
 broadcast ::
   Members Agents r =>
   Members [Events HistoryUpdate, Log] r =>
@@ -48,7 +48,7 @@ broadcast event@(Event _ (AgentId ag) _ text) = do
   runAgent @AgentX event
   publish (HistoryUpdate event)
 
--- |Whether there was an event within the last second that contained the same text as the current event.
+-- | Whether there was an event within the last second that contained the same text as the current event.
 inRecent ::
   Chronos.Time ->
   MilliSeconds ->
@@ -69,7 +69,7 @@ sanitize :: Event -> Event
 sanitize event@Event {content} =
   event { content = sanitizeNewlines content }
 
--- |Append an event to the history unless the latest event contains the same text, or there was an event within the last
+-- | Append an event to the history unless the latest event contains the same text, or there was an event within the last
 -- @debounce@ milliseconds that contained the same text, or the new event has an earlier time stamp than the latest
 -- event, to avoid clobbering due to cycles induced by external programs.
 appendIfValid ::
@@ -88,7 +88,7 @@ appendIfValid now debounce (sanitize -> event@Event {content, time}) = \case
   hist ->
     Just (hist |> event)
 
--- |Add an event to the history unless it is a duplicate.
+-- | Add an event to the history unless it is a duplicate.
 insertEvent ::
   Members [AtomicState (Seq Event), ChronosTime] r =>
   MilliSeconds ->
@@ -102,7 +102,7 @@ insertEvent debounce event = do
       Just new -> (new, True)
       Nothing -> (s, False)
 
--- |Remove excess entries from the front of the 'Seq', given a maximum number of entries.
+-- | Remove excess entries from the front of the 'Seq', given a maximum number of entries.
 -- Return the number of dropped entries.
 truncateLog ::
   Member (AtomicState (Seq Event)) r =>
@@ -125,7 +125,7 @@ logTruncation num =
     noun =
       if num == 1 then "entry" else "entries"
 
--- |Process an event received from outside.
+-- | Process an event received from outside.
 receiveEvent ::
   Members Agents r =>
   Members [AtomicState (Seq Event), Events HistoryUpdate, ChronosTime, Log] r =>
@@ -141,7 +141,7 @@ receiveEvent maxHistory debounce event = do
       traverse_ logTruncation =<< truncateLog (fromMaybe 100 maxHistory)
     do Log.debug [exon|Ignoring duplicate event: #{Event.describe event}|]
 
--- |Re-broadcast an older event from the history at the given index (ordered by increasing age) and move it to the end
+-- | Re-broadcast an older event from the history at the given index (ordered by increasing age) and move it to the end
 -- of the history.
 loadEvent ::
   Members [AtomicState (Seq Event), ChronosTime, Log] r =>
@@ -157,7 +157,7 @@ loadEvent index = do
       Nothing ->
         (s, Nothing)
 
--- |In the unlikely case of a remote host sending an event back to this instance and not updating the sender, this will
+-- | In the unlikely case of a remote host sending an event back to this instance and not updating the sender, this will
 -- be 'True'.
 isNetworkCycle ::
   Member (Reader InstanceName) r =>
@@ -166,7 +166,7 @@ isNetworkCycle ::
 isNetworkCycle Event {..} =
   asks \ inst -> inst == sender && source == agentIdNet
 
--- |Interpret 'History' using 'AtomicState', broadcasting to agents.
+-- | Interpret 'History' using 'AtomicState', broadcasting to agents.
 interpretHistory ::
   Members Agents r =>
   Members [Reader InstanceName, AtomicState (Seq Event), Events HistoryUpdate, ChronosTime, Log] r =>

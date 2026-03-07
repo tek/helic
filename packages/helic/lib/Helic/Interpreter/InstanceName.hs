@@ -1,4 +1,4 @@
--- |Reader Interpreter for InstanceName, Internal
+-- | Reader Interpreter for InstanceName, Internal
 module Helic.Interpreter.InstanceName where
 
 import Exon (exon)
@@ -7,7 +7,7 @@ import qualified Polysemy.Error as Polysemy
 
 import Helic.Data.InstanceName (InstanceName (InstanceName))
 
--- |If no instance name was given in the config file, query the system's host name.
+-- | If no instance name was given in the config file, query the system's host name.
 determineName ::
   Members [Error Text, Embed IO] r =>
   Maybe Text ->
@@ -21,7 +21,7 @@ determineName = \case
     err (e :: SomeException) =
       [exon|no name in conig and unable to determine hostname: #{show e}|]
 
--- |Interpret @'Reader' 'InstanceName'@ using the name specified in the config file, falling back to the system's host
+-- | Interpret @'Reader' 'InstanceName'@ using the name specified in the config file, falling back to the system's host
 -- name if it wasn't given.
 interpretInstanceName ::
   Members [Error Text, Embed IO] r =>
