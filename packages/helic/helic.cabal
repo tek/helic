@@ -129,6 +129,7 @@ library
     , gi-gtk >=3.0.43 && <4.1
     , haskell-gi-base <0.27
     , hostname ==1.0.*
+    , mime-types
     , optparse-applicative >=0.16.1.0 && <0.20
     , path >=0.9.5 && <0.10
     , path-io >=1.6.3 && <1.9

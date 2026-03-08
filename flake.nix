@@ -60,6 +60,7 @@
             "servant-server"
             "table-layout"
             "terminal-size"
+            "mime-types"
             "transformers"
             "typed-process"
             "wai-extra"

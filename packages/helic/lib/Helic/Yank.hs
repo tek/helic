@@ -7,16 +7,22 @@ import qualified Data.ByteString as BS
 import qualified Data.Text.IO as Text
 import Exon (exon)
 import qualified Log
+import qualified Network.Mime as Mime
 import Polysemy.Chronos (ChronosTime)
 import System.IO (stdin)
 
 import Helic.Data.AgentId (AgentId (AgentId))
-import Helic.Data.ContentType (Content (..))
+import Helic.Data.ContentType (Content (..), MimeType (..))
 import qualified Helic.Data.Event as Event
 import Helic.Data.InstanceName (InstanceName)
 import Helic.Data.YankConfig (YankConfig (..), YankSource (..))
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
+
+-- | Infer the MIME type from a file path's extension.
+mimeFromPath :: FilePath -> MimeType
+mimeFromPath =
+  MimeType . decodeUtf8 . Mime.mimeByExt Mime.defaultMimeMap Mime.defaultMimeType . toText
 
 -- | Resolve the 'YankSource' to a 'Content' value.
 resolveSource ::
@@ -28,7 +34,8 @@ resolveSource = \case
     TextContent <$> embed (Text.hGetContents stdin)
   DirectText text ->
     pure (TextContent text)
-  ImageFile mime path ->
+  ImageFile maybeMime path -> do
+    let mime = fromMaybe (mimeFromPath path) maybeMime
     BinaryContent mime <$> embed (BS.readFile path)
   StdinBinary mime ->
     BinaryContent mime <$> embed (BS.hGetContents stdin)
@@ -42,4 +49,3 @@ yank conf = do
   content <- resolveSource conf.source
   event <- Event.now (AgentId (fromMaybe "cli" conf.agent)) content
   Client.yank event >>= leftA \ err -> Log.debug [exon|Http client error: #{err}|]
-

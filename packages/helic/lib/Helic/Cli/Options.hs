@@ -82,7 +82,7 @@ yankSourceParser =
     directText =
       DirectText <$> strOption (long "text" <> help "Yank text directly" <> metavar "TEXT")
     imageFile =
-      ImageFile <$> mimeOption <*> strOption (long "image" <> help "Image file to yank" <> metavar "FILE")
+      ImageFile <$> optional mimeOption <*> strOption (long "image" <> help "Image file to yank" <> metavar "FILE")
     stdinBinary =
       StdinBinary <$> mimeOption
     mimeOption =

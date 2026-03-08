@@ -13,8 +13,8 @@ data YankSource =
   -- | Use the given text directly.
   DirectText Text
   |
-  -- | Read the given file as binary content with the specified MIME type.
-  ImageFile MimeType FilePath
+  -- | Read the given file as binary content with an optional MIME type (inferred from extension if absent).
+  ImageFile (Maybe MimeType) FilePath
   |
   -- | Read stdin as binary content with the given MIME type.
   StdinBinary MimeType
