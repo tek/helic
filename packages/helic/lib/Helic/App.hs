@@ -17,6 +17,7 @@ import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Data.ListConfig (ListConfig)
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
 import Helic.Data.NetConfig (NetConfig)
+import Helic.Data.PasteConfig (PasteConfig)
 import Helic.Data.YankConfig (YankConfig)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
@@ -28,6 +29,7 @@ import Helic.Interpreter.History (interpretHistory)
 import Helic.Interpreter.InstanceName (interpretInstanceName)
 import Helic.List (list)
 import Helic.Net.Api (serve)
+import Helic.Paste (paste)
 import Helic.Yank (yank)
 
 listenApp ::
@@ -85,3 +87,11 @@ loadApp ::
 loadApp Config {net} (LoadConfig event) =
   runClient net $
   (void . fromEither =<< Client.load event)
+
+pasteApp ::
+  Config ->
+  PasteConfig ->
+  Sem AppStack ()
+pasteApp Config {net} pasteConfig =
+  runClient net $
+  paste pasteConfig

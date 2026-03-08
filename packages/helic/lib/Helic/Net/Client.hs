@@ -23,8 +23,9 @@ import Helic.Net.Api (Api, ListenFrame, defaultPort)
 get :: ClientM [Event]
 yank :: Event -> ClientM NoContent
 load :: Int -> ClientM (Maybe Event)
+peek :: Maybe Int -> ClientM (Maybe Event)
 listen :: ClientM (SourceT IO ListenFrame)
-get :<|> yank :<|> load :<|> listen = client (Proxy @Api)
+get :<|> yank :<|> load :<|> peek :<|> listen = client (Proxy @Api)
 
 sendTo ::
   Members [Manager, Log, Race, Error Text, Embed IO] r =>

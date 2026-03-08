@@ -10,6 +10,7 @@ import Servant (
   NoContent (NoContent),
   PostCreated,
   PutAccepted,
+  QueryParam,
   ReqBody,
   SourceIO,
   StreamGet,
@@ -55,6 +56,8 @@ type Api =
     :<|>
     ReqBody '[JSON] Int :> PutAccepted '[JSON] (Maybe Event)
     :<|>
+    "peek" :> QueryParam "index" Int :> Get '[JSON] (Maybe Event)
+    :<|>
     "listen" :> StreamGet NewlineFraming JSON (SourceIO ListenFrame)
   )
 
@@ -68,6 +71,8 @@ server =
   (NoContent <$) . History.receive
   :<|>
   History.load
+  :<|>
+  History.peek
   :<|>
   listenStream
 

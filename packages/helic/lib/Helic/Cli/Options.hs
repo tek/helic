@@ -16,9 +16,11 @@ import Options.Applicative (
   hsubparser,
   info,
   long,
+  metavar,
   option,
   progDesc,
   readerError,
+  short,
   strOption,
   switch,
   )
@@ -26,10 +28,12 @@ import Options.Applicative.Types (readerAsk)
 import Path (Abs, File, Path, parseAbsFile)
 import Prelude hiding (Mod)
 
+import Helic.Data.ContentType (MimeType (..))
 import Helic.Data.ListConfig (ListConfig (ListConfig))
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
+import Helic.Data.PasteConfig (PasteConfig (PasteConfig), PasteTarget (..))
 import qualified Helic.Data.YankConfig
-import Helic.Data.YankConfig (YankConfig (YankConfig))
+import Helic.Data.YankConfig (YankConfig (YankConfig), YankSource (..))
 
 data Conf =
   Conf {
@@ -46,6 +50,8 @@ data Command =
   List ListConfig
   |
   Load LoadConfig
+  |
+  Paste PasteConfig
   deriving stock (Eq, Show)
 
 filePathOption :: ReadM (Path Abs File)
@@ -66,8 +72,21 @@ listenCommand =
 yankParser :: Parser YankConfig
 yankParser = do
   agent <- optional (strOption (long "agent" <> help "Source of the yank"))
-  text <- optional (strOption (long "text" <> help "Yank text, uses stdin if not specified"))
+  source <- yankSourceParser
   pure YankConfig {..}
+
+yankSourceParser :: Parser YankSource
+yankSourceParser =
+  directText <|> imageFile <|> stdinBinary <|> pure StdinText
+  where
+    directText =
+      DirectText <$> strOption (long "text" <> help "Yank text directly" <> metavar "TEXT")
+    imageFile =
+      ImageFile <$> mimeOption <*> strOption (long "image" <> help "Image file to yank" <> metavar "FILE")
+    stdinBinary =
+      StdinBinary <$> mimeOption
+    mimeOption =
+      MimeType <$> strOption (long "mime" <> help "MIME type for binary content" <> metavar "TYPE")
 
 yankCommand :: Mod CommandFields Command
 yankCommand =
@@ -75,7 +94,7 @@ yankCommand =
 
 listParser :: Parser ListConfig
 listParser =
-  ListConfig <$> optional (argument auto (help "Maximum number of events to list"))
+  ListConfig <$> optional (argument auto (help "Maximum number of events to list" <> metavar "COUNT"))
 
 listCommand :: Mod CommandFields Command
 listCommand =
@@ -83,11 +102,30 @@ listCommand =
 
 loadParser :: Parser LoadConfig
 loadParser =
-  LoadConfig <$> argument auto (help "Index of the event")
+  LoadConfig <$> argument auto (help "Index of the event" <> metavar "INDEX")
 
 loadCommand :: Mod CommandFields Command
 loadCommand =
   command "load" (Load <$> info loadParser (progDesc "Load a history event"))
+
+pasteParser :: Parser PasteConfig
+pasteParser = do
+  event <- optional (argument auto (help "Index of the event (default: latest)" <> metavar "INDEX") :: Parser Int)
+  target <- pasteTargetParser
+  pure (PasteConfig event target)
+
+pasteTargetParser :: Parser PasteTarget
+pasteTargetParser =
+  pasteFile <|> pure PasteStdout
+  where
+    pasteFile =
+      fileOrStdout <$> strOption (long "output" <> short 'o' <> help "Output file (use - for stdout)" <> metavar "FILE")
+    fileOrStdout "-" = PasteForceStdout
+    fileOrStdout path = PasteFile path
+
+pasteCommand :: Mod CommandFields Command
+pasteCommand =
+  command "paste" (Paste <$> info pasteParser (progDesc "Write event content to stdout or a file"))
 
 commands :: [Mod CommandFields Command]
 commands =
@@ -95,7 +133,8 @@ commands =
     listenCommand,
     yankCommand,
     listCommand,
-    loadCommand
+    loadCommand,
+    pasteCommand
   ]
 
 parser :: Parser (Conf, Maybe Command)

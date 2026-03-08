@@ -9,12 +9,12 @@ import Polysemy.Log (Severity (Info, Trace))
 import System.IO (hLookAhead, stdin)
 import Time (MilliSeconds (MilliSeconds))
 
-import Helic.App (listApp, listenApp, loadApp, yankApp)
-import Helic.Cli.Options (Command (List, Listen, Load, Yank), Conf (Conf), parser)
+import Helic.App (listApp, listenApp, loadApp, pasteApp, yankApp)
+import Helic.Cli.Options (Command (List, Listen, Load, Paste, Yank), Conf (Conf), parser)
 import Helic.Config.File (findFileConfig)
 import qualified Helic.Data.Config as Config
 import Helic.Data.Config (Config)
-import Helic.Data.YankConfig (YankConfig (YankConfig))
+import Helic.Data.YankConfig (YankConfig (..), YankSource (..))
 
 runCommand :: Config -> Command -> Sem AppStack ()
 runCommand config = \case
@@ -26,11 +26,13 @@ runCommand config = \case
     listApp config showConf
   Load loadConf ->
     loadApp config loadConf
+  Paste pasteConf ->
+    pasteApp config pasteConf
 
 defaultCommand :: Sem AppStack Command
 defaultCommand = do
   Conc.timeout_ (pure Nothing) (MilliSeconds 100) (Just <$> tryAny (hLookAhead stdin)) <&> \case
-    Just (Right _) -> Yank (YankConfig (Just "cli") Nothing)
+    Just (Right _) -> Yank (YankConfig (Just "cli") StdinText)
     _ -> Listen
 
 withCliOptions :: Conf -> Maybe Command -> IO ()

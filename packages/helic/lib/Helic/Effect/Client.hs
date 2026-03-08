@@ -13,6 +13,8 @@ data Client :: Effect where
   Yank :: Event -> Client m (Either Text ())
   -- | Broadcast an older event.
   Load :: Int -> Client m (Either Text Event)
+  -- | Fetch an event by index without re-broadcasting.
+  Peek :: Maybe Int -> Client m (Either Text Event)
   -- | Connect to the streaming endpoint and invoke the callback for each event.
   -- Run the first argument after successfully connecting.
   Listen :: m () -> (Event -> m ()) -> Client m ()
@@ -37,6 +39,13 @@ load ::
   ∀ r .
   Member Client r =>
   Int ->
+  Sem r (Either Text Event)
+
+-- | Fetch an event by index without re-broadcasting.
+peek ::
+  ∀ r .
+  Member Client r =>
+  Maybe Int ->
   Sem r (Either Text Event)
 
 listen ::

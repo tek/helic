@@ -12,7 +12,7 @@ import Helic.App (listenApp, yankApp)
 import Helic.Config.File (findFileConfig)
 import Helic.Data.Config (Config (Config))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
-import Helic.Data.YankConfig (YankConfig (YankConfig))
+import Helic.Data.YankConfig (YankConfig (YankConfig), YankSource (..))
 
 conf :: Config
 conf =
@@ -36,4 +36,4 @@ yank =
   runAppLevel Trace do
     config <- findFileConfig Nothing
     num :: Int64 <- embed randomIO
-    yankApp config (YankConfig Nothing (Just [exon|yanky #{show num}|]))
+    yankApp config (YankConfig Nothing (DirectText [exon|yanky #{show num}|]))

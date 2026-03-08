@@ -6,7 +6,6 @@ module Helic.Interpreter.History where
 import qualified Chronos
 import qualified Data.Sequence as Seq
 import Data.Sequence (Seq ((:|>)), (!?), (|>))
-
 import Exon (exon)
 import qualified Log
 import Polysemy.Chronos (ChronosTime)
@@ -21,7 +20,18 @@ import Helic.Data.Event (Event (Event, content, time))
 import Helic.Data.HistoryUpdate (HistoryUpdate (HistoryUpdate))
 import Helic.Data.InstanceName (InstanceName)
 import qualified Helic.Effect.Agent as Agent
-import Helic.Effect.Agent (Agent, AgentName, AgentNet, AgentTag, AgentTmux, AgentWayland, AgentX, Agents, agentIdNet, agentName)
+import Helic.Effect.Agent (
+  Agent,
+  AgentName,
+  AgentNet,
+  AgentTag,
+  AgentTmux,
+  AgentWayland,
+  AgentX,
+  Agents,
+  agentIdNet,
+  agentName,
+  )
 import qualified Helic.Effect.History as History
 import Helic.Effect.History (History)
 
@@ -141,6 +151,22 @@ receiveEvent maxHistory debounce event = do
       traverse_ logTruncation =<< truncateLog (fromMaybe 100 maxHistory)
     do Log.debug [exon|Ignoring duplicate event: #{Event.describe event}|]
 
+-- | Return the event at the given index (ordered by increasing age) without modifying the history.
+-- If 'Nothing', return the latest event.
+peekEvent ::
+  Member (AtomicState (Seq Event)) r =>
+  Maybe Int ->
+  Sem r (Maybe Event)
+peekEvent index =
+  atomicGets \s ->
+    case index of
+      Nothing -> case s of
+        _ :|> ev -> Just ev
+        _ -> Nothing
+      Just i ->
+        let rindex = length s - i - 1
+        in s !? rindex
+
 -- | Re-broadcast an older event from the history at the given index (ordered by increasing age) and move it to the end
 -- of the history.
 loadEvent ::
@@ -184,5 +210,7 @@ interpretHistory maxHistory debounceMillis =
     History.Load index -> do
       event <- loadEvent index
       event <$ traverse_ broadcast event
+    History.Peek index ->
+      peekEvent index
   where
     debounce = MilliSeconds (fromMaybe 3000 debounceMillis)

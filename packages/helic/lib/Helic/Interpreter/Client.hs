@@ -14,7 +14,7 @@ import Servant.Types.SourceT (foreach)
 import Helic.Data.Event (Event)
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig)
-import Helic.Effect.Client (Client (Get, Listen, Load, Yank))
+import Helic.Effect.Client (Client (Get, Listen, Load, Peek, Yank))
 import Helic.Net.Api (ListenFrame (ListenConnected, ListenEvent))
 import qualified Helic.Net.Client as Api
 import Helic.Net.Client (localhost, localhostUrl, sendTo)
@@ -38,6 +38,11 @@ interpretClientNet =
       liftT do
         env <- mkClientEnv <$> Manager.get <*> localhostUrl
         result <- embed $ withClientM (Api.load event) env (pure . first show)
+        pure (result >>= maybeToRight "There is no event for that index")
+    Peek index ->
+      liftT do
+        env <- mkClientEnv <$> Manager.get <*> localhostUrl
+        result <- embed $ withClientM (Api.peek index) env (pure . first show)
         pure (result >>= maybeToRight "There is no event for that index")
     Listen connected f -> do
       env <- mkClientEnv <$> Manager.get <*> localhostUrl
@@ -65,6 +70,7 @@ interpretClientConst evs =
     Get -> pureT (Right evs)
     Yank _ -> pureT (Left "const client cannot yank")
     Load _ -> pureT (Left "const client cannot load")
+    Peek _ -> pureT (Left "const client cannot peek")
     Listen connected f -> do
       runTSimple connected
       for_ (head evs) \ e -> runTSimple (f e)

@@ -13,6 +13,8 @@ data History :: Effect where
   Receive :: Event -> History m ()
   -- | Load the 'Event' at the given history index into the clipboards.
   Load :: Int -> History m (Maybe Event)
+  -- | Return the 'Event' at the given history index, or the latest if 'Nothing'.
+  Peek :: Maybe Int -> History m (Maybe Event)
 
 makeSem_ ''History
 
@@ -34,4 +36,11 @@ load ::
   ∀ r .
   Member History r =>
   Int ->
+  Sem r (Maybe Event)
+
+-- | Return the 'Event' at the given history index, or the latest if 'Nothing'.
+peek ::
+  ∀ r .
+  Member History r =>
+  Maybe Int ->
   Sem r (Maybe Event)

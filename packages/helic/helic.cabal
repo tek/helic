@@ -52,6 +52,7 @@ library
       Helic.Data.ListConfig
       Helic.Data.LoadConfig
       Helic.Data.NetConfig
+      Helic.Data.PasteConfig
       Helic.Data.Selection
       Helic.Data.TmuxConfig
       Helic.Data.WaylandConfig
@@ -72,6 +73,7 @@ library
       Helic.Net.Api
       Helic.Net.Client
       Helic.Net.Server
+      Helic.Paste
       Helic.Stop
       Helic.Tmux
       Helic.Yank
@@ -266,6 +268,7 @@ test-suite helic-test
       Helic.Test.ListenTest
       Helic.Test.ListTest
       Helic.Test.LoadTest
+      Helic.Test.PasteTest
       Helic.Test.Port
       Helic.Test.StreamTest
   hs-source-dirs:
