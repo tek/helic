@@ -22,8 +22,11 @@ let
   x11Enabled = config.services.xserver.enable or false;
 
 in {
+
   options.services.helic = {
+
     enable = mkEnableOption "Clipboard Manager";
+
     user = mkOption {
       description = mdDoc ''
       A system user name or ID. If set, the service will only be started for that user.
@@ -31,6 +34,7 @@ in {
       type = types.nullOr (types.either types.str types.ints.positive);
       default = null;
     };
+
     package = mkOption {
       type = types.package;
       default = defaultPackage;
@@ -39,105 +43,143 @@ in {
       The default applies Cabal flags based on the `x11`/`wayland` config.
       '';
     };
+
     name = mkOption {
       type = types.nullOr types.str;
       default = null;
       description = "The instance name used for identifying cycles. Defaults to the host name.";
     };
+
     maxHistory = mkOption {
       type = types.nullOr types.ints.positive;
       default = 100;
       description = "The maximum number of yanks to store in memory.";
     };
+
     debounceMillis = mkOption {
       type = types.nullOr types.ints.positive;
       default = 3000;
       description = "The interval in milliseconds during which the same text is ignored.";
     };
+
     verbose = mkEnableOption "Increase the log level.";
+
     net = {
+
       enable = mkEnableOption "network propagation" // { default = true; };
+
       port = mkOption {
         type = types.port;
         default = 9500;
         description = "The http server is used both for yanking and broadcast to other hosts.";
       };
+
       hosts = mkOption {
         type = types.listOf types.str;
         default = [];
         description = "The network addresses of other helic instances that should be shared with.";
         example = literalExpression ["otherhost:9501"];
       };
+
       timeout = mkOption {
         type = types.nullOr types.ints.positive;
         default = null;
         description = "Maximum time in milliseconds to wait for a connection to a remote host to be made.";
       };
+
       auth = {
+
         enable = mkEnableOption "authentication and encryption";
+
         privateKey = mkOption {
           type = types.nullOr types.str;
           default = null;
           description = "Base64-encoded X25519 private key. If not set, a key pair is generated automatically.";
         };
+
         publicKey = mkOption {
           type = types.nullOr types.str;
           default = null;
           description = "Base64-encoded X25519 public key. If not set, derived from the private key.";
         };
+
         allowedKeys = mkOption {
           type = types.listOf types.str;
           default = [];
           description = "Base64-encoded public keys of trusted remote instances. If empty and auth is enabled, unknown peers are added to pending.";
         };
+
         peersFile = mkOption {
           type = types.nullOr types.str;
           default = null;
           description = "Absolute path to the peers state file. Defaults to ~/.local/state/helic/peers.yaml.";
         };
+
       };
+
     };
+
     tmux = {
+
       enable = mkEnableOption "tmux integration" // { default = true; };
+
       package = mkOption {
         type = types.package;
         default = pkgs.tmux;
         description = "The package to use for tmux. Defaults to `pkgs.tmux`.";
       };
+
     };
+
     x11 = {
+
       enable = mkEnableOption "X11 integration" // { default = x11Enabled; };
+
       subscribedSelections = mkOption {
         type = types.listOf types.str;
         default = ["Clipboard" "Primary"];
         description = "A list of unique X11 selections from which to listen to events for.";
         example = literalExpression ["Clipboard"];
       };
+
     };
+
     wayland = {
+
       enable = mkEnableOption "Wayland integration" // { default = waylandEnabled; };
+
     };
+
     discovery = {
+
       enable = mkEnableOption "UDP broadcast peer discovery";
+
       port = mkOption {
         type = types.port;
         default = 9501;
         description = "UDP port for broadcast beacons.";
       };
+
       interval = mkOption {
         type = types.ints.positive;
         default = 5;
         description = "Seconds between beacon broadcasts.";
       };
+
       ttl = mkOption {
         type = types.ints.positive;
         default = 15;
         description = "Seconds after which a peer is considered stale if no beacon is received.";
       };
+
     };
+
   };
+
   config = mkIf cfg.enable {
+
     environment.systemPackages = [cfg.package];
+
     environment.etc."helic.yaml".text = ''
     ${if cfg.name == null then "" else "name: ${cfg.name}"}
     maxHistory: ${toString cfg.maxHistory}
@@ -179,6 +221,9 @@ in {
         Restart = "always";
         ExecStart = "${cfg.package}/bin/hel listen";
       };
+
     };
+
   };
+
 }

@@ -157,7 +157,6 @@ extern const struct wl_interface ext_data_control_offer_v1_interface;
 #define EXT_DATA_CONTROL_MANAGER_V1_GET_DATA_DEVICE 1
 #define EXT_DATA_CONTROL_MANAGER_V1_DESTROY 2
 
-
 /**
  * @ingroup iface_ext_data_control_manager_v1
  */
