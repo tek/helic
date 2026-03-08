@@ -4,6 +4,7 @@ module Helic.Interpreter.InstanceName where
 import Exon (exon)
 import Network.HostName (getHostName)
 import qualified Polysemy.Error as Polysemy
+import GHC.IO.Exception (IOException)
 
 import Helic.Data.InstanceName (InstanceName (InstanceName))
 
@@ -18,8 +19,8 @@ determineName = \case
   _ ->
     Polysemy.fromExceptionVia err (fromString <$> getHostName)
   where
-    err (e :: SomeException) =
-      [exon|no name in conig and unable to determine hostname: #{show e}|]
+    err (e :: IOException) =
+      [exon|No name in config and unable to determine hostname: #{show e}|]
 
 -- | Interpret @'Reader' 'InstanceName'@ using the name specified in the config file, falling back to the system's host
 -- name if it wasn't given.

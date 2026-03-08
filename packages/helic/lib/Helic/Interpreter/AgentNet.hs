@@ -1,34 +1,64 @@
 -- | Agent Interpreter for Network, Internal
 module Helic.Interpreter.AgentNet where
 
+import Exon (exon)
 import Polysemy.Http (Manager)
 import qualified Polysemy.Log as Log
-
-import Helic.Data.Event (Event (source))
-import qualified Helic.Data.NetConfig
-import Helic.Data.NetConfig (NetConfig (NetConfig))
-import Helic.Effect.Agent (Agent (Update), AgentNet, agentIdNet)
-import Helic.Interpreter.Agent (interpretAgentIf)
-import Helic.Net.Client (sendTo)
 import Process (Interrupt)
 
+import Helic.Data.Event (Event (source))
+import Helic.Data.KeyPairsError (KeyPairsError (..))
+import Helic.Data.NetConfig (NetConfig (..))
+import Helic.Data.PeersError (PeersError (..))
+import Helic.Effect.Agent (Agent (Update), AgentNet, agentIdNet)
+import qualified Helic.Effect.KeyPairs as KeyPairs
+import Helic.Effect.KeyPairs (KeyPairs)
+import qualified Helic.Effect.Peers as Peers
+import Helic.Effect.Peers (Peers)
+import Helic.Interpreter.Agent (interpretAgentIf)
+import Helic.Net.Client (sendTo)
+import Helic.Net.Sign (KeyPair)
+
+withKeyPair ::
+  Member Manager r =>
+  Members [Peers !! PeersError, Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
+  NetConfig ->
+  Maybe KeyPair ->
+  InterpreterFor Agent r
+withKeyPair NetConfig {timeout} keyPair =
+  interpret \case
+    Update e ->
+      resumeOr Peers.broadcastTargets (sendToTargets e) noTargets
+  where
+    sendToTargets e =
+      traverse_ \ host ->
+        leftA Log.debug =<< runError (sendTo keyPair timeout host e {source = agentIdNet})
+
+    noTargets (PeersError err) = Log.error [exon|Failed to get broadcast targets: #{err}|]
+
 -- | Interpret 'Agent' using remote hosts as targets.
--- This also starts the HTTP server that listens to network events, which are used both for remote hosts and CLI
--- events.
+-- Obtains the X25519 key pair at initialization time.
 interpretAgentNet ::
-  Members [Manager, Reader NetConfig] r =>
+  Members [Manager, Peers !! PeersError, KeyPairs !! KeyPairsError, Reader NetConfig] r =>
   Members [Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
   InterpreterFor Agent r
-interpretAgentNet =
-  interpret \ (Update e) -> do
-    NetConfig _ _ timeout hosts <- ask
-    for_ (fold hosts) \ host ->
-      either Log.debug pure =<< runError (sendTo timeout host e { source = agentIdNet })
+interpretAgentNet sem =
+  -- Key pair failure is non-fatal: the daemon can still function for local clipboard sync (tmux, X11, Wayland).
+  -- Network sync is disabled since we can't sign or encrypt requests without keys.
+  resumeOr KeyPairs.obtainKeyPair useKeys noKeys
+  where
+    useKeys serverKey = do
+      conf <- ask
+      withKeyPair conf (Just serverKey) sem
+
+    noKeys err = do
+      Log.error [exon|Failed to obtain key pair: #{err.unKeyPairsError}|]
+      interpret (\ (Update _) -> unit) sem
 
 -- | Interpret 'Agent' for remote hosts if it is enabled by the configuration.
 interpretAgentNetIfEnabled ::
-  Members [Manager, Reader NetConfig] r =>
+  Members [Manager, Peers !! PeersError, KeyPairs !! KeyPairsError, Reader NetConfig] r =>
   Members [Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
   InterpreterFor (Agent @@ AgentNet) r
-interpretAgentNetIfEnabled sem = do
-  interpretAgentIf interpretAgentNet sem
+interpretAgentNetIfEnabled =
+  interpretAgentIf interpretAgentNet

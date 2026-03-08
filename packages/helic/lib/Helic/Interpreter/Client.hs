@@ -7,43 +7,77 @@ import Polysemy.Final (withWeavingToFinal)
 import Polysemy.Http (Manager)
 import qualified Polysemy.Http.Effect.Manager as Manager
 import Polysemy.Internal.Tactics (liftT)
-import Servant.Client (mkClientEnv)
-import Servant.Client.Streaming (withClientM)
+import Servant.Client (ClientEnv (..), mkClientEnv)
+import Servant.Client.Streaming (ClientM, withClientM)
 import Servant.Types.SourceT (foreach)
 
 import Helic.Data.Event (Event)
+import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig)
 import Helic.Effect.Client (Client (Get, Listen, Load, Peek, Yank))
+import qualified Helic.Effect.KeyPairs as KeyPairs
+import Helic.Effect.KeyPairs (KeyPairs)
 import Helic.Net.Api (ListenFrame (ListenConnected, ListenEvent))
 import qualified Helic.Net.Client as Api
-import Helic.Net.Client (localhost, localhostUrl, sendTo)
+import Helic.Net.Client (encryptRequest, fetchServerPublicKey, localhost, localhostUrl, sendTo)
+import Helic.Net.Sign (KeyPair (..))
+
+request ::
+  Member (Embed IO) r =>
+  ClientEnv ->
+  ClientM a ->
+  Sem r (Either Text a)
+request env req =
+  fmap join $ tryIOError $ withClientM req env (pure . first show)
+
+defaultRequest ::
+  Members [Manager, Reader NetConfig, Error Text, Embed IO] r =>
+  ClientM a ->
+  Sem r (Either Text a)
+defaultRequest req = do
+  env <- mkClientEnv <$> Manager.get <*> localhostUrl
+  request env req
+
+clientKeyPair ::
+  Members [KeyPairs !! KeyPairsError, Reader NetConfig, Error Text] r' =>
+  Sem r' (Maybe KeyPair)
+clientKeyPair =
+  asks NetConfig.authEnabled >>= \case
+    True ->
+      Just <$> resumeHoistError coerce KeyPairs.obtainKeyPair
+    False ->
+      pure Nothing
 
 -- | Interpret 'Client' via HTTP.
 interpretClientNet ::
-  Members [Manager, Reader NetConfig, Log, Error Text, Race, Embed IO, Final IO] r =>
+  Members [KeyPairs !! KeyPairsError, Manager, Reader NetConfig, Log, Error Text, Race, Embed IO, Final IO] r =>
   InterpreterFor Client r
 interpretClientNet =
   interpretH \case
     Get ->
       liftT do
-        env <- mkClientEnv <$> Manager.get <*> localhostUrl
-        embed $ withClientM Api.get env (pure . bimap show toList)
+        defaultRequest Api.get
     Yank event ->
       liftT do
         host <- localhost
         timeout <- asks (.timeout)
-        runError (sendTo timeout host event)
+        clientKey <- clientKeyPair
+        runError (sendTo clientKey timeout host event)
     Load event ->
       liftT do
-        env <- mkClientEnv <$> Manager.get <*> localhostUrl
-        result <- embed $ withClientM (Api.load event) env (pure . first show)
-        pure (result >>= maybeToRight "There is no event for that index")
+        baseEnv <- mkClientEnv <$> Manager.get <*> localhostUrl
+        env <- clientKeyPair >>= \case
+          Nothing -> pure baseEnv
+          Just clientKey -> do
+            serverPk <- fetchServerPublicKey baseEnv
+            pure baseEnv {makeClientRequest = encryptRequest clientKey serverPk}
+        result <- request env (Api.load event)
+        pure (invalidIndex =<< result)
     Peek index ->
       liftT do
-        env <- mkClientEnv <$> Manager.get <*> localhostUrl
-        result <- embed $ withClientM (Api.peek index) env (pure . first show)
-        pure (result >>= maybeToRight "There is no event for that index")
+        result <- defaultRequest (Api.peek index)
+        pure (invalidIndex =<< result)
     Listen connected f -> do
       env <- mkClientEnv <$> Manager.get <*> localhostUrl
       withWeavingToFinal \ s lower _ -> do
@@ -60,6 +94,8 @@ interpretClientNet =
             foreach err (\ e -> lower' (void (runTSimple (frame e)))) source
         pure (() <$ s)
       unitT
+  where
+    invalidIndex = maybeToRight "There is no event for that index"
 
 -- | Interpret 'Client' with a constant list of 'Event's and no capability to yank.
 interpretClientConst ::

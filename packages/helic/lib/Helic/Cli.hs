@@ -9,11 +9,11 @@ import Polysemy.Log (Severity (Info, Trace))
 import System.IO (hLookAhead, stdin)
 import Time (MilliSeconds (MilliSeconds))
 
-import Helic.App (listApp, listenApp, loadApp, pasteApp, yankApp)
-import Helic.Cli.Options (Command (List, Listen, Load, Paste, Yank), Conf (Conf), parser)
+import Helic.App (listApp, listenApp, loadApp, pasteApp, runAuthClient, yankApp)
+import Helic.Auth (acceptAllApp, acceptPeerApp, authApp, listPendingApp, rejectPeerApp)
+import Helic.Cli.Options (AuthCommand (..), Command (Auth, List, Listen, Load, Paste, Yank), Conf (Conf), parser)
 import Helic.Config.File (findFileConfig)
-import qualified Helic.Data.Config as Config
-import Helic.Data.Config (Config)
+import Helic.Data.Config (Config (..))
 import Helic.Data.YankConfig (YankConfig (..), YankSource (..))
 
 runCommand :: Config -> Command -> Sem AppStack ()
@@ -28,6 +28,13 @@ runCommand config = \case
     loadApp config loadConf
   Paste pasteConf ->
     pasteApp config pasteConf
+  Auth authCmd ->
+    runAuthClient config.net case authCmd of
+      AuthInteractive -> authApp
+      AuthList -> listPendingApp
+      AuthAccept host -> acceptPeerApp host
+      AuthReject host -> rejectPeerApp host
+      AuthAcceptAll -> acceptAllApp
 
 defaultCommand :: Sem AppStack Command
 defaultCommand = do

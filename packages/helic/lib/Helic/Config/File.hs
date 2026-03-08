@@ -17,7 +17,8 @@ parseFileConfig ::
   Sem r Config
 parseFileConfig (toFilePath -> path) = do
   Log.debug [exon|Reading config file #{toText path}|]
-  fromEither =<< bimap formatError (fromMaybe def) <$> embed (decodeFileEither path)
+  result <- tryIOError (decodeFileEither path)
+  fromEither (bimap formatError (fromMaybe def) =<< result)
   where
     formatError exc =
       toText [exon|invalid config file: #{prettyPrintParseException exc}|]
@@ -42,9 +43,7 @@ findConfigPath = \case
       True ->
         pure (Just xdgFile)
       False ->
-        doesFileExist etcFile <&> \case
-          True -> Just etcFile
-          False -> Nothing
+        flip justIf etcFile <$> doesFileExist etcFile
 
 findFileConfig ::
   Members [Log, Error Text, Embed IO] r =>

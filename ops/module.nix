@@ -73,6 +73,29 @@ in {
         default = null;
         description = "Maximum time in milliseconds to wait for a connection to a remote host to be made.";
       };
+      auth = {
+        enable = mkEnableOption "authentication and encryption";
+        privateKey = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = "Base64-encoded X25519 private key. If not set, a key pair is generated automatically.";
+        };
+        publicKey = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = "Base64-encoded X25519 public key. If not set, derived from the private key.";
+        };
+        allowedKeys = mkOption {
+          type = types.listOf types.str;
+          default = [];
+          description = "Base64-encoded public keys of trusted remote instances. If empty and auth is enabled, unknown peers are added to pending.";
+        };
+        peersFile = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = "Absolute path to the peers state file. Defaults to ~/.local/state/helic/peers.yaml.";
+        };
+      };
     };
     tmux = {
       enable = mkEnableOption "tmux integration" // { default = true; };
@@ -94,6 +117,24 @@ in {
     wayland = {
       enable = mkEnableOption "Wayland integration" // { default = waylandEnabled; };
     };
+    discovery = {
+      enable = mkEnableOption "UDP broadcast peer discovery";
+      port = mkOption {
+        type = types.port;
+        default = 9501;
+        description = "UDP port for broadcast beacons.";
+      };
+      interval = mkOption {
+        type = types.ints.positive;
+        default = 5;
+        description = "Seconds between beacon broadcasts.";
+      };
+      ttl = mkOption {
+        type = types.ints.positive;
+        default = 15;
+        description = "Seconds after which a peer is considered stale if no beacon is received.";
+      };
+    };
   };
   config = mkIf cfg.enable {
     environment.systemPackages = [cfg.package];
@@ -109,11 +150,24 @@ in {
       port: ${toString cfg.net.port}
       hosts: ${nixStringListToJsonArray cfg.net.hosts}
       ${if cfg.net.timeout == null then "" else "timeout: ${toString cfg.net.timeout}"}
+      auth:
+        enable: ${if cfg.net.auth.enable then "true" else "false"}
+        ${if cfg.net.auth.privateKey == null then "" else "privateKey: ${cfg.net.auth.privateKey}"}
+        ${if cfg.net.auth.publicKey == null then "" else "publicKey: ${cfg.net.auth.publicKey}"}
+        ${if cfg.net.auth.allowedKeys == [] then "" else "allowedKeys: ${nixStringListToJsonArray cfg.net.auth.allowedKeys}"}
+        ${if cfg.net.auth.peersFile == null then "" else "peersFile: ${cfg.net.auth.peersFile}"}
     x11:
       enable: ${if cfg.x11.enable then "true" else "false"}
       subscribedSelections: ${nixStringListToJsonArray cfg.x11.subscribedSelections}
     wayland:
       enable: ${if cfg.wayland.enable then "true" else "false"}
+    ${if cfg.discovery.enable then ''
+    discovery:
+      enable: true
+      port: ${toString cfg.discovery.port}
+      interval: ${toString cfg.discovery.interval}
+      ttl: ${toString cfg.discovery.ttl}
+    '' else ""}
     '';
 
     systemd.user.services.helic = {

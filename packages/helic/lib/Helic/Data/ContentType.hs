@@ -4,6 +4,7 @@ module Helic.Data.ContentType where
 import Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.=), (.:))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base64 as Base64
+import Exon (exon)
 import qualified Data.Text as Text
 
 -- | A MIME type string, e.g. @"image/png"@.
@@ -43,9 +44,12 @@ instance FromJSON Content where
       "binary" -> do
         mime <- MimeType <$> o .: "mime"
         raw <- o .: "data"
-        either (fail . ("Invalid base64: " <>)) (pure . BinaryContent mime) (Base64.decode (encodeUtf8 (raw :: Text)))
+        content <- leftA invalidBase64 (Base64.decode (encodeUtf8 (raw :: Text)))
+        pure (BinaryContent mime content)
       other ->
-        fail ("Unknown content type: " <> toString other)
+        fail [exon|Unknown content type: #{toString other}|]
+    where
+      invalidBase64 e = fail [exon|Invalid base64: #{e}|]
 
 -- | Whether the content is text.
 isText :: Content -> Bool
@@ -76,4 +80,4 @@ contentSummary :: Content -> Text
 contentSummary = \case
   TextContent t -> t
   BinaryContent (MimeType mime) bs ->
-    "[" <> mime <> " " <> show (BS.length bs) <> " bytes]"
+    [exon|[#{mime} #{show (BS.length bs)} bytes]|]

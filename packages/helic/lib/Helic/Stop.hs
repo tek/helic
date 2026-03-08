@@ -8,4 +8,4 @@ tryStop ::
   IO a ->
   Sem r a
 tryStop =
-  stopEither <=< tryAny
+  stopEither <=< tryIOError

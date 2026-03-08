@@ -9,6 +9,15 @@ module Helic (
   Agent,
   AgentTag,
   Agents,
+  -- ** Peers
+  Peers,
+  PeersError (..),
+  KeyStatus (..),
+  AuthConfig (..),
+  PublicKey (..),
+  -- ** KeyPairs
+  KeyPairs,
+  KeyPairsError (..),
 #ifdef X11_NATIVE
   -- ** XClipboard
   XClipboard,
@@ -24,6 +33,15 @@ module Helic (
   interpretDisplay,
   interpretAgentNet,
   interpretAgentTmux,
+  interpretPeers,
+  interpretPeersDefault,
+  interpretPeersNull,
+  -- ** Discovery
+  runDiscovery,
+  runDiscoveryIfEnabled,
+  -- ** KeyPairs
+  interpretKeyPairs,
+  interpretKeyPairsPure,
 #ifdef X11_NATIVE
   interpretAgentX,
   interpretXClipboardGtk,
@@ -57,12 +75,22 @@ module Helic (
 
 import Prelude hiding (listen)
 
+import Helic.Data.AuthConfig (AuthConfig (..))
 import Helic.Data.Event (Event)
+import Helic.Data.KeyPairsError (KeyPairsError (..))
+import Helic.Data.PeersError (PeersError (..))
+import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Data.Selection (Selection (..))
 import Helic.Effect.Agent (Agent, AgentTag, Agents)
 import Helic.Compat.Display (interpretDisplay)
 import Helic.Interpreter.AgentNet (interpretAgentNet)
+import Helic.Data.KeyStatus (KeyStatus (..))
+import Helic.Effect.Peers (Peers)
 import Helic.Interpreter.AgentTmux (interpretAgentTmux)
+import Helic.Interpreter.Peers (interpretPeers, interpretPeersDefault, interpretPeersNull)
+import Helic.Effect.KeyPairs (KeyPairs)
+import Helic.Discovery (runDiscovery, runDiscoveryIfEnabled)
+import Helic.Interpreter.KeyPairs (interpretKeyPairs, interpretKeyPairsPure)
 import Helic.Listen (listen)
 import Helic.Net.Api (Api, serve)
 import Helic.Yank (yank)

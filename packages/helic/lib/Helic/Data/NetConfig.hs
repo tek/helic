@@ -3,6 +3,7 @@
 -- | NetConfig Data Type, Internal
 module Helic.Data.NetConfig where
 
+import Helic.Data.AuthConfig (AuthConfig (..))
 import Helic.Data.Host (Host)
 
 newtype Timeout =
@@ -17,9 +18,15 @@ data NetConfig =
     enable :: Maybe Bool,
     port :: Maybe Int,
     timeout :: Maybe Timeout,
-    hosts :: Maybe [Host]
+    hosts :: Maybe [Host],
+    auth :: Maybe AuthConfig
   }
   deriving stock (Eq, Show, Generic)
   deriving anyclass (Default)
 
 json ''NetConfig
+
+authEnabled :: NetConfig -> Bool
+authEnabled = \case
+  NetConfig {auth = Just AuthConfig {enable = Just enable}} -> enable
+  _ -> False

@@ -39,28 +39,43 @@ library
   exposed-modules:
       Helic
       Helic.App
+      Helic.Auth
       Helic.Cli
       Helic.Cli.Options
       Helic.Config.File
       Helic.Data.AgentId
+      Helic.Data.AuthConfig
+      Helic.Data.Beacon
       Helic.Data.Config
       Helic.Data.ContentType
+      Helic.Data.DiscoveredPeer
+      Helic.Data.DiscoveryConfig
       Helic.Data.Event
       Helic.Data.HistoryUpdate
       Helic.Data.Host
       Helic.Data.InstanceName
+      Helic.Data.KeyPairsError
+      Helic.Data.KeyStatus
       Helic.Data.ListConfig
       Helic.Data.LoadConfig
       Helic.Data.NetConfig
       Helic.Data.PasteConfig
+      Helic.Data.Peer
+      Helic.Data.PeersError
+      Helic.Data.PeersState
+      Helic.Data.PeerState
+      Helic.Data.PublicKey
       Helic.Data.Selection
       Helic.Data.TmuxConfig
       Helic.Data.WaylandConfig
       Helic.Data.X11Config
       Helic.Data.YankConfig
+      Helic.Discovery
       Helic.Effect.Agent
       Helic.Effect.Client
       Helic.Effect.History
+      Helic.Effect.KeyPairs
+      Helic.Effect.Peers
       Helic.Interpreter
       Helic.Interpreter.Agent
       Helic.Interpreter.AgentNet
@@ -68,11 +83,17 @@ library
       Helic.Interpreter.Client
       Helic.Interpreter.History
       Helic.Interpreter.InstanceName
+      Helic.Interpreter.KeyPairs
+      Helic.Interpreter.Peers
       Helic.List
       Helic.Listen
       Helic.Net.Api
+      Helic.Net.Beacon
       Helic.Net.Client
+      Helic.Net.PeerState
       Helic.Net.Server
+      Helic.Net.Sign
+      Helic.Net.Verify
       Helic.Paste
       Helic.Stop
       Helic.Tmux
@@ -119,8 +140,12 @@ library
   build-depends:
       aeson <2.3
     , base >=4.17.2.1 && <4.22
+    , base-compat
     , base64-bytestring <1.3
+    , case-insensitive <1.3
     , chronos >=1.1.5 && <1.2
+    , crypton <1.1
+    , crypton-box <1.2
     , exon >=1.4.0.0 && <1.8
     , fast-logger >=3.0.3 && <3.3
     , gi-gdk >=3.0.29 && <4.1
@@ -129,7 +154,11 @@ library
     , gi-gtk >=3.0.43 && <4.1
     , haskell-gi-base <0.27
     , hostname ==1.0.*
-    , mime-types
+    , http-client <0.8
+    , http-types <0.13
+    , memory <0.19
+    , mime-types <0.2
+    , network >=3.1.4.0 && <3.3
     , optparse-applicative >=0.16.1.0 && <0.20
     , path >=0.9.5 && <0.10
     , path-io >=1.6.3 && <1.9
@@ -143,11 +172,14 @@ library
     , prelate >=0.8.0.0 && <0.9
     , servant >=0.20.2 && <0.21
     , servant-client >=0.20.2 && <0.21
+    , servant-client-core
     , servant-server >=0.20.2 && <0.21
     , table-layout >=1.0.0.1 && <1.1
     , terminal-size >=0.3.4 && <0.4
     , transformers >=0.5.6.2 && <0.7
     , typed-process >=0.2.12.0 && <0.3
+    , unix <2.9
+    , wai <3.3
     , wai-extra >=3.1.12.1 && <3.2
     , warp >=3.3.21 && <3.5
     , yaml >=0.11.11.0 && <0.12
@@ -263,14 +295,19 @@ test-suite helic-test
   main-is: Main.hs
   other-modules:
       Helic.Dev
+      Helic.Test.AuthTest
       Helic.Test.ConfigFileTest
       Helic.Test.ContentTest
+      Helic.Test.DiscoveryTest
+      Helic.Test.HttpTest
       Helic.Test.InsertEventTest
       Helic.Test.ListenTest
       Helic.Test.ListTest
       Helic.Test.LoadTest
       Helic.Test.PasteTest
+      Helic.Test.PeerStateTest
       Helic.Test.Port
+      Helic.Test.SignTest
       Helic.Test.StreamTest
   hs-source-dirs:
       test
@@ -316,6 +353,7 @@ test-suite helic-test
     , base >=4.17.2.1 && <4.22
     , chronos >=1.1.5 && <1.2
     , containers >=0.6.7 && <0.8
+    , crypton <1.1
     , exon >=1.4.0.0 && <1.8
     , helic
     , network >=3.1.4.0 && <3.3

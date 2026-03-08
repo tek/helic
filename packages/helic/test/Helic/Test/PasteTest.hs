@@ -9,13 +9,28 @@ import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.ContentType (Content (..), MimeType (..), contentSummary)
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
+import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Data.InstanceName (InstanceName)
 import Helic.Data.PasteConfig (PasteTarget (..))
-import Helic.Effect.Agent (AgentNet, AgentTmux, AgentWayland, AgentX)
+import Helic.Effect.Agent (Agent, AgentNet, AgentTmux, AgentWayland, AgentX)
 import qualified Helic.Effect.History as History
+import Helic.Effect.History
 import Helic.Interpreter.Agent (interpretAgent)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Paste (resolveTarget)
+
+type PasteTestStack =
+  [
+    History,
+    Agent @@ AgentWayland,
+    Agent @@ AgentX,
+    Agent @@ AgentTmux,
+    Agent @@ AgentNet,
+    Events HistoryUpdate,
+    EventConsumer HistoryUpdate,
+    AtomicState (Seq Event),
+    Reader InstanceName
+  ]
 
 event ::
   Members [ChronosTime, Reader InstanceName] r =>
@@ -24,7 +39,9 @@ event ::
 event n =
   Event.nowText (AgentId "test") (show n)
 
-withHistory :: Sem _ a -> Sem _ a
+withHistory ::
+  Members [ChronosTime, Log, Async, Race, Resource, Embed IO] r =>
+  InterpretersFor PasteTestStack r
 withHistory =
   runReader @InstanceName "test"
   . interpretAtomic def

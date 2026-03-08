@@ -37,10 +37,18 @@
           paths = true;
           dependencies = [
             "aeson"
+            "base-compat"
             "base64-bytestring"
+            "case-insensitive"
             "chronos"
+            "crypton"
+            "crypton-box"
             "exon"
             "fast-logger"
+            "http-client"
+            "http-types"
+            "memory"
+            "network"
             "gi-gdk"
             "gi-gio"
             "gi-glib"
@@ -57,12 +65,15 @@
             "polysemy-time"
             "servant"
             "servant-client"
+            "servant-client-core"
             "servant-server"
             "table-layout"
             "terminal-size"
             "mime-types"
             "transformers"
             "typed-process"
+            "unix"
+            "wai"
             "wai-extra"
             "warp"
             "yaml"
@@ -133,6 +144,7 @@
             "aeson"
             "chronos"
             "containers"
+            "crypton"
             "exon"
             "network"
             "path"
@@ -212,9 +224,10 @@
 
       package-sets.ghc912 = {
         compiler = "ghc912";
-        overrides = {hackage, jailbreak, unbreak, ...}: {
+        overrides = {hackage, jailbreak, notest, unbreak, ...}: {
           bytebuild = jailbreak;
           chronos = jailbreak;
+          crypton-box = jailbreak unbreak notest;
           incipit = jailbreak;
           incipit-base = jailbreak;
           incipit-core = jailbreak;
@@ -235,35 +248,41 @@
         enable = true;
         latest.compiler = "ghc912";
         lower.enable = true;
-        latest.envs.solverOverrides = {buildInputs, enable, ...}: {
+        latest.envs.solverOverrides = {buildInputs, enable, hackage, jailbreak, unbreak, notest, ...}: {
           helic = enable "wayland";
           gi-gtk = buildInputs (p: [p.gtk4.dev p.pkg-config]);
           gi-gdk = buildInputs (p: [p.gtk4.dev p.pkg-config]);
+          crypton-box = jailbreak unbreak notest;
+          polysemy-process = jailbreak unbreak;
+          polysemy-log = jailbreak;
+          prelate = jailbreak (hackage "0.8.0.0" "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg");
         };
       };
 
       envs = {
 
-        latest.overrides = {buildInputs, ...}: {
+        latest.overrides = {buildInputs, hackage, jailbreak, unbreak, notest, ...}: {
           gi-gtk = buildInputs (p: [p.gtk4.dev]);
           gi-gdk = buildInputs (p: [p.gtk4.dev]);
+          crypton-box = jailbreak unbreak notest;
+          polysemy-process = jailbreak unbreak;
+          polysemy-log = jailbreak;
+          prelate = jailbreak (hackage "0.8.0.0" "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg");
         };
 
         dev = {
           package-set.extends = "ghc912";
           libraryPath = pkgs: [pkgs.wayland];
-          overrides = {self, buildInputs, enable, ...}: {
-            helic-x11 = enable "x11" self.helic;
-            helic-wayland = enable "wayland" (buildInputs (p: [p.wayland.dev])) self.helic;
-          };
         };
 
-        ghc98.overrides = {jailbreak, unbreak, ...}: {
+        ghc98.overrides = {jailbreak, unbreak, notest, ...}: {
           chronos = jailbreak;
+          crypton-box = unbreak notest;
           polysemy-http = jailbreak unbreak;
         };
 
-        ghc910.overrides = {jailbreak, unbreak, ...}: {
+        ghc910.overrides = {jailbreak, unbreak, notest, ...}: {
+          crypton-box = unbreak notest;
           polysemy-http = jailbreak unbreak;
         };
 
@@ -277,6 +296,11 @@
           };
         };
 
+      };
+
+      overrides = {self, buildInputs, enable, ...}: {
+        helic-x11 = enable "x11" self.helic;
+        helic-wayland = enable "wayland" (buildInputs (p: [p.wayland.dev])) self.helic;
       };
 
       output.expose.static = false;

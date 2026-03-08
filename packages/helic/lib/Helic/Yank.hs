@@ -25,20 +25,17 @@ mimeFromPath =
   MimeType . decodeUtf8 . Mime.mimeByExt Mime.defaultMimeMap Mime.defaultMimeType . toText
 
 -- | Resolve the 'YankSource' to a 'Content' value.
-resolveSource ::
-  Member (Embed IO) r =>
-  YankSource ->
-  Sem r Content
+resolveSource :: YankSource -> IO Content
 resolveSource = \case
   StdinText ->
-    TextContent <$> embed (Text.hGetContents stdin)
+    TextContent <$> Text.hGetContents stdin
   DirectText text ->
     pure (TextContent text)
   ImageFile maybeMime path -> do
     let mime = fromMaybe (mimeFromPath path) maybeMime
-    BinaryContent mime <$> embed (BS.readFile path)
+    BinaryContent mime <$> BS.readFile path
   StdinBinary mime ->
-    BinaryContent mime <$> embed (BS.hGetContents stdin)
+    BinaryContent mime <$> BS.hGetContents stdin
 
 -- | Send an event to the server.
 yank ::
@@ -46,6 +43,6 @@ yank ::
   YankConfig ->
   Sem r ()
 yank conf = do
-  content <- resolveSource conf.source
+  content <- fromEither =<< tryIOError (resolveSource conf.source)
   event <- Event.now (AgentId (fromMaybe "cli" conf.agent)) content
   Client.yank event >>= leftA \ err -> Log.debug [exon|Http client error: #{err}|]

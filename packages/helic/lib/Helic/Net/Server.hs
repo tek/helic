@@ -6,6 +6,7 @@ module Helic.Net.Server where
 import Control.Monad.Trans.Except (ExceptT (ExceptT))
 import Exon (exon)
 import qualified Log
+import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Handler.Warp (
   defaultSettings,
@@ -66,19 +67,25 @@ runServerWithContext ::
   Members [Sync ServerReady, Log, Interrupt, Final IO] r =>
   ServerT api (Sem r) ->
   Context context ->
+  ((∀ x . Sem r x -> IO (Maybe x)) -> Wai.Middleware) ->
   Int ->
   Sem r ()
-runServerWithContext srv context port = do
+runServerWithContext srv context mkMiddleware port = do
   Log.info [exon|server port: #{show port}|]
   withWeavingToFinal \ s wv ins -> do
     let
       app =
         serveWithContext (Proxy @api) context (hoistServerWithContext (Proxy @api) (Proxy @context) hoist srv)
-      hoist :: Sem r a -> Handler a
+
+      hoist :: ∀ a . Sem r a -> Handler a
       hoist =
         toHandler . fmap ins . wv . (<$ s)
-      shut h =
-        void (wv (Interrupt.register "api" h <$ s))
+
+      lower :: ∀ a . Sem r a -> IO (Maybe a)
+      lower ma = ins <$> (wv (ma <$ s))
+
+      shut h = void (wv (Interrupt.register "api" h <$ s))
+
       settings =
         setHost "*6" $
         setPort port $
@@ -86,7 +93,8 @@ runServerWithContext srv context port = do
         setInstallShutdownHandler shut $
         setGracefulShutdownTimeout (Just 0) $
         defaultSettings
-      log msg =
-        void (wv ((Log.debug (decodeUtf8 (fromLogStr msg))) <$ s))
+
+      log msg = void (wv ((Log.debug (decodeUtf8 (fromLogStr msg))) <$ s))
+
     logger <- mkRequestLogger def { destination = Logger.Callback log }
-    (<$ s) <$> Warp.runSettings settings (logger app)
+    (<$ s) <$> Warp.runSettings settings (logger (mkMiddleware lower app))

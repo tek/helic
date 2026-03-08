@@ -42,6 +42,18 @@ data Conf =
   }
   deriving stock (Eq, Show)
 
+data AuthCommand =
+  AuthInteractive
+  |
+  AuthList
+  |
+  AuthAccept Text
+  |
+  AuthReject Text
+  |
+  AuthAcceptAll
+  deriving stock (Eq, Show)
+
 data Command =
   Listen
   |
@@ -52,6 +64,8 @@ data Command =
   Load LoadConfig
   |
   Paste PasteConfig
+  |
+  Auth AuthCommand
   deriving stock (Eq, Show)
 
 filePathOption :: ReadM (Path Abs File)
@@ -127,6 +141,23 @@ pasteCommand :: Mod CommandFields Command
 pasteCommand =
   command "paste" (Paste <$> info pasteParser (progDesc "Write event content to stdout or a file"))
 
+authParser :: Parser AuthCommand
+authParser =
+  authList <|> authAccept <|> authReject <|> authAcceptAll <|> pure AuthInteractive
+  where
+    authList =
+      AuthList <$ switch (long "list" <> help "List pending peers without prompting")
+    authAccept =
+      AuthAccept <$> strOption (long "accept" <> help "Accept a pending peer by host" <> metavar "HOST")
+    authReject =
+      AuthReject <$> strOption (long "reject" <> help "Reject a pending peer by host" <> metavar "HOST")
+    authAcceptAll =
+      AuthAcceptAll <$ switch (long "accept-all" <> help "Accept all pending peers")
+
+authCommand :: Mod CommandFields Command
+authCommand =
+  command "auth" (Auth <$> info authParser (progDesc "Review and authorize pending peers"))
+
 commands :: [Mod CommandFields Command]
 commands =
   [
@@ -134,7 +165,8 @@ commands =
     yankCommand,
     listCommand,
     loadCommand,
-    pasteCommand
+    pasteCommand,
+    authCommand
   ]
 
 parser :: Parser (Conf, Maybe Command)

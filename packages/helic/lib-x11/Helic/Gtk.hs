@@ -11,6 +11,7 @@ import qualified GI.Gdk as GiGdk
 import GI.Gdk (Clipboard, Display)
 import qualified GI.Gio as Gio
 import Data.GI.Base (toGValue)
+import Data.GI.Base.GError (GError)
 import qualified Log
 import Polysemy.Final (withWeavingToFinal)
 
@@ -67,12 +68,12 @@ clipboardRequest ::
   (Either Text Text -> IO ()) ->
   IO ()
 clipboardRequest clipboard handle =
-  Base.catch @SomeException run \ e ->
+  Base.catch @Base.IOException run \ e ->
     handle (Left (show e))
   where
     run = do
       GiGdk.clipboardReadTextAsync clipboard (Nothing @Gio.Cancellable) (Just \ _sourceObject asyncResult -> do
-        mText <- Base.catch @SomeException
+        mText <- Base.catch @GError
           (GiGdk.clipboardReadTextFinish clipboard asyncResult)
           (const (pure Nothing))
         handle (maybeToRight "no clipboard text" mText)
@@ -103,7 +104,7 @@ readClipboard clipboard = do
   result <- embed newEmptyMVar
   _ <- tryStop $ Glib.idleAdd Glib.PRIORITY_DEFAULT do
     GiGdk.clipboardReadTextAsync clipboard (Nothing @Gio.Cancellable) (Just \ _sourceObject asyncResult -> do
-      mText <- Base.catch @SomeException
+      mText <- Base.catch @GError
         (GiGdk.clipboardReadTextFinish clipboard asyncResult)
         (const (pure Nothing))
       putMVar result mText

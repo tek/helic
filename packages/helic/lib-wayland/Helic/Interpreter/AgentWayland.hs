@@ -46,10 +46,15 @@ waylandClipboardThread ::
   Sem r ()
 waylandClipboardThread = do
   chan <- embed newChan
-  embed (Ffi.initMonitor (sendUpdate chan)) >>= \case
-    Ffi.InitFailed err ->
+  -- The FFI call to libwayland-client can fail with an IO exception (e.g. no Wayland compositor, library not
+  -- found) or return InitFailed (e.g. wl_display_connect returns NULL). Either way, this thread exits and the
+  -- daemon continues without Wayland clipboard monitoring.
+  tryIOError (Ffi.initMonitor (sendUpdate chan)) >>= \case
+    Left err ->
+      Log.error [exon|Wayland clipboard monitor failed to initialize: #{err}|]
+    Right (Ffi.InitFailed err) ->
       Log.error [exon|Wayland clipboard monitor failed to start: #{err}|]
-    Ffi.InitSuccess ptr -> do
+    Right (Ffi.InitSuccess ptr) -> do
       Sync.putBlock ptr
       Log.info "Wayland clipboard monitor started"
       withAsync_ (consumeUpdates chan) do

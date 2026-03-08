@@ -88,12 +88,13 @@ buildList = do
       drop (length history - l)
     events =
       maybe id dropper limit (toList history)
-  width <- fromMaybe 80 . fmap TerminalSize.width <$> embed TerminalSize.size
+  width <- fromMaybe 80 . join . rightToMaybe <$> tryIOError (fmap TerminalSize.width <$> TerminalSize.size)
   pure (maybe "No events yet!" (format width) (nonEmpty events))
 
 -- | Print a number of events to stdout.
 list ::
   Members [Reader ListConfig, Client, Error Text, Embed IO] r =>
   Sem r ()
-list =
-  embed . putStrLn =<< buildList
+list = do
+  s <- buildList
+  fromEither =<< tryIOError (putStrLn s)

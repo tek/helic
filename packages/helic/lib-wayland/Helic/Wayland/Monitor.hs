@@ -24,6 +24,7 @@ import Foreign.Marshal.Array (pokeArray)
 import Foreign.Ptr (FunPtr, Ptr, castFunPtr, castPtr, freeHaskellFunPtr, nullPtr)
 import Foreign.Storable (Storable (..))
 import System.IO (hClose)
+import System.IO.Error (IOError)
 import System.Posix.IO (FdOption (..), closeFd, createPipe, fdReadBuf, fdToHandle, fdWriteBuf, setFdOption)
 import System.Posix.Types (Fd (..))
 
@@ -457,7 +458,7 @@ processWriteRequests mon =
     drainBuf <- mallocBytes 1
     Control.Exception.catch
       (void (fdReadBuf mon.wakeReadFd drainBuf 1))
-      (\ (_ :: SomeException) -> pure ())
+      (\ (_ :: IOError) -> pure ())
     free drainBuf
     doSetClipboard mon mime bytes
 

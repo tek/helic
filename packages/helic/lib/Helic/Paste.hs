@@ -15,25 +15,39 @@ import Helic.Data.PasteConfig (PasteConfig (..), PasteTarget (..))
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 
+detectStdout ::
+  Member (Embed IO) r =>
+  Sem r (Either Text PasteTarget)
+detectStdout =
+  tryIOError (hIsTerminalDevice stdout) <&> \case
+    Right True -> Left "Binary content cannot be written to a terminal (use -o FILE, or -o - to force)"
+    _ -> Right PasteStdout
+
 -- | Determine the effective output target.
 --
--- Binary content is rejected for stdout only when it is connected to a
--- terminal, unless the user explicitly passed @-o -@.
+-- Binary content is rejected for stdout only when it is connected to a terminal, unless the user explicitly passed
+-- @-o -@.
 resolveTarget ::
   Member (Embed IO) r =>
   PasteTarget ->
   Content ->
   Sem r (Either Text PasteTarget)
-resolveTarget PasteStdout content
-  | isBinary content =
-    tryIOError (hIsTerminalDevice stdout) <&> \case
-      Right True -> Left "Binary content cannot be written to a terminal (use -o FILE, or -o - to force)"
-      _ -> Right PasteStdout
-  | otherwise = pure (Right PasteStdout)
-resolveTarget PasteForceStdout _ =
-  pure (Right PasteStdout)
-resolveTarget target _ =
-  pure (Right target)
+resolveTarget = \cases
+  PasteStdout content
+    | isBinary content -> detectStdout
+    | otherwise -> pure (Right PasteStdout)
+  PasteForceStdout _ -> pure (Right PasteStdout)
+  target _ -> pure (Right target)
+
+-- | Write content to stdout.
+writeStdout ::
+  Members [Error Text, Embed IO] r =>
+  Content ->
+  Sem r ()
+writeStdout =
+  fromEither <=< tryIOError . \case
+    TextContent text -> Text.putStr text
+    BinaryContent _ bytes -> BS.putStr bytes
 
 -- | Write content to the resolved target.
 writeContent ::
@@ -48,16 +62,6 @@ writeContent = \case
     fromEither <=< tryIOError . \case
       TextContent text -> Text.writeFile path text
       BinaryContent _ bytes -> BS.writeFile path bytes
-
--- | Write content to stdout.
-writeStdout ::
-  Members [Error Text, Embed IO] r =>
-  Content ->
-  Sem r ()
-writeStdout =
-  fromEither <=< tryIOError . \case
-    TextContent text -> Text.putStr text
-    BinaryContent _ bytes -> BS.putStr bytes
 
 -- | Fetch a history event and write its content to stdout or a file.
 paste ::

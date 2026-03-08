@@ -82,6 +82,89 @@ mkDerivation {
 }
 ;
 };
+discovery-test-extends-ghc912 = {
+  polysemy-chronos = {
+  meta = {
+    sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+    ver = "0.7.0.1";
+  };
+  drv = { mkDerivation, base, chronos, incipit-core, lib, polysemy-test
+, polysemy-time, tasty
+}:
+mkDerivation {
+  pname = "polysemy-chronos";
+  version = "0.7.0.1";
+  src = /nix/store/9ak6ggpj2yvh253phy9vdy62gylf8xci-source;
+  libraryHaskellDepends = [
+    base chronos incipit-core polysemy-time
+  ];
+  testHaskellDepends = [
+    base chronos incipit-core polysemy-test polysemy-time tasty
+  ];
+  homepage = "https://github.com/tek/polysemy-time#readme";
+  description = "A Polysemy effect for Chronos";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  polysemy-http = {
+  meta = {
+    sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+    ver = "0.13.1.0";
+  };
+  drv = { mkDerivation, aeson, base, case-insensitive, exon, hedgehog
+, http-client, http-client-tls, http-types, lib, network, polysemy
+, polysemy-plugin, prelate, servant, servant-client, servant-server
+, tasty, tasty-hedgehog, time, warp
+}:
+mkDerivation {
+  pname = "polysemy-http";
+  version = "0.13.1.0";
+  src = /nix/store/7bb0n2i5c8cgf3xyjvki147vw3kcmz4h-source;
+  libraryHaskellDepends = [
+    aeson base case-insensitive exon http-client http-client-tls
+    http-types polysemy polysemy-plugin prelate time
+  ];
+  testHaskellDepends = [
+    aeson base exon hedgehog http-client network polysemy
+    polysemy-plugin prelate servant servant-client servant-server tasty
+    tasty-hedgehog warp
+  ];
+  homepage = "https://github.com/tek/polysemy-http#readme";
+  description = "Polysemy effects for HTTP clients";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+};
 ghc910 = {
 };
 ghc912 = {
@@ -174,6 +257,70 @@ hix-build-tools = {
 hls = {
 };
 latest = {
+  base16 = {
+  meta = {
+    sha256 = "0rhjm2b4mpp6lr2cgppsls2z1ipfx6rc681cpj88pvf5p6jf5fd4";
+    url = "https://hackage.haskell.org";
+    ver = "1.0";
+  };
+  drv = { mkDerivation, base, base16-bytestring, bytestring, criterion
+, deepseq, lib, primitive, QuickCheck, random-bytestring, tasty
+, tasty-hunit, tasty-quickcheck, text, text-short
+}:
+mkDerivation {
+  pname = "base16";
+  version = "1.0";
+  src = /nix/store/4panfmmj73f12h99422ni2v4lhq58jg4-source;
+  libraryHaskellDepends = [
+    base bytestring deepseq primitive text text-short
+  ];
+  testHaskellDepends = [
+    base base16-bytestring bytestring QuickCheck random-bytestring
+    tasty tasty-hunit tasty-quickcheck text text-short
+  ];
+  benchmarkHaskellDepends = [
+    base base16-bytestring bytestring criterion deepseq
+    random-bytestring text
+  ];
+  homepage = "https://github.com/emilypi/base16";
+  description = "Fast RFC 4648-compliant Base16 encoding";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  base64 = {
+  meta = {
+    sha256 = "0m9h8r88jxidjkgg2h3ggv0qsqxsrmii4injnhsbq1vrcr0jmd30";
+    url = "https://hackage.haskell.org";
+    ver = "1.0";
+  };
+  drv = { mkDerivation, base, base64-bytestring, bytestring, criterion
+, deepseq, lib, QuickCheck, random-bytestring, tasty, tasty-hunit
+, tasty-quickcheck, text, text-short
+}:
+mkDerivation {
+  pname = "base64";
+  version = "1.0";
+  src = /nix/store/63kjy8cxx6rl26v04byymi7h1yi6k3v6-source;
+  libraryHaskellDepends = [
+    base bytestring deepseq text text-short
+  ];
+  testHaskellDepends = [
+    base base64-bytestring bytestring QuickCheck random-bytestring
+    tasty tasty-hunit tasty-quickcheck text text-short
+  ];
+  benchmarkHaskellDepends = [
+    base base64-bytestring bytestring criterion deepseq
+    random-bytestring text
+  ];
+  homepage = "https://github.com/emilypi/base64";
+  description = "A modern Base64 library";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
   bytebuild = {
   meta = {
     sha256 = "0r14dmwywpr91qrnck3lb269hn8nmfmfwww11yglggn6fmjv6ks7";
@@ -265,6 +412,264 @@ mkDerivation {
 ;
 }
 ;
+  crypton-asn1-encoding = {
+  meta = {
+    sha256 = "0h4cxk9yz2xgmx0kl3gg9lixhnhvxqk85gvkwldp0mlfm3mgccvm";
+    url = "https://hackage.haskell.org";
+    ver = "0.10.0";
+  };
+  drv = { mkDerivation, base, bytestring, crypton-asn1-types, lib, tasty
+, tasty-quickcheck, time-hourglass
+}:
+mkDerivation {
+  pname = "crypton-asn1-encoding";
+  version = "0.10.0";
+  src = /nix/store/3jdjbk8fmcwf3h6jvj6fh3zljk2pjk7g-source;
+  libraryHaskellDepends = [
+    base bytestring crypton-asn1-types time-hourglass
+  ];
+  testHaskellDepends = [
+    base bytestring crypton-asn1-types tasty tasty-quickcheck
+    time-hourglass
+  ];
+  homepage = "https://github.com/mpilgrem/crypton-asn1";
+  description = "ASN.1 data (raw, BER or DER) readers and writers";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  crypton-asn1-parse = {
+  meta = {
+    sha256 = "0dsyslbb9a3f6wj0na52qc7iimjs9xljhi6wjfch61nb9m33l1kb";
+    url = "https://hackage.haskell.org";
+    ver = "0.10.0";
+  };
+  drv = { mkDerivation, base, bytestring, crypton-asn1-types, lib }:
+mkDerivation {
+  pname = "crypton-asn1-parse";
+  version = "0.10.0";
+  src = /nix/store/cb3kc94gqjn5dalrynzkc71pgqz34jkl-source;
+  libraryHaskellDepends = [ base bytestring crypton-asn1-types ];
+  homepage = "https://github.com/mpilgrem/crypton-asn1";
+  description = "A monadic parser combinator for a ASN.1 stream.";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  crypton-asn1-types = {
+  meta = {
+    sha256 = "01zvf9vn5a0jyaq5l6mmzv7ya35sxjrk10k06rmi31x128sfqs7s";
+    url = "https://hackage.haskell.org";
+    ver = "0.4.1";
+  };
+  drv = { mkDerivation, base, base16, bytestring, lib, time-hourglass }:
+mkDerivation {
+  pname = "crypton-asn1-types";
+  version = "0.4.1";
+  src = /nix/store/4sfp0div3z38kr9k7i316sq8cnp6rn3p-source;
+  libraryHaskellDepends = [ base base16 bytestring time-hourglass ];
+  homepage = "http://github.com/mpilgrem/crypton-asn1";
+  description = "ASN.1 types";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  crypton-connection = {
+  meta = {
+    sha256 = "1l5yr5nck4vyi55pyc7j1zarfcs196gbxjlwljs7s7v2r3h43jcc";
+    url = "https://hackage.haskell.org";
+    ver = "0.4.5";
+  };
+  drv = { mkDerivation, base, bytestring, containers, crypton-socks
+, crypton-x509-store, crypton-x509-system, data-default, lib
+, network, tls
+}:
+mkDerivation {
+  pname = "crypton-connection";
+  version = "0.4.5";
+  src = /nix/store/19svh548rwpqfdj2wqjwb2d7vc5jnr8z-source;
+  libraryHaskellDepends = [
+    base bytestring containers crypton-socks crypton-x509-store
+    crypton-x509-system data-default network tls
+  ];
+  homepage = "https://github.com/kazu-yamamoto/crypton-connection";
+  description = "Simple and easy network connection API";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  crypton-pem = {
+  meta = {
+    sha256 = "1bvcl2brlgqbb1kmjzlfspmm47n1g441qgsmyhz9ql3zlcz1s524";
+    url = "https://hackage.haskell.org";
+    ver = "0.3.0";
+  };
+  drv = { mkDerivation, base, base64, bytestring, deepseq, HUnit, lib
+, QuickCheck, test-framework, test-framework-hunit
+, test-framework-quickcheck2, text
+}:
+mkDerivation {
+  pname = "crypton-pem";
+  version = "0.3.0";
+  src = /nix/store/sgn1akgqiiyq4s4w6wm02fi2w8bvi7ii-source;
+  libraryHaskellDepends = [ base base64 bytestring deepseq text ];
+  testHaskellDepends = [
+    base bytestring HUnit QuickCheck test-framework
+    test-framework-hunit test-framework-quickcheck2
+  ];
+  homepage = "http://github.com/mpilgrem/crypton-pem";
+  description = "Privacy Enhanced Mail (PEM) file format reader and writer";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  crypton-x509 = {
+  meta = {
+    sha256 = "0f35689cbxdv25b0xjlla4hmxjxjraiwc6v89y12nl3nxqx3q5f3";
+    url = "https://hackage.haskell.org";
+    ver = "1.8.0";
+  };
+  drv = { mkDerivation, base, bytestring, containers, crypton
+, crypton-asn1-encoding, crypton-asn1-parse, crypton-asn1-types
+, crypton-pem, lib, memory, mtl, tasty, tasty-quickcheck
+, time-hourglass, transformers
+}:
+mkDerivation {
+  pname = "crypton-x509";
+  version = "1.8.0";
+  src = /nix/store/42j4g7hiyrixw85p2y35vcx7yw0nr0xq-source;
+  libraryHaskellDepends = [
+    base bytestring containers crypton crypton-asn1-encoding
+    crypton-asn1-parse crypton-asn1-types crypton-pem memory
+    time-hourglass transformers
+  ];
+  testHaskellDepends = [
+    base bytestring crypton crypton-asn1-types mtl tasty
+    tasty-quickcheck time-hourglass
+  ];
+  homepage = "https://github.com/kazu-yamamoto/crypton-certificate";
+  description = "X509 reader and writer";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  crypton-x509-store = {
+  meta = {
+    sha256 = "1irrrgm6jmw0irjgwk877smg381wlv72rcgacqrp09dplzjcg82k";
+    url = "https://hackage.haskell.org";
+    ver = "1.8.0";
+  };
+  drv = { mkDerivation, base, bytestring, containers, crypton
+, crypton-asn1-encoding, crypton-asn1-types, crypton-pem
+, crypton-x509, directory, filepath, lib, mtl, tasty, tasty-hunit
+, unix
+}:
+mkDerivation {
+  pname = "crypton-x509-store";
+  version = "1.8.0";
+  src = /nix/store/kavc11csyrxdfnqsgg79q5kj5mlr3c9m-source;
+  libraryHaskellDepends = [
+    base bytestring containers crypton crypton-asn1-encoding
+    crypton-asn1-types crypton-pem crypton-x509 directory filepath mtl
+    unix
+  ];
+  testHaskellDepends = [
+    base bytestring crypton-x509 tasty tasty-hunit
+  ];
+  homepage = "https://github.com/kazu-yamamoto/crypton-certificate";
+  description = "X.509 collection accessing and storing methods";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  crypton-x509-system = {
+  meta = {
+    sha256 = "0d0rrjm8xxcp3vkxxskgzs9wi8b09532v6gpsmfyagnk170n2hxr";
+    url = "https://hackage.haskell.org";
+    ver = "1.8.0";
+  };
+  drv = { mkDerivation, base, bytestring, containers, crypton-pem
+, crypton-x509, crypton-x509-store, directory, filepath, lib, mtl
+, process
+}:
+mkDerivation {
+  pname = "crypton-x509-system";
+  version = "1.8.0";
+  src = /nix/store/a023pr9yq4c3j011jcazssd2i1aj0lfj-source;
+  libraryHaskellDepends = [
+    base bytestring containers crypton-pem crypton-x509
+    crypton-x509-store directory filepath mtl process
+  ];
+  homepage = "https://github.com/kazu-yamamoto/crypton-certificate";
+  description = "Handle per-operating-system X.509 accessors and storage";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  crypton-x509-validation = {
+  meta = {
+    sha256 = "1dxvbkxwlk6qhg0id65fwssda04pn9y7glq7jpakqlww8d6nl90b";
+    url = "https://hackage.haskell.org";
+    ver = "1.8.0";
+  };
+  drv = { mkDerivation, base, bytestring, containers, crypton
+, crypton-asn1-encoding, crypton-asn1-types, crypton-pem
+, crypton-x509, crypton-x509-store, data-default, iproute, lib
+, memory, mtl, tasty, tasty-hunit, time-hourglass
+}:
+mkDerivation {
+  pname = "crypton-x509-validation";
+  version = "1.8.0";
+  src = /nix/store/k2rsrn79l69qc8wlahz6dp28bk8b33f3-source;
+  libraryHaskellDepends = [
+    base bytestring containers crypton crypton-asn1-encoding
+    crypton-asn1-types crypton-pem crypton-x509 crypton-x509-store
+    data-default iproute memory mtl time-hourglass
+  ];
+  testHaskellDepends = [
+    base bytestring crypton crypton-asn1-encoding crypton-asn1-types
+    crypton-x509 crypton-x509-store data-default memory tasty
+    tasty-hunit time-hourglass
+  ];
+  homepage = "https://github.com/kazu-yamamoto/crypton-certificate";
+  description = "X.509 Certificate and CRL validation";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  ech-config = {
+  meta = {
+    sha256 = "0sxxxd9rlc3x14mgh92ic8s9hjncf38f9s7p3ic284mvnzj0l3s2";
+    url = "https://hackage.haskell.org";
+    ver = "0.0.1";
+  };
+  drv = { mkDerivation, base, base16-bytestring, bytestring, filepath, lib
+, network-byte-order
+}:
+mkDerivation {
+  pname = "ech-config";
+  version = "0.0.1";
+  src = /nix/store/3wgqsr9lf46xpizkjd7s95bp03fjmiib-source;
+  isLibrary = true;
+  isExecutable = true;
+  libraryHaskellDepends = [
+    base base16-bytestring bytestring filepath network-byte-order
+  ];
+  description = "Config for TLS Encrypted Client Hello";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
   exon = {
   meta = {
     sha256 = "0hg271cvjqm4ps75qpnirq9nvjwpwb03mcbn1a364jrysrj6bg3b";
@@ -288,6 +693,101 @@ mkDerivation {
   homepage = "https://github.com/tek/exon#readme";
   description = "Customizable quasiquote interpolation";
   license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  hpke = {
+  meta = {
+    sha256 = "0vyny5gqw8rk0s75088ggs3q78fgmas9mnxnwjpny4h9nw6dysr9";
+    url = "https://hackage.haskell.org";
+    ver = "0.0.0";
+  };
+  drv = { mkDerivation, base, base16-bytestring, bytestring, crypton, hspec
+, hspec-discover, lib, memory, QuickCheck
+}:
+mkDerivation {
+  pname = "hpke";
+  version = "0.0.0";
+  src = /nix/store/j6d3w4z0zlmxa8dh7408mgych17x7v6c-source;
+  libraryHaskellDepends = [
+    base base16-bytestring bytestring crypton memory
+  ];
+  testHaskellDepends = [
+    base base16-bytestring bytestring hspec QuickCheck
+  ];
+  testToolDepends = [ hspec-discover ];
+  description = "Hybrid Public Key Encryption";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
+  http-client = {
+  meta = {
+    sha256 = "1qciglcaik1a96flj07fhqx2h692kgcv63hinffr35ka22wrg3i9";
+    url = "https://hackage.haskell.org";
+    ver = "0.7.19";
+  };
+  drv = { mkDerivation, array, async, base, base64-bytestring
+, blaze-builder, bytestring, case-insensitive, containers, cookie
+, deepseq, directory, exceptions, filepath, ghc-prim, hspec
+, hspec-discover, http-types, iproute, lib, mime-types
+, monad-control, network, network-uri, random, stm
+, streaming-commons, text, time, transformers, zlib
+}:
+mkDerivation {
+  pname = "http-client";
+  version = "0.7.19";
+  src = /nix/store/62hi01g26a69zq8zj61cx5xhbg3fdy1g-source;
+  libraryHaskellDepends = [
+    array async base base64-bytestring blaze-builder bytestring
+    case-insensitive containers cookie deepseq exceptions filepath
+    ghc-prim http-types iproute mime-types network network-uri random
+    stm streaming-commons text time transformers
+  ];
+  testHaskellDepends = [
+    async base blaze-builder bytestring case-insensitive containers
+    cookie deepseq directory hspec http-types monad-control network
+    network-uri streaming-commons text time transformers zlib
+  ];
+  testToolDepends = [ hspec-discover ];
+  doCheck = false;
+  homepage = "https://github.com/snoyberg/http-client";
+  description = "An HTTP client engine";
+  license = lib.licenses.mit;
+}
+;
+}
+;
+  http-client-tls = {
+  meta = {
+    sha256 = "1f8br94l5kywpsfvpmw54b1v6nx1yapslzrwiswsf6vf8kwfjjzg";
+    url = "https://hackage.haskell.org";
+    ver = "0.3.6.4";
+  };
+  drv = { mkDerivation, base, bytestring, case-insensitive, containers
+, crypton, crypton-connection, data-default, exceptions, gauge
+, hspec, http-client, http-types, lib, memory, network, network-uri
+, text, tls, transformers
+}:
+mkDerivation {
+  pname = "http-client-tls";
+  version = "0.3.6.4";
+  src = /nix/store/8r1b74si7yr0bxiw2wp65ypxzrdsmsxk-source;
+  libraryHaskellDepends = [
+    base bytestring case-insensitive containers crypton
+    crypton-connection data-default exceptions http-client http-types
+    memory network network-uri text tls transformers
+  ];
+  testHaskellDepends = [
+    base crypton-connection hspec http-client http-types
+  ];
+  benchmarkHaskellDepends = [ base gauge http-client ];
+  doCheck = false;
+  homepage = "https://github.com/snoyberg/http-client";
+  description = "http-client backend using the connection package and tls library";
+  license = lib.licenses.mit;
 }
 ;
 }
@@ -380,6 +880,25 @@ mkDerivation {
   homepage = "https://github.com/tek/incipit#readme";
   description = "A Prelude for Polysemy";
   license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  mime-types = {
+  meta = {
+    sha256 = "0mdfiq304yrqb15lh4ajs7mp3wd4ingc5f0bqry9ig0pfj4kcdvn";
+    url = "https://hackage.haskell.org";
+    ver = "0.1.2.2";
+  };
+  drv = { mkDerivation, base, bytestring, containers, lib, text }:
+mkDerivation {
+  pname = "mime-types";
+  version = "0.1.2.2";
+  src = /nix/store/1wf66yc8zr47bb7imw36syj2gys6advg-source;
+  libraryHaskellDepends = [ base bytestring containers text ];
+  homepage = "https://github.com/yesodweb/wai";
+  description = "Basic mime-type handling types and functions";
+  license = lib.licenses.mit;
 }
 ;
 }
@@ -644,7 +1163,6 @@ mkDerivation {
   prelate = {
   meta = {
     sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
-    url = "https://hackage.haskell.org";
     ver = "0.8.0.0";
   };
   drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
@@ -664,6 +1182,44 @@ mkDerivation {
   homepage = "https://github.com/tek/prelate#readme";
   description = "A Prelude";
   license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  servant-client = {
+  meta = {
+    sha256 = "0xlf354mcvg3cg8nqfi1aqfym686qcyy1yv46fg9fxchms9njczr";
+    url = "https://hackage.haskell.org";
+    ver = "0.20.3.0";
+  };
+  drv = { mkDerivation, aeson, base, base-compat, bytestring, containers
+, deepseq, entropy, exceptions, generics-sop, hspec, hspec-discover
+, http-api-data, http-client, http-media, http-types, HUnit
+, kan-extensions, lib, markdown-unlit, monad-control, mtl, network
+, QuickCheck, semigroupoids, servant, servant-client-core
+, servant-server, sop-core, stm, text, time, transformers
+, transformers-base, wai, warp
+}:
+mkDerivation {
+  pname = "servant-client";
+  version = "0.20.3.0";
+  src = /nix/store/y0azgrrnkv9wq5wy4fz962k9v9s0ck3z-source;
+  libraryHaskellDepends = [
+    base base-compat bytestring containers deepseq exceptions
+    http-client http-media http-types kan-extensions monad-control mtl
+    semigroupoids servant servant-client-core stm time transformers
+    transformers-base
+  ];
+  testHaskellDepends = [
+    aeson base base-compat bytestring entropy generics-sop hspec
+    http-api-data http-client http-types HUnit markdown-unlit mtl
+    network QuickCheck servant servant-client-core servant-server
+    sop-core stm text transformers wai warp
+  ];
+  testToolDepends = [ hspec-discover markdown-unlit ];
+  homepage = "http://docs.servant.dev/";
+  description = "Automatic derivation of querying functions for servant";
+  license = lib.licenses.bsd3;
 }
 ;
 }
@@ -783,6 +1339,31 @@ mkDerivation {
 ;
 }
 ;
+  time-hourglass = {
+  meta = {
+    sha256 = "11fm4wywl0q5g0q34d049x7wxlp80rycp7hqrp2m7l7dmhihnn6d";
+    url = "https://hackage.haskell.org";
+    ver = "0.3.0";
+  };
+  drv = { mkDerivation, base, deepseq, lib, tasty, tasty-bench, tasty-hunit
+, tasty-quickcheck, time
+}:
+mkDerivation {
+  pname = "time-hourglass";
+  version = "0.3.0";
+  src = /nix/store/2pj6dfsarzxk33vvfpgk4x9gmdbybrm2-source;
+  libraryHaskellDepends = [ base deepseq ];
+  testHaskellDepends = [
+    base deepseq tasty tasty-hunit tasty-quickcheck time
+  ];
+  benchmarkHaskellDepends = [ base deepseq tasty-bench time ];
+  homepage = "https://github.com/mpilgrem/time-hourglass";
+  description = "A simple and efficient time library";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
   time-manager = {
   meta = {
     sha256 = "1lw1xx9p5qqznrg04s7phki2rljxzx29z2xcd9qa46wjhhg54fds";
@@ -799,6 +1380,52 @@ mkDerivation {
   homepage = "http://github.com/yesodweb/wai";
   description = "Scalable timer";
   license = lib.licenses.mit;
+}
+;
+}
+;
+  tls = {
+  meta = {
+    sha256 = "1arnw38a3x70264sags3yrq4c01nfcy17sjq3ycasfb2yq6fiflm";
+    url = "https://hackage.haskell.org";
+    ver = "2.2.2";
+  };
+  drv = { mkDerivation, async, base, base16-bytestring, base64-bytestring
+, bytestring, cereal, containers, crypton, crypton-asn1-encoding
+, crypton-asn1-types, crypton-x509, crypton-x509-store
+, crypton-x509-validation, data-default, ech-config, hpke, hspec
+, hspec-discover, lib, memory, mtl, network, network-run
+, QuickCheck, random, serialise, tasty-bench, time-hourglass
+, transformers, unix-time, zlib
+}:
+mkDerivation {
+  pname = "tls";
+  version = "2.2.2";
+  src = /nix/store/lip2w07ws42rrgwsns0izz82jyi9sdhr-source;
+  isLibrary = true;
+  isExecutable = true;
+  libraryHaskellDepends = [
+    base base16-bytestring bytestring cereal crypton
+    crypton-asn1-encoding crypton-asn1-types crypton-x509
+    crypton-x509-store crypton-x509-validation data-default ech-config
+    hpke memory mtl network random serialise transformers unix-time
+    zlib
+  ];
+  testHaskellDepends = [
+    async base base64-bytestring bytestring crypton crypton-asn1-types
+    crypton-x509 crypton-x509-validation ech-config hspec QuickCheck
+    serialise time-hourglass
+  ];
+  testToolDepends = [ hspec-discover ];
+  benchmarkHaskellDepends = [
+    async base base64-bytestring bytestring containers crypton
+    crypton-asn1-types crypton-x509 crypton-x509-store
+    crypton-x509-validation data-default ech-config hspec network
+    network-run QuickCheck serialise tasty-bench time-hourglass
+  ];
+  homepage = "https://github.com/haskell-tls/hs-tls";
+  description = "TLS protocol native implementation";
+  license = lib.licenses.bsd3;
 }
 ;
 }
