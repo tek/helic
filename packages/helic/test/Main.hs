@@ -16,7 +16,7 @@ import Helic.Test.LoadTest (test_load)
 import Helic.Test.PlatformTests (platformTests)
 import Helic.Test.StreamTest (test_stream)
 import Polysemy.Test (unitTest)
-import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty (DependencyType (AllSucceed), TestTree, defaultMain, sequentialTestGroup, testGroup)
 
 tests :: TestTree
 tests =
@@ -30,10 +30,13 @@ tests =
     unitTest "content type predicates" test_contentPredicates,
     unitTest "insert image events in history" test_insertImageEvent,
     unitTest "parse a config file" test_readConfigFile,
-    unitTest "listen for events, filter duplicates from network feedback" test_listen,
     unitTest "print the history" test_list,
     unitTest "load an old event to the clipboard" test_load,
-    unitTest "stream events over http" test_stream
+    sequentialTestGroup "io" AllSucceed
+    [
+      unitTest "listen for events, filter duplicates from network feedback" test_listen,
+      unitTest "stream events over http" test_stream
+    ]
   ] ++ platformTests
 
 main :: IO ()
