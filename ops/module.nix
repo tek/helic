@@ -86,7 +86,7 @@ in {
       enable = mkEnableOption "X11 integration" // { default = x11Enabled; };
       subscribedSelections = mkOption {
         type = types.listOf types.str;
-        default = ["Clipboard" "Primary" "Selection"];
+        default = ["Clipboard" "Primary"];
         description = "A list of unique X11 selections from which to listen to events for.";
         example = literalExpression ["Clipboard"];
       };
