@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | CLI, Internal
+-- | CLI entry point and command dispatch
 module Helic.Cli where
 
 import qualified Conc

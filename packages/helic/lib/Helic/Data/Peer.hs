@@ -1,4 +1,6 @@
--- | Peer Data Type, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Remote peer ID
 module Helic.Data.Peer where
 
 import Helic.Data.PublicKey (PublicKey)

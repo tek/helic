@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | Interpreter for 'XClipboard' using GTK.
 -- Internal.

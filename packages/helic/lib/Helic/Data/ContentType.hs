@@ -1,4 +1,6 @@
--- | Clipboard payload with MIME type. Internal module.
+{-# options_haddock hide, prune #-}
+
+-- | Clipboard content with MIME type
 module Helic.Data.ContentType where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.=), (.:))

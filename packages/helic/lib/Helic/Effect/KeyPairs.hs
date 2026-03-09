@@ -1,6 +1,6 @@
--- | Key Pair Effect, Internal
---
--- Abstracts key pair generation and retrieval to allow pure interpreters in tests.
+{-# options_haddock hide, prune #-}
+
+-- | X25519 key pair management
 module Helic.Effect.KeyPairs where
 
 import Helic.Net.Sign (KeyPair)

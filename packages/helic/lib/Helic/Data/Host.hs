@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | Host Data Type, Internal
+-- | Remote host address
 module Helic.Data.Host where
 
 newtype Host =

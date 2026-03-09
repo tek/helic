@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | InstanceName Data Type, Internal
+-- | Name identifying a helic instance
 module Helic.Data.InstanceName where
 
 newtype InstanceName =

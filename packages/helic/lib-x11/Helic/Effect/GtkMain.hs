@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | An effect for concurrently controlling the lifecycle of a GTK main loop and accessing its resource.
 module Helic.Effect.GtkMain where

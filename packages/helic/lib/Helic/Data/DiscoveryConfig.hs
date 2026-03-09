@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | DiscoveryConfig Data Type, Internal
+-- | UDP broadcast peer discovery configuration
 module Helic.Data.DiscoveryConfig where
 
 -- | Configuration for UDP broadcast peer discovery.

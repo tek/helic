@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | List command logic, Internal
+-- | List command logic
 module Helic.List where
 
 import Chronos (Datetime (Datetime), SubsecondPrecision (SubsecondPrecisionFixed), builder_HMS, timeToDatetime)

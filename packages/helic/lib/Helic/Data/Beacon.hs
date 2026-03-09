@@ -1,4 +1,6 @@
--- | Beacon Data Type, Internal
+{-# options_haddock hide, prune #-}
+
+-- | UDP discovery beacon payload
 --
 -- Payload broadcast via UDP for peer auto-discovery on the local network.
 module Helic.Data.Beacon where

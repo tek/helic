@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | Paste Logic, Internal
+-- | Paste command logic
 module Helic.Paste where
 
 import qualified Data.ByteString as BS

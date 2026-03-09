@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | AgentId Data Type, Internal
+-- | Identifier for clipboard agents
 module Helic.Data.AgentId where
 
 newtype AgentId =

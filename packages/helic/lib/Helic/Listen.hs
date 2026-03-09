@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | Listen, Internal
+-- | Listen command logic
 module Helic.Listen where
 
 import qualified Conc

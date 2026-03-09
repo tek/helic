@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | Agent Interpreter for X11, Internal
 module Helic.Interpreter.AgentX where

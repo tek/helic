@@ -1,4 +1,6 @@
--- | Client Interpreter, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Interpreter for the API client
 module Helic.Interpreter.Client where
 
 import Exon (exon)

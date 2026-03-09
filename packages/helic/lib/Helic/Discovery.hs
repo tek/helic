@@ -1,4 +1,6 @@
--- | Discovery Interpreter, Internal
+{-# options_haddock hide, prune #-}
+
+-- | UDP beacon-based peer discovery
 --
 -- Runs UDP broadcast beacon sender and listener threads.
 -- Maintains a map of discovered peers with TTL.

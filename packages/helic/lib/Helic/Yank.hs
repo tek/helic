@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | Yank Logic, Internal
+-- | Yank command logic
 module Helic.Yank where
 
 import qualified Data.ByteString as BS

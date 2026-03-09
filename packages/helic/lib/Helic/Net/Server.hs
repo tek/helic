@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | HTTP Server Plumbing, Internal
+-- | HTTP server plumbing
 module Helic.Net.Server where
 
 import Control.Monad.Trans.Except (ExceptT (ExceptT))

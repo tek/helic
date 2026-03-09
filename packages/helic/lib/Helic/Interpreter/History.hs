@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | The history validates and stores new events.
+-- | Event history management
 module Helic.Interpreter.History where
 
 import qualified Chronos

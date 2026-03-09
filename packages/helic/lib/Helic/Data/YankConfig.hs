@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | YankConfig Data Type, Internal
+-- | Configuration for the yank command
 module Helic.Data.YankConfig where
 
 import Helic.Data.ContentType (MimeType)

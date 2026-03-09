@@ -1,4 +1,6 @@
--- | Description: Data type 'HistoryUpdate'
+{-# options_haddock hide, prune #-}
+
+-- | History insertion result
 module Helic.Data.HistoryUpdate where
 
 import Helic.Data.Event (Event)

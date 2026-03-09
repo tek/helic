@@ -1,4 +1,6 @@
--- | History Effect, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Clipboard event history
 module Helic.Effect.History where
 
 import Prelude hiding (get)

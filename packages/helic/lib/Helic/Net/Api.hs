@@ -1,4 +1,6 @@
--- | HTTP API of the Daemon, Internal
+{-# options_haddock hide, prune #-}
+
+-- | HTTP API of the daemon
 module Helic.Net.Api where
 
 import Exon (exon)

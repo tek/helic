@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | An interpreter for 'GtkMain' that uses 'MVar's.
 -- Internal.

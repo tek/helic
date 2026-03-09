@@ -1,5 +1,6 @@
--- | Interpretation combinators.
--- Internal.
+{-# options_haddock hide, prune #-}
+
+-- | Interpretation combinators
 module Helic.Interpreter where
 
 import Polysemy.Internal.CustomErrors (FirstOrder)

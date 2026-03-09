@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | Utilities for 'GtkClipboard'.
 -- Internal.

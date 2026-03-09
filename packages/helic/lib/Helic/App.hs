@@ -1,7 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | App entry points.
--- Internal.
+-- | App entry points
 module Helic.App where
 
 import qualified Conc

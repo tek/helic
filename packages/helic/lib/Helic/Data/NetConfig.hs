@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | NetConfig Data Type, Internal
+-- | Network related configuration
 module Helic.Data.NetConfig where
 
 import Helic.Data.AuthConfig (AuthConfig (..))

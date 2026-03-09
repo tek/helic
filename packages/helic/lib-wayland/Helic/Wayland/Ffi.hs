@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | FFI bindings to the native Wayland clipboard monitor using @ext-data-control-v1@.
 -- This module provides the high-level interface used by @AgentWayland@, delegating to 'Helic.Wayland.Monitor' which

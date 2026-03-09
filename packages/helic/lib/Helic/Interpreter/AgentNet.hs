@@ -1,4 +1,6 @@
--- | Agent Interpreter for Network, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Agent interpreter for network sync
 module Helic.Interpreter.AgentNet where
 
 import Exon (exon)

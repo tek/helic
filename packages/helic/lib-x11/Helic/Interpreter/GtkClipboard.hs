@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | Native interpreters for 'GtkClipboard', for scoped interpretation with 'interpretWithGtk'.
 -- Internal.
@@ -40,7 +40,7 @@ handleGtkClipboard display = \case
     let f' s t = void (raise (runTSimple (f s t)))
     runReader display do
       x11Config <- ask @X11Config
-      let 
+      let
         targetSelections :: Set Selection
         targetSelections = fromMaybe (Set.fromList [minBound..maxBound]) x11Config.subscribedSelections
       for_ @Set targetSelections (subscribeToClipboard f')

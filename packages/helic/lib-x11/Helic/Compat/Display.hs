@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | Display backend compat shim.
 -- This module is used when the x11 flag is enabled.

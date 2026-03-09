@@ -1,4 +1,6 @@
--- | UDP Broadcast Beacon for Peer Discovery, Internal
+{-# options_haddock hide, prune #-}
+
+-- | UDP broadcast beacon for peer discovery
 --
 -- Sends and receives beacon announcements on the local network using UDP broadcast. Each helic instance periodically
 -- broadcasts its presence (port, public key, name) so other instances can discover it without manual configuration.

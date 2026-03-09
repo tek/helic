@@ -1,11 +1,11 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | Native interpreter for 'Gtk'.
 -- Internal.
 module Helic.Interpreter.Gtk where
 
-import qualified GI.Gdk as GiGdk
 import qualified GI.GLib as GLib
+import qualified GI.Gdk as GiGdk
 import qualified GI.Gtk as GiGtk
 import qualified Polysemy.Log as Log
 

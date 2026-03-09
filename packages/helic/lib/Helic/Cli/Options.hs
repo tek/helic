@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | CLI Options, Internal
+-- | CLI option parsing
 module Helic.Cli.Options where
 
 import Exon (exon)

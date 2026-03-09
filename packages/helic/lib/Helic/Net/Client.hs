@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | HTTP Client, Internal
+-- | HTTP client for remote event sync
 module Helic.Net.Client where
 
 import qualified Conc

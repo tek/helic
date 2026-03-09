@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | Tmux Helpers, Internal
+-- | Tmux interaction helpers
 module Helic.Tmux where
 
 import qualified Polysemy.Log as Log

@@ -1,4 +1,6 @@
--- | The data type 'Event' consists of a yank text and metadata identifying its source and time.
+{-# options_haddock hide, prune #-}
+
+-- | Clipboard event with source metadata
 module Helic.Data.Event where
 
 import qualified Chronos

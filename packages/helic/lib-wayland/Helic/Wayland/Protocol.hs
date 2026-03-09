@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 {-# language CApiFFI #-}
 
 -- | Low-level FFI bindings for the Wayland client library and @ext-data-control-v1@ protocol.

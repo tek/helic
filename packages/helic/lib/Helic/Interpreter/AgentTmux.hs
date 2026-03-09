@@ -1,4 +1,6 @@
--- | Agent Interpreter for Tmux, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Agent interpreter for tmux
 module Helic.Interpreter.AgentTmux where
 
 import Exon (exon)

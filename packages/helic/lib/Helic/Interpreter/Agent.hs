@@ -1,4 +1,6 @@
--- | Simple Agent Interpreter, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Generic agent interpreter
 module Helic.Interpreter.Agent where
 
 import GHC.Records (HasField)

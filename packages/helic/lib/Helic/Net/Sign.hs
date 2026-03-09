@@ -1,4 +1,6 @@
--- | X25519 Key Management and NaCl crypto_box Authenticated Encryption, Internal
+{-# options_haddock hide, prune #-}
+
+-- | X25519 key management and NaCl crypto_box encryption
 --
 -- Each helic instance has an X25519 key pair. Communication between instances uses NaCl crypto_box, which provides both
 -- encryption and authentication in a single operation.

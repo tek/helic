@@ -1,4 +1,6 @@
--- | KeyStatus Data Type, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Authorization status of a public key
 --
 -- Result of checking a public key against the peer authorization state.
 module Helic.Data.KeyStatus where

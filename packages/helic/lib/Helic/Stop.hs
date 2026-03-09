@@ -1,5 +1,6 @@
--- | Combinators for 'Stop'.
--- Internal.
+{-# options_haddock hide, prune #-}
+
+-- | Combinators for 'Stop'
 module Helic.Stop where
 
 -- | Catch all exceptions in an 'IO' action, embed it into a 'Sem' and convert exceptions to 'Stop'.

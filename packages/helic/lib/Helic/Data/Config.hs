@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | Config Data Type, Internal
+-- | Top-level application configuration
 module Helic.Data.Config where
 
 import Helic.Data.DiscoveryConfig (DiscoveryConfig)

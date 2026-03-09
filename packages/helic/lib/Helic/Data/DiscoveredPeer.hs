@@ -1,4 +1,6 @@
--- | DiscoveredPeer Data Type, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Auto-discovered peer record
 --
 -- A peer discovered via UDP broadcast beacon.
 module Helic.Data.DiscoveredPeer where

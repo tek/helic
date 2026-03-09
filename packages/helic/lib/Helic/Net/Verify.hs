@@ -1,4 +1,6 @@
--- | NaCl crypto_box Verification Middleware, Internal
+{-# options_haddock hide, prune #-}
+
+-- | NaCl crypto_box verification middleware
 module Helic.Net.Verify where
 
 import qualified Data.ByteString.Base64 as Base64

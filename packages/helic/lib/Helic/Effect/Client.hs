@@ -1,4 +1,6 @@
--- | Client Effect, Internal
+{-# options_haddock hide, prune #-}
+
+-- | API client abstraction
 module Helic.Effect.Client where
 
 import Prelude hiding (get, listen)

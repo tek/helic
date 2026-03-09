@@ -1,4 +1,6 @@
--- | Reader Interpreter for InstanceName, Internal
+{-# options_haddock hide, prune #-}
+
+-- | Instance name from hostname
 module Helic.Interpreter.InstanceName where
 
 import Exon (exon)

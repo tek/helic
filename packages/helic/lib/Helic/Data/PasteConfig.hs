@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | PasteConfig Data Type, Internal
+-- | Configuration for the paste command
 module Helic.Data.PasteConfig where
 
 -- | Where to write the paste output.

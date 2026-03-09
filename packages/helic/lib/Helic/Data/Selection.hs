@@ -1,5 +1,6 @@
--- | The data type 'Selection' enumerates the different types of basic clipboards that X11 operates on.
--- Internal.
+{-# options_haddock hide, prune #-}
+
+-- | X11 clipboard selections
 module Helic.Data.Selection where
 
 -- | This type enumerates the different types of basic clipboards that X11 operates on.

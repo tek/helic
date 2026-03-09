@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | WaylandConfig Data Type, Internal
+-- | Wayland agent configuration
 module Helic.Data.WaylandConfig where
 
 data WaylandConfig =

@@ -1,4 +1,6 @@
--- | Persistent peer state file management.
+{-# options_haddock hide, prune #-}
+
+-- | Persistent peer state file management
 --
 -- Stores peer authorization decisions (allowed, rejected, pending) in a YAML file
 -- in the XDG state directory.

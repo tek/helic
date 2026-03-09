@@ -1,4 +1,6 @@
--- | Key Pair Interpreters, Internal
+{-# options_haddock hide, prune #-}
+
+-- | X25519 key pair interpreters
 module Helic.Interpreter.KeyPairs where
 
 import Helic.Data.AuthConfig (AuthConfig (..))

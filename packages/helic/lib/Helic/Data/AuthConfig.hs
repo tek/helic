@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | AuthConfig Data Type, Internal
+-- | Authentication configuration
 module Helic.Data.AuthConfig where
 
 data AuthConfig =

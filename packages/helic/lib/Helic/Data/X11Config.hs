@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | X11Config Data Type, Internal
+-- | X11 agent configuration
 module Helic.Data.X11Config where
 import Helic.Data.Selection (Selection)
 

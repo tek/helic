@@ -1,6 +1,6 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
--- | Config File Parsing, Internal
+-- | Config file parsing
 module Helic.Config.File where
 
 import Data.Yaml (decodeFileEither, prettyPrintParseException)

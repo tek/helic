@@ -1,6 +1,6 @@
--- | PeerState Data Type, Internal
---
--- Persisted to the XDG state directory. Tracks remote peers as allowed, rejected or pending.
+{-# options_haddock hide, prune #-}
+
+-- | Persistent peer authorization state
 module Helic.Data.PeerState where
 
 import Helic.Data.Peer (Peer)

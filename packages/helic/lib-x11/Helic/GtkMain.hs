@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | API for the GTK main loop.
 module Helic.GtkMain where

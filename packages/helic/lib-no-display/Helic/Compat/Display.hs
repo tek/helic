@@ -1,4 +1,4 @@
-{-# options_haddock prune #-}
+{-# options_haddock hide, prune #-}
 
 -- | Display backend compat shim.
 -- This module is used when neither of the flags @x11@ and @wayland@ are enabled.
