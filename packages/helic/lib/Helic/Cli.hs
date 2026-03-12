@@ -3,11 +3,10 @@
 -- | CLI entry point and command dispatch
 module Helic.Cli where
 
-import qualified Conc
+
 import Options.Applicative (customExecParser, fullDesc, header, helper, info, prefs, showHelpOnEmpty, showHelpOnError)
 import Polysemy.Log (Severity (Info, Trace))
-import System.IO (hLookAhead, stdin)
-import Time (MilliSeconds (MilliSeconds))
+import System.IO (hIsTerminalDevice, stdin)
 
 import Helic.App (listApp, listenApp, loadApp, pasteApp, runAuthClient, yankApp)
 import Helic.Auth (acceptAllApp, acceptPeerApp, authApp, listPendingApp, rejectPeerApp)
@@ -37,10 +36,10 @@ runCommand config = \case
       AuthAcceptAll -> acceptAllApp
 
 defaultCommand :: Sem AppStack Command
-defaultCommand = do
-  Conc.timeout_ (pure Nothing) (MilliSeconds 100) (Just <$> tryAny (hLookAhead stdin)) <&> \case
-    Just (Right _) -> Yank (YankConfig (Just "cli") StdinText)
-    _ -> Listen
+defaultCommand =
+  tryIOError (hIsTerminalDevice stdin) <&> \case
+    Right True -> Listen
+    _ -> Yank (YankConfig (Just "cli") StdinText)
 
 withCliOptions :: Conf -> Maybe Command -> IO ()
 withCliOptions (Conf cliVerbose file) cmd = do
