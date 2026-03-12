@@ -139,6 +139,7 @@ library
   ghc-options: -fplugin=Polysemy.Plugin -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
       aeson <2.3
+    , async
     , base >=4.17.2.1 && <4.22
     , base-compat
     , base64-bytestring <1.3

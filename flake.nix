@@ -30,6 +30,17 @@
               };
             };
           };
+          prelude = {
+            enable = true;
+            package = "prelate";
+            module = "Prelate";
+          };
+          meta.extra-source-files = ["readme.md" "changelog.md"];
+          ghc-options = ["-fplugin=Polysemy.Plugin"];
+          dependencies = [
+            "polysemy"
+            "polysemy-plugin"
+          ];
         };
 
         library = {
@@ -178,6 +189,31 @@
 
       };
 
+      packages.helic-gen-keys = {
+        src = ./packages/helic-gen-keys;
+        cabal = {
+          meta.synopsis = "Key generator for Helic";
+          prelude = {
+            enable = true;
+            package = "incipit-base";
+            module = "IncipitBase";
+          };
+        };
+
+        library.enable = false;
+
+        executables.helic-gen-keys = {
+          source-dirs = "app";
+          dependencies = [
+            "base64-bytestring"
+            "bytestring"
+            "crypton"
+            "memory"
+            "optparse-applicative"
+          ];
+        };
+      };
+
       ghci = {
         setup.listen = ''
         :set args --verbose listen
@@ -204,22 +240,11 @@
         license-file = "LICENSE";
         author = "Torsten Schmits";
         language = "GHC2021";
-        prelude = {
-          enable = true;
-          package = "prelate";
-          module = "Prelate";
-        };
         meta = {
           maintainer = "hackage@tryp.io";
           category = "Clipboard";
           github = "tek/helic";
-          extra-source-files = ["readme.md" "changelog.md"];
         };
-        ghc-options = ["-fplugin=Polysemy.Plugin"];
-        dependencies = [
-          "polysemy"
-          "polysemy-plugin"
-        ];
       };
 
       package-sets.ghc912 = {
