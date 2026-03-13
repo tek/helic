@@ -86,6 +86,7 @@
             "unix"
             "wai"
             "wai-extra"
+            "async"
             "warp"
             "yaml"
           ];

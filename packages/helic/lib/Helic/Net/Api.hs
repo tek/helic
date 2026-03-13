@@ -3,11 +3,15 @@
 -- | HTTP API of the daemon
 module Helic.Net.Api where
 
+import qualified Conc
+import Conc (interpretQueueTB)
+import qualified Control.Concurrent.Async as Async
+import qualified Control.Exception as Base
 import Exon (exon)
 import qualified Log
-import qualified Control.Exception as Base
-import Polysemy.Final (getInspectorS, pureS, runS, withStrategicToFinal)
+import Polysemy.Final (withWeavingToFinal)
 import Process (Interrupt)
+import qualified Queue
 import Servant (
   Get,
   JSON,
@@ -23,12 +27,14 @@ import Servant (
   type (:<|>) ((:<|>)),
   type (:>),
   )
-import Servant.Server (Context (EmptyContext), ServerT, ServerError (..), err500)
+import Servant.Server (Context (EmptyContext), ServerError (..), ServerT, err500)
 import qualified Servant.Types.SourceT as SourceT
-import Servant.Types.SourceT (StepT (Yield), fromActionStep)
+import Servant.Types.SourceT (SourceT (..), StepT (Effect, Yield))
+import Time (Seconds (Seconds))
 
 import Helic.Data.Event (Event)
 import Helic.Data.HistoryUpdate (HistoryUpdate (HistoryUpdate))
+import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Data.Peer (Peer)
@@ -37,7 +43,6 @@ import qualified Helic.Effect.History as History
 import Helic.Effect.History (History)
 import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
-import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
 import Helic.Net.Server (ServerReady, runServerWithContext)
@@ -52,15 +57,37 @@ data ListenFrame =
   deriving anyclass (FromJSON, ToJSON)
 
 -- | Produce a Servant stream from 'Events'.
+--
+-- Uses a 'Queue' as intermediary between the Polysemy subscription scope and the Servant 'SourceT'.
+-- A forked thread subscribes to events and writes them to the queue.
+-- The reader uses 'Queue.ReadTimeout' to periodically yield heartbeat frames, allowing Warp to detect client
+-- disconnect via write failure.
+-- The thread is cancelled via the 'SourceT' finalizer when the stream ends.
+-- 'Nothing' from 'ins' indicates Polysemy effect stack termination, stopping the stream.
+--
+-- Note: 'interpretQueueTB' completes before the queue is actually used — the operations are captured in closures
+-- inside the 'SourceT'. This works because 'TBQueue' is just a 'TVar' that persists as long as it's referenced, but
+-- it means the effect scope doesn't accurately reflect the resource lifetime.
 listenStream ::
-  Members [EventConsumer HistoryUpdate, Final IO] r =>
+  Members [EventConsumer HistoryUpdate, Race, Embed IO, Final IO] r =>
   Sem r (SourceIO ListenFrame)
 listenStream =
-  subscribe $ withStrategicToFinal do
-    Inspector ins <- getInspectorS
-    consumeIO <- runS consume
-    let events = SourceT.mapMaybeStep (fmap ListenEvent . coerce . ins) (fromActionStep (const False) consumeIO)
-    pureS (SourceT.fromStepT (Yield ListenConnected events))
+  interpretQueueTB @HistoryUpdate 100 $
+  withWeavingToFinal \ s wv ins -> do
+    let
+      producer =
+        wv ((Conc.subscribeLoop Queue.write) <$ s)
+      reader =
+        ins <$> wv (Queue.readTimeout (Seconds 10) <$ s)
+      readStep = Effect do
+        reader >>= \case
+          Just (Queue.Success (HistoryUpdate e)) -> pure (Yield (ListenEvent e) readStep)
+          Just Queue.NotAvailable -> pure (Yield ListenConnected readStep)
+          _ -> pure SourceT.Stop
+      source = SourceT \ k ->
+        Async.withAsync producer \ _ ->
+          k (Yield ListenConnected readStep)
+    pure (source <$ s)
 
 -- | The Servant API of the daemon, providing endpoints for events, instance public key, and auth.
 type Api =
@@ -106,7 +133,7 @@ peersError (PeersError err) = do
 
 -- | The server implementation.
 server ::
-  Members [EventConsumer HistoryUpdate, History, Peers !! PeersError, Reader (Maybe KeyPair), Log, Embed IO, Final IO] r =>
+  Members [EventConsumer HistoryUpdate, History, Peers !! PeersError, Reader (Maybe KeyPair), Log, Race, Embed IO, Final IO] r =>
   ServerT Api (Sem r)
 server =
   (
@@ -140,7 +167,7 @@ defaultPort = 9500
 -- | Run the daemon API.
 serve ::
   Members [History, EventConsumer HistoryUpdate, Peers !! PeersError, KeyPairs !! KeyPairsError, Reader NetConfig, Sync ServerReady] r =>
-  Members [Log, Interrupt, Embed IO, Final IO] r =>
+  Members [Log, Interrupt, Race, Embed IO, Final IO] r =>
   Sem r ()
 serve = do
   NetConfig {..} <- ask
@@ -149,9 +176,9 @@ serve = do
     -- Without it, the server cannot start, so we leave the daemon in local-only mode.
     resumeOr KeyPairs.obtainKeyPair (run port) noKeys
   where
-    run port kp =
-      runReader (Just kp) $
-      runServerWithContext @Api server EmptyContext (verifyRequest kp) (fromMaybe defaultPort port)
+    run port serverKey =
+      runReader (Just serverKey) $
+      runServerWithContext @Api server EmptyContext (verifyRequest serverKey) (fromMaybe defaultPort port)
 
     noKeys err =
       Log.error [exon|Failed to obtain key pair: #{err.unKeyPairsError}|]

@@ -131,6 +131,38 @@ self: {util, ...}: let
     '';
   };
 
+  leakModule = { pkgs, ... }: {
+    environment.systemPackages = [
+      self.packages.${pkgs.system}.helic
+      pkgs.curl
+      pkgs.iproute2
+    ];
+
+    environment.etc."helic-leak.yaml".text = ''
+    name: leak-test
+    verbose: true
+    net:
+      enable: true
+      port: 9500
+      hosts: ['nonexistent:9500']
+    tmux:
+      enable: false
+    x11:
+      enable: false
+    wayland:
+      enable: false
+    '';
+  };
+
+  leakSession = {
+    ports.helic-leak = { guest = 9500; host = 50; };
+
+    nixos-base = [
+      userModule
+      leakModule
+    ];
+  };
+
   discoverySession = {
     ports.helic-a = { guest = 9500; host = 50; };
     ports.helic-b = { guest = 9502; host = 52; };
@@ -149,6 +181,8 @@ in {
 
   services.discovery-session = discoverySession;
 
+  services.leak-session = leakSession;
+
   envs.x11-test = {
     package-set.extends = "ghc912";
     basePort = 10000;
@@ -160,6 +194,13 @@ in {
     package-set.extends = "ghc912";
     basePort = 11000;
     services.wayland-session.enable = true;
+    expose.shell = true;
+  };
+
+  envs.leak-test = {
+    package-set.extends = "ghc912";
+    basePort = 13000;
+    services.leak-session.enable = true;
     expose.shell = true;
   };
 
@@ -221,6 +262,68 @@ in {
     env = "wayland-test";
     command = ''
     sshpass -p test ssh -p 11022 test@localhost ${check}
+    '';
+    expose = true;
+    buildInputs = pkgs: [pkgs.sshpass];
+  };
+
+  commands.leak-test = let
+
+    check = util.zscript "check" ''
+    # Start helic daemon
+    hel --config-file /etc/helic-leak.yaml listen &
+    pid=$!
+    cleanup() { kill $pid 2>/dev/null; }
+    trap cleanup EXIT
+
+    # Wait for HTTP server
+    for i in $(seq 1 30); do
+      curl -sf http://localhost:9500/event >/dev/null 2>&1 && break
+      sleep 1
+    done
+
+    # Make 20 yank + list requests to localhost
+    for i in $(seq 1 20); do
+      echo -n "leak-test-$i" | hel --config-file /etc/helic-leak.yaml yank
+      hel --config-file /etc/helic-leak.yaml list >/dev/null 2>&1
+      sleep 0.1
+    done
+
+    sleep 2
+
+    # Also try load requests
+    for i in $(seq 1 10); do
+      hel --config-file /etc/helic-leak.yaml load 0 >/dev/null 2>&1 || true
+      sleep 0.1
+    done
+
+    sleep 2
+
+    # Connect to SSE endpoint and disconnect several times
+    for i in $(seq 1 15); do
+      curl -sf --max-time 0.5 http://localhost:9500/event/listen >/dev/null 2>&1 || true
+      sleep 0.2
+    done
+
+    sleep 15
+
+    # Check for CLOSE_WAIT connections
+    close_wait=$(ss -tn state close-wait sport = :9500 | tail -n +2 | wc -l)
+    echo "CLOSE_WAIT connections: $close_wait"
+
+    if [ "$close_wait" -gt 0 ]; then
+      echo "FAIL: Found $close_wait CLOSE_WAIT connections on port 9500"
+      ss -tnp state close-wait sport = :9500
+      exit 1
+    fi
+
+    echo "PASS: No CLOSE_WAIT connection leak detected"
+    '';
+
+  in {
+    env = "leak-test";
+    command = ''
+    sshpass -p test ssh -p 13022 test@localhost ${check}
     '';
     expose = true;
     buildInputs = pkgs: [pkgs.sshpass];
