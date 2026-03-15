@@ -21,7 +21,7 @@ import Helic.GtkClipboard (subscribeEvents)
 import Helic.GtkMain (gtkMainLoop)
 import Helic.Interpreter.AgentX (interpretAgentX)
 import Helic.Interpreter.GtkMain (interpretGtkMain, interpretWithGtk)
-import Helic.Interpreter.InstanceName (interpretInstanceName)
+import Helic.Data.InstanceName (InstanceName)
 import Helic.Interpreter.XClipboard (interpretXClipboardGtk)
 
 handleGtkClipboardTest ::
@@ -59,7 +59,7 @@ interpretGtk =
 test_gtkMain :: UnitTest
 test_gtkMain =
   runTest $
-  interpretInstanceName (Just "test") $
+  runReader @InstanceName "test" $
   interpretEventsChan @XClipboardEvent $
   interpretEventsChan @Event $
   interpretAtomic [] $

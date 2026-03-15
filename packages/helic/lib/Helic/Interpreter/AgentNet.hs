@@ -9,6 +9,7 @@ import qualified Polysemy.Log as Log
 import Process (Interrupt)
 
 import Helic.Data.Event (Event (source))
+import Helic.Data.Host (Host)
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.NetConfig (NetConfig (..))
 import Helic.Data.PeersError (PeersError (..))
@@ -22,6 +23,7 @@ import Helic.Net.Client (sendEventLog)
 import Helic.Net.Sign (KeyPair)
 
 withKeyPair ::
+  ∀ r .
   Member Manager r =>
   Members [Peers !! PeersError, Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
   NetConfig ->
@@ -32,6 +34,7 @@ withKeyPair NetConfig {timeout} keyPair =
     Update e ->
       resumeOr Peers.broadcastTargets (sendToTargets e) noTargets
   where
+    sendToTargets :: Event -> [Host] -> Sem r ()
     sendToTargets e =
       traverse_ \ host ->
         sendEventLog keyPair timeout host e {source = agentIdNet}

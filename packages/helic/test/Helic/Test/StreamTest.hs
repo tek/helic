@@ -42,7 +42,7 @@ test_stream = do
     runReader (NetConfig (Just True) (Just port) Nothing Nothing Nothing) $ withAsync_ serve do
       Sync.takeWait (Seconds 5) >>= \case
         Just ServerReady ->
-          mapError (UnsafeTestError . (.text)) $ interpretClientNet $ interpretQueueTBM 4 $ withAsyncGated_ stream do
+          mapError (TestError . (.text)) $ interpretClientNet $ interpretQueueTBM 4 $ withAsyncGated_ stream do
             ev1 <- Event.nowText "x" "line 1"
             History.receive ev1
             assertEq (Success ev1) =<< Queue.readTimeout (Seconds 1)

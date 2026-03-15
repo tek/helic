@@ -133,11 +133,17 @@
                 extra-libraries = ["wayland-client"];
                 cpp-options = ["-DWAYLAND_NATIVE"];
                 exposed-modules = [
-                  "Helic.Compat.Display"
                   "Helic.Interpreter.AgentWayland"
                   "Helic.Wayland.Ffi"
                   "Helic.Wayland.Monitor"
                   "Helic.Wayland.Protocol"
+                ];
+              }
+              {
+                condition = "flag(wayland) && !flag(x11)";
+                source-dirs = ["lib-wayland-compat"];
+                exposed-modules = [
+                  "Helic.Compat.Display"
                 ];
               }
 
@@ -286,6 +292,10 @@
       };
 
       envs = {
+
+        lower.overrides = {unbreak, notest, ...}: {
+          crypton-box = unbreak notest;
+        };
 
         latest.overrides = {buildInputs, hackage, jailbreak, unbreak, notest, ...}: {
           gi-gtk = buildInputs (p: [p.gtk4.dev]);
