@@ -9,13 +9,13 @@ import Time (Seconds (Seconds))
 
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
-import Helic.Data.Fatal (Fatal (..))
+
 import Helic.Data.Host (Host (Host))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Interpreter.Peers (interpretPeersPure)
 import Helic.Net.Api (serve)
-import Helic.Net.Client (sendTo)
+import Helic.Net.Client (sendEventEither)
 import Helic.Net.Server (ServerReady (ServerReady))
 import Helic.Net.Sign (KeyPair (..), encodePublicKey)
 import Helic.Test.HttpTest (UnitTest, runHttpTest)
@@ -43,7 +43,7 @@ assertSendFails ::
   Event ->
   Sem r ()
 assertSendFails clientKey port event =
-    runError @Fatal (sendTo clientKey Nothing (makeHost port) event) >>= \case
+    sendEventEither clientKey Nothing (makeHost port) event >>= \case
       Left _ -> pure ()
       Right () -> fail "Expected request to be rejected"
 
@@ -94,7 +94,7 @@ test_authServerAcceptsCorrectKey = do
         Sync.takeWait (Seconds 5) >>= \case
           Just ServerReady -> do
             event <- Event.nowText "test" "payload"
-            runError @Fatal (sendTo (Just clientKp) Nothing (makeHost port) event) >>= \case
+            sendEventEither (Just clientKp) Nothing (makeHost port) event >>= \case
               Left err -> fail [exon|Expected request to succeed, but got: ##{err}|]
               Right () -> pure ()
           Nothing -> fail "Server did not start within 5 seconds"

@@ -10,13 +10,13 @@ import Helic.Data.Event (Event)
 -- | An abstraction of the API, used by the @list@ command.
 data Client :: Effect where
   -- | Return all events currently in memory.
-  Get :: Client m (Either Text [Event])
+  Get :: Client m [Event]
   -- | Add a new event.
-  Yank :: Event -> Client m (Either Text ())
+  Yank :: Event -> Client m ()
   -- | Broadcast an older event.
-  Load :: Int -> Client m (Either Text Event)
+  Load :: Int -> Client m Event
   -- | Fetch an event by index without re-broadcasting.
-  Peek :: Maybe Int -> Client m (Either Text Event)
+  Peek :: Maybe Int -> Client m Event
   -- | Connect to the streaming endpoint and invoke the callback for each event.
   -- Run the first argument after successfully connecting.
   Listen :: m () -> (Event -> m ()) -> Client m ()
@@ -27,28 +27,28 @@ makeSem_ ''Client
 get ::
   ∀ r .
   Member Client r =>
-  Sem r (Either Text [Event])
+  Sem r [Event]
 
 -- | Add a new event.
 yank ::
   ∀ r .
   Member Client r =>
   Event ->
-  Sem r (Either Text ())
+  Sem r ()
 
 -- | Broadcast an older event.
 load ::
   ∀ r .
   Member Client r =>
   Int ->
-  Sem r (Either Text Event)
+  Sem r Event
 
 -- | Fetch an event by index without re-broadcasting.
 peek ::
   ∀ r .
   Member Client r =>
   Maybe Int ->
-  Sem r (Either Text Event)
+  Sem r Event
 
 listen ::
   ∀ r .

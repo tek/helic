@@ -9,12 +9,12 @@ import Polysemy.Final (withWeavingToFinal)
 import Polysemy.Http (Manager)
 import qualified Polysemy.Http.Effect.Manager as Manager
 import Polysemy.Internal.Tactics (liftT)
-import Servant.Client (ClientEnv (..), mkClientEnv)
+import Servant.Client (BaseUrl, ClientEnv (..), mkClientEnv)
 import Servant.Client.Streaming (ClientM, withClientM)
 import Servant.Types.SourceT (foreach)
 
+import Helic.Data.ClientError (ClientError (..))
 import Helic.Data.Event (Event)
-import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig)
@@ -23,7 +23,7 @@ import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
 import Helic.Net.Api (ListenFrame (ListenConnected, ListenEvent))
 import qualified Helic.Net.Client as Api
-import Helic.Net.Client (encryptRequest, fetchServerPublicKey, localhost, localhostUrl, sendTo)
+import Helic.Net.Client (encryptRequest, fetchServerPublicKey, localhost, localhostUrl, sendEvent)
 import Helic.Net.Sign (KeyPair (..))
 
 request ::
@@ -35,54 +35,57 @@ request env req =
   fmap join $ tryIOError $ withClientM req env (pure . first show)
 
 defaultRequest ::
-  Members [Manager, Reader NetConfig, Error Fatal, Embed IO] r =>
+  Members [Manager, Stop ClientError, Embed IO] r =>
+  BaseUrl ->
   ClientM a ->
-  Sem r (Either Text a)
-defaultRequest req = do
-  env <- mkClientEnv <$> Manager.get <*> localhostUrl
-  request env req
+  Sem r a
+defaultRequest url req = do
+  env <- mkClientEnv <$> Manager.get <*> pure url
+  stopEitherWith ClientError =<< request env req
 
 clientKeyPair ::
-  Members [KeyPairs !! KeyPairsError, Reader NetConfig, Error Fatal] r =>
+  Members [KeyPairs !! KeyPairsError, Reader NetConfig, Stop ClientError] r =>
   Sem r (Maybe KeyPair)
 clientKeyPair =
   asks NetConfig.authEnabled >>= \case
     True ->
-      Just <$> resumeHoistError coerce KeyPairs.obtainKeyPair
+      Just <$> resumeHoist (ClientError . (.unKeyPairsError)) KeyPairs.obtainKeyPair
     False ->
       pure Nothing
 
--- | Interpret 'Client' via HTTP.
-interpretClientNet ::
-  Members [KeyPairs !! KeyPairsError, Manager, Reader NetConfig, Log, Error Fatal, Race, Embed IO, Final IO] r =>
-  InterpreterFor Client r
-interpretClientNet =
-  interpretH \case
+interpretClientWith ::
+  Members [Manager, Reader NetConfig, Log, Race, Embed IO, Final IO] r =>
+  BaseUrl ->
+  Maybe KeyPair ->
+  InterpreterFor (Client !! ClientError) r
+interpretClientWith url keyPair =
+  interpretResumableH \case
     Get ->
       liftT do
-        defaultRequest Api.get
+        defaultRequest url Api.get
     Yank event ->
       liftT do
         host <- localhost
         timeout <- asks (.timeout)
-        clientKey <- clientKeyPair
-        first (.text) <$> runError (sendTo clientKey timeout host event)
-    Load event ->
+        sendEvent keyPair timeout host event
+    Load index ->
       liftT do
-        baseEnv <- mkClientEnv <$> Manager.get <*> localhostUrl
-        env <- clientKeyPair >>= \case
+        mgr <- Manager.get
+        let baseEnv = mkClientEnv mgr url
+        env <- case keyPair of
           Nothing -> pure baseEnv
           Just clientKey -> do
             serverPk <- fetchServerPublicKey baseEnv
             pure baseEnv {makeClientRequest = encryptRequest clientKey serverPk}
-        result <- request env (Api.load event)
-        pure (invalidIndex =<< result)
+        result <- request env (Api.load index)
+        stopNote invalidIndex =<< stopEitherWith ClientError result
     Peek index ->
       liftT do
-        result <- defaultRequest (Api.peek index)
-        pure (invalidIndex =<< result)
+        result <- defaultRequest url (Api.peek index)
+        stopNote invalidIndex result
     Listen connected f -> do
-      env <- mkClientEnv <$> Manager.get <*> localhostUrl
+      mgr <- Manager.get
+      let env = mkClientEnv mgr url
       withWeavingToFinal \ s lower _ -> do
         let
           lower' ma = void (lower (ma <$ s))
@@ -98,19 +101,35 @@ interpretClientNet =
         pure (() <$ s)
       unitT
   where
-    invalidIndex = maybeToRight "There is no event for that index"
+    invalidIndex = ClientError "There is no event for that index"
+
+-- | Interpret 'Client' via HTTP.
+--
+-- Acquires the localhost URL and client key pair once at initialization, since both are derived from static
+-- configuration and do not change during the lifetime of the interpreter.
+interpretClientNet ::
+  Members [KeyPairs !! KeyPairsError, Manager, Reader NetConfig, Log, Race, Embed IO, Final IO] r =>
+  InterpreterFor (Client !! ClientError) r
+interpretClientNet sem =
+  runStop ((,) <$> localhostUrl <*> clientKeyPair) >>= \case
+    Left (ClientError err) -> do
+      Log.error [exon|Client initialization failed: #{err}|]
+      interpretClientConst [] sem
+    Right (url, keyPair) ->
+      interpretClientWith url keyPair sem
 
 -- | Interpret 'Client' with a constant list of 'Event's and no capability to yank.
 interpretClientConst ::
   [Event] ->
-  InterpreterFor Client r
+  InterpreterFor (Client !! ClientError) r
 interpretClientConst evs =
-  interpretH \case
-    Get -> pureT (Right evs)
-    Yank _ -> pureT (Left "const client cannot yank")
-    Load _ -> pureT (Left "const client cannot load")
-    Peek _ -> pureT (Left "const client cannot peek")
+  interpretResumableH \case
+    Get -> pureT evs
+    Yank _ -> stop "const client cannot yank"
+    Load _ -> stop "const client cannot load"
+    Peek _ -> stop "const client cannot peek"
     Listen connected f -> do
       runTSimple connected
       for_ (head evs) \ e -> runTSimple (f e)
       unitT
+

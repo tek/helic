@@ -46,6 +46,7 @@ library
       Helic.Data.AgentId
       Helic.Data.AuthConfig
       Helic.Data.Beacon
+      Helic.Data.ClientError
       Helic.Data.Config
       Helic.Data.ContentType
       Helic.Data.DiscoveredPeer

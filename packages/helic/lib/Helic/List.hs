@@ -83,7 +83,7 @@ buildList ::
   Members [Reader ListConfig, Client, Error Fatal, Embed IO] r =>
   Sem r String
 buildList = do
-  history <- fromEither . first Fatal =<< Client.get
+  history <- Client.get
   limit <- asks (.limit)
   let
     dropper l =

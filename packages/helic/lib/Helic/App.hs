@@ -12,26 +12,27 @@ import Helic.Compat.Display (interpretDisplay)
 import Helic.Data.AuthConfig (AuthConfig (..))
 import qualified Helic.Data.Config
 import Helic.Data.Config (Config (Config, debounceMillis))
+import Helic.Data.ClientError (ClientError (..))
 import Helic.Data.Event (Event)
 import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.HistoryUpdate (HistoryUpdate)
+import Helic.Data.KeyPairsError (KeyPairsError)
 import Helic.Data.ListConfig (ListConfig)
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
 import Helic.Data.NetConfig (NetConfig (..))
 import Helic.Data.PasteConfig (PasteConfig)
 import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Data.YankConfig (YankConfig)
+import Helic.Discovery (runDiscoveryIfEnabled)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 import qualified Helic.Effect.History as History
+import Helic.Effect.KeyPairs (KeyPairs)
 import Helic.Interpreter.AgentNet (interpretAgentNetIfEnabled)
 import Helic.Interpreter.AgentTmux (interpretAgentTmuxIfEnabled)
 import Helic.Interpreter.Client (interpretClientNet)
-import Helic.Discovery (runDiscoveryIfEnabled)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Interpreter.InstanceName (interpretInstanceName)
-import Helic.Data.KeyPairsError (KeyPairsError)
-import Helic.Effect.KeyPairs (KeyPairs)
 import Helic.Interpreter.KeyPairs (interpretKeyPairs)
 import Helic.Interpreter.Peers (interpretPeersDefault)
 import Helic.List (list)
@@ -68,11 +69,17 @@ listenApp Config {..} =
     discoveryConf = fromMaybe def discovery
     configHosts = fold netConf.hosts
 
+resumeClientFatal ::
+  Members [Client !! ClientError, Error Fatal] r =>
+  Sem (Client : r) a ->
+  Sem r a
+resumeClientFatal =
+  resumeHoistError (Fatal . (.text))
 
 runClient ::
-  Members [Log, Error Fatal, Race, Embed IO, Final IO] r =>
+  Members [Log, Race, Embed IO, Final IO] r =>
   Maybe NetConfig ->
-  InterpretersFor [Client, KeyPairs !! KeyPairsError, Reader NetConfig, Manager] r
+  InterpretersFor [Client !! ClientError, KeyPairs !! KeyPairsError, Reader NetConfig, Manager] r
 runClient net =
   interpretManager .
   runReader (fromMaybe def net) .
@@ -94,6 +101,7 @@ yankApp ::
 yankApp Config {name, net} yankConfig =
   interpretInstanceName name $
   runClient net $
+  resumeClientFatal $
   yank yankConfig
 
 listApp ::
@@ -103,6 +111,7 @@ listApp ::
 listApp Config {net} listConfig =
   runReader listConfig $
   runClient net $
+  resumeClientFatal $
   list
 
 loadApp ::
@@ -111,7 +120,8 @@ loadApp ::
   Sem (Error Fatal : AppStack) ()
 loadApp Config {net} (LoadConfig event) =
   runClient net $
-  (void . fromEither . first Fatal =<< Client.load event)
+  resumeClientFatal $
+  void (Client.load event)
 
 pasteApp ::
   Config ->
@@ -119,4 +129,5 @@ pasteApp ::
   Sem (Error Fatal : AppStack) ()
 pasteApp Config {net} pasteConfig =
   runClient net $
+  resumeClientFatal $
   paste pasteConfig

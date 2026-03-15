@@ -15,6 +15,7 @@ import Servant.Client.Streaming (ClientM, mkClientEnv, withClientM)
 import qualified System.IO as IO
 import System.IO (BufferMode (NoBuffering), hFlush, hSetBuffering, stdout)
 
+import Helic.Data.ClientError (ClientError (..))
 import Helic.Data.Fatal (Fatal (Fatal))
 import Helic.Fatal (tryFatal)
 import Helic.Data.NetConfig (NetConfig)
@@ -42,7 +43,7 @@ apiRequest ::
   ClientM a ->
   Sem r a
 apiRequest action = do
-  url <- Client.localhostUrl
+  url <- stopToErrorWith coerce Client.localhostUrl
   mgr <- Manager.get
   let env = mkClientEnv mgr url
   embed (withClientM action env pure) >>= leftA \ err -> throw (Fatal [exon|Failed to connect to daemon: #{show err}|])

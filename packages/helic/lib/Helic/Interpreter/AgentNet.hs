@@ -9,7 +9,6 @@ import qualified Polysemy.Log as Log
 import Process (Interrupt)
 
 import Helic.Data.Event (Event (source))
-import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.NetConfig (NetConfig (..))
 import Helic.Data.PeersError (PeersError (..))
@@ -19,7 +18,7 @@ import Helic.Effect.KeyPairs (KeyPairs)
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
 import Helic.Interpreter.Agent (interpretAgentIf)
-import Helic.Net.Client (sendTo)
+import Helic.Net.Client (sendEventLog)
 import Helic.Net.Sign (KeyPair)
 
 withKeyPair ::
@@ -35,7 +34,7 @@ withKeyPair NetConfig {timeout} keyPair =
   where
     sendToTargets e =
       traverse_ \ host ->
-        leftA (Log.debug . (.text)) =<< runError (sendTo keyPair timeout host e {source = agentIdNet})
+        sendEventLog keyPair timeout host e {source = agentIdNet}
 
     noTargets (PeersError err) = Log.error [exon|Failed to get broadcast targets: #{err}|]
 

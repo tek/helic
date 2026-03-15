@@ -1,12 +1,15 @@
 module Helic.Test.ListTest where
 
 import Exon(exon)
-import Polysemy.Test (UnitTest, assertRight)
+import Polysemy.Test (UnitTest, assertEq)
 import Zeugma (runTestFrozen)
 
+import Helic.Data.ClientError (ClientError)
 import Helic.Data.AgentId (AgentId (AgentId))
+import Helic.Data.Fatal (Fatal (..))
 import qualified Helic.Data.Event as Event
 import Helic.Data.ListConfig (ListConfig (ListConfig))
+import Helic.Effect.Client (Client)
 import Helic.Interpreter.Client (interpretClientConst)
 import Helic.List (buildList)
 
@@ -42,4 +45,8 @@ test_list =
   runReader (ListConfig (Just 3)) do
     events <- traverse (Event.nowText (AgentId "nvim")) eventContents
     interpretClientConst events do
-      assertRight target =<< errorToIOFinal buildList
+      result <- runError @Fatal do
+        resumeAs @ClientError @Client (error "unreachable") buildList
+      case result of
+        Left err -> fail (toString err.text)
+        Right s -> assertEq target s

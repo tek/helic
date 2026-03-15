@@ -5,8 +5,6 @@ module Helic.Paste where
 
 import qualified Data.ByteString as BS
 import qualified Data.Text.IO as Text
-import Exon (exon)
-import qualified Log
 import System.IO (hIsTerminalDevice, stdout)
 
 import Helic.Data.ContentType (Content (..), isBinary)
@@ -67,16 +65,13 @@ writeContent = \case
 
 -- | Fetch a history event and write its content to stdout or a file.
 paste ::
-  Members [Client, Log, Error Fatal, Embed IO] r =>
+  Members [Client, Error Fatal, Embed IO] r =>
   PasteConfig ->
   Sem r ()
-paste conf =
-  Client.peek conf.event >>= \case
+paste conf = do
+  ev <- Client.peek conf.event
+  resolveTarget conf.target ev.content >>= \case
     Left err ->
-      Log.error [exon|Failed to fetch event: #{err}|]
-    Right ev ->
-      resolveTarget conf.target ev.content >>= \case
-        Left err ->
-          throw err
-        Right target ->
-          writeContent target ev.content
+      throw err
+    Right target ->
+      writeContent target ev.content
