@@ -17,7 +17,7 @@ import System.IO (BufferMode (NoBuffering), hFlush, hSetBuffering, stdout)
 
 import Helic.Data.ClientError (ClientError (..))
 import Helic.Data.Fatal (Fatal (Fatal))
-import Helic.Fatal (tryFatal)
+import Helic.Error (tryFatal)
 import Helic.Data.NetConfig (NetConfig)
 import Helic.Data.Peer (Peer (..))
 import Helic.Data.PublicKey (PublicKey (..))

@@ -11,8 +11,8 @@ import qualified Polysemy.Log as Log
 
 import qualified Helic.Effect.Gtk as Gtk
 import Helic.Effect.Gtk (Gtk)
+import Helic.Error (tryStop)
 import Helic.Gtk (getDisplay)
-import Helic.Stop (tryStop)
 
 -- | Initialize GTK, run the scoped action, then tear down the GTK environment.
 bracketGtk ::

@@ -25,8 +25,8 @@ import Text.Layout.Table (
 import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.ContentType (contentSummary)
 import Helic.Data.Event (Event (..))
-import Helic.Data.Fatal (Fatal (Fatal))
-import Helic.Fatal (tryFatal)
+import Helic.Data.Fatal (Fatal)
+import Helic.Error (tryFatal)
 import Helic.Data.InstanceName (InstanceName (InstanceName))
 import qualified Helic.Data.ListConfig as ListConfig
 import Helic.Data.ListConfig (ListConfig)
@@ -90,7 +90,7 @@ buildList = do
       drop (length history - l)
     events =
       maybe id dropper limit (toList history)
-  width <- fromMaybe 80 . join . rightToMaybe <$> (first Fatal <$> tryIOError (fmap TerminalSize.width <$> TerminalSize.size))
+  width <- fromMaybe 80 <$> tryFatal (fmap TerminalSize.width <$> TerminalSize.size)
   pure (maybe "No events yet!" (format width) (nonEmpty events))
 
 -- | Print a number of events to stdout.

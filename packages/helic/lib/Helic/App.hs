@@ -77,7 +77,7 @@ resumeClientFatal =
   resumeHoistError (Fatal . (.text))
 
 runClient ::
-  Members [Log, Race, Embed IO, Final IO] r =>
+  Members [Log, Error Fatal, Race, Embed IO, Final IO] r =>
   Maybe NetConfig ->
   InterpretersFor [Client !! ClientError, KeyPairs !! KeyPairsError, Reader NetConfig, Manager] r
 runClient net =

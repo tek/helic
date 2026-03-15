@@ -15,6 +15,7 @@ import Servant.Types.SourceT (foreach)
 
 import Helic.Data.ClientError (ClientError (..))
 import Helic.Data.Event (Event)
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig)
@@ -108,13 +109,12 @@ interpretClientWith url keyPair =
 -- Acquires the localhost URL and client key pair once at initialization, since both are derived from static
 -- configuration and do not change during the lifetime of the interpreter.
 interpretClientNet ::
-  Members [KeyPairs !! KeyPairsError, Manager, Reader NetConfig, Log, Race, Embed IO, Final IO] r =>
+  Members [KeyPairs !! KeyPairsError, Manager, Reader NetConfig, Error Fatal, Log, Race, Embed IO, Final IO] r =>
   InterpreterFor (Client !! ClientError) r
 interpretClientNet sem =
   runStop ((,) <$> localhostUrl <*> clientKeyPair) >>= \case
-    Left (ClientError err) -> do
-      Log.error [exon|Client initialization failed: #{err}|]
-      interpretClientConst [] sem
+    Left (ClientError err) ->
+      throw (Fatal [exon|Client initialization failed: #{err}|])
     Right (url, keyPair) ->
       interpretClientWith url keyPair sem
 

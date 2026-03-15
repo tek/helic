@@ -10,7 +10,7 @@ import System.IO (hIsTerminalDevice, stdout)
 import Helic.Data.ContentType (Content (..), isBinary)
 import Helic.Data.Event (Event (..))
 import Helic.Data.Fatal (Fatal (Fatal))
-import Helic.Fatal (tryFatal)
+import Helic.Error (tryFatal)
 import Helic.Data.PasteConfig (PasteConfig (..), PasteTarget (..))
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)

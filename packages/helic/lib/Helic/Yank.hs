@@ -17,7 +17,7 @@ import Helic.Data.YankConfig (YankConfig (..), YankSource (..))
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 import Helic.Data.Fatal (Fatal)
-import Helic.Fatal (tryFatal)
+import Helic.Error (tryFatal)
 
 -- | Infer the MIME type from a file path's extension.
 mimeFromPath :: FilePath -> MimeType

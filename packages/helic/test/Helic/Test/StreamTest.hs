@@ -10,6 +10,8 @@ import qualified Sync
 import Time (Seconds (Seconds))
 
 import Helic.Data.ClientError (ClientError)
+import Helic.Data.Fatal (Fatal (..))
+import Polysemy.Test.Data.TestError (TestError (..))
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
 import Helic.Data.NetConfig (NetConfig (NetConfig))
@@ -40,7 +42,7 @@ test_stream = do
     runReader (NetConfig (Just True) (Just port) Nothing Nothing Nothing) $ withAsync_ serve do
       Sync.takeWait (Seconds 5) >>= \case
         Just ServerReady ->
-          interpretClientNet $ interpretQueueTBM 4 $ withAsyncGated_ stream do
+          mapError (UnsafeTestError . (.text)) $ interpretClientNet $ interpretQueueTBM 4 $ withAsyncGated_ stream do
             ev1 <- Event.nowText "x" "line 1"
             History.receive ev1
             assertEq (Success ev1) =<< Queue.readTimeout (Seconds 1)

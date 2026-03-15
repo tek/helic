@@ -78,7 +78,7 @@ library
       Helic.Effect.History
       Helic.Effect.KeyPairs
       Helic.Effect.Peers
-      Helic.Fatal
+      Helic.Error
       Helic.Interpreter
       Helic.Interpreter.Agent
       Helic.Interpreter.AgentNet
@@ -98,7 +98,6 @@ library
       Helic.Net.Sign
       Helic.Net.Verify
       Helic.Paste
-      Helic.Stop
       Helic.Tmux
       Helic.Yank
   hs-source-dirs:

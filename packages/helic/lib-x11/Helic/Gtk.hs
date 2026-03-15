@@ -17,7 +17,7 @@ import Polysemy.Final (withWeavingToFinal)
 
 import qualified Helic.Data.Selection as Selection
 import Helic.Data.Selection (Selection)
-import Helic.Stop (tryStop)
+import Helic.Error (tryStop)
 
 -- | Safe wrapper around calls to the GTK API.
 -- This schedules an 'IO' action for execution on the GTK main loop thread, which is crucial for some actions to avoid
