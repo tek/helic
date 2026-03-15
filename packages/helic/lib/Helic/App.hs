@@ -13,6 +13,7 @@ import Helic.Data.AuthConfig (AuthConfig (..))
 import qualified Helic.Data.Config
 import Helic.Data.Config (Config (Config, debounceMillis))
 import Helic.Data.Event (Event)
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Data.ListConfig (ListConfig)
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
@@ -40,7 +41,7 @@ import Helic.Yank (yank)
 
 listenApp ::
   Config ->
-  Sem AppStack ()
+  Sem (Error Fatal : AppStack) ()
 listenApp Config {..} =
   runReader netConf $
   runReader (fromMaybe def x11) $
@@ -69,7 +70,7 @@ listenApp Config {..} =
 
 
 runClient ::
-  Members [Log, Error Text, Race, Embed IO, Final IO] r =>
+  Members [Log, Error Fatal, Race, Embed IO, Final IO] r =>
   Maybe NetConfig ->
   InterpretersFor [Client, KeyPairs !! KeyPairsError, Reader NetConfig, Manager] r
 runClient net =
@@ -79,7 +80,7 @@ runClient net =
   interpretClientNet
 
 runAuthClient ::
-  Members [Log, Error Text, Race, Embed IO, Final IO] r =>
+  Members [Log, Error Fatal, Race, Embed IO, Final IO] r =>
   Maybe NetConfig ->
   InterpretersFor [Reader NetConfig, Manager] r
 runAuthClient net =
@@ -89,7 +90,7 @@ runAuthClient net =
 yankApp ::
   Config ->
   YankConfig ->
-  Sem AppStack ()
+  Sem (Error Fatal : AppStack) ()
 yankApp Config {name, net} yankConfig =
   interpretInstanceName name $
   runClient net $
@@ -98,7 +99,7 @@ yankApp Config {name, net} yankConfig =
 listApp ::
   Config ->
   ListConfig ->
-  Sem AppStack ()
+  Sem (Error Fatal : AppStack) ()
 listApp Config {net} listConfig =
   runReader listConfig $
   runClient net $
@@ -107,15 +108,15 @@ listApp Config {net} listConfig =
 loadApp ::
   Config ->
   LoadConfig ->
-  Sem AppStack ()
+  Sem (Error Fatal : AppStack) ()
 loadApp Config {net} (LoadConfig event) =
   runClient net $
-  (void . fromEither =<< Client.load event)
+  (void . fromEither . first Fatal =<< Client.load event)
 
 pasteApp ::
   Config ->
   PasteConfig ->
-  Sem AppStack ()
+  Sem (Error Fatal : AppStack) ()
 pasteApp Config {net} pasteConfig =
   runClient net $
   paste pasteConfig

@@ -58,6 +58,7 @@ module Helic (
 
   -- * Data
   Event,
+  Fatal (..),
   Selection (..),
 
   -- * Utilities
@@ -77,6 +78,7 @@ import Prelude hiding (listen)
 
 import Helic.Data.AuthConfig (AuthConfig (..))
 import Helic.Data.Event (Event)
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.PeersError (PeersError (..))
 import Helic.Data.PublicKey (PublicKey (..))

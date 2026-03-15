@@ -14,6 +14,7 @@ import Helic.Data.ContentType (Content, contentSummary)
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
 import Helic.Data.InstanceName (InstanceName)
+import Helic.Data.Fatal (Fatal)
 import Helic.Data.Selection (Selection (Clipboard, Primary))
 import Helic.Data.WaylandConfig (WaylandConfig (WaylandConfig))
 import Helic.Effect.Agent (Agent (Update), AgentWayland, agentIdWayland)
@@ -81,7 +82,7 @@ interpretAgentWayland sem =
 -- | Interpret 'Agent' for Wayland if enabled by configuration.
 interpretWayland ::
   Members [Reader WaylandConfig, Events Event, Reader InstanceName] r =>
-  Members [ChronosTime, Log, Error Text, Race, Resource, Mask, Async, Embed IO, Final IO] r =>
+  Members [ChronosTime, Log, Error Fatal, Race, Resource, Mask, Async, Embed IO, Final IO] r =>
   InterpreterFor (Agent @@ AgentWayland) r
 interpretWayland sem =
   ask >>= \case

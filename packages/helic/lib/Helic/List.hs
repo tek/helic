@@ -25,6 +25,8 @@ import Text.Layout.Table (
 import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.ContentType (contentSummary)
 import Helic.Data.Event (Event (..))
+import Helic.Data.Fatal (Fatal (Fatal))
+import Helic.Fatal (tryFatal)
 import Helic.Data.InstanceName (InstanceName (InstanceName))
 import qualified Helic.Data.ListConfig as ListConfig
 import Helic.Data.ListConfig (ListConfig)
@@ -78,23 +80,23 @@ format width (toList -> events) =
 
 -- | Fetch all events from the server, limit them to the configured number and format them in a nice table.
 buildList ::
-  Members [Reader ListConfig, Client, Error Text, Embed IO] r =>
+  Members [Reader ListConfig, Client, Error Fatal, Embed IO] r =>
   Sem r String
 buildList = do
-  history <- fromEither =<< Client.get
+  history <- fromEither . first Fatal =<< Client.get
   limit <- asks (.limit)
   let
     dropper l =
       drop (length history - l)
     events =
       maybe id dropper limit (toList history)
-  width <- fromMaybe 80 . join . rightToMaybe <$> tryIOError (fmap TerminalSize.width <$> TerminalSize.size)
+  width <- fromMaybe 80 . join . rightToMaybe <$> (first Fatal <$> tryIOError (fmap TerminalSize.width <$> TerminalSize.size))
   pure (maybe "No events yet!" (format width) (nonEmpty events))
 
 -- | Print a number of events to stdout.
 list ::
-  Members [Reader ListConfig, Client, Error Text, Embed IO] r =>
+  Members [Reader ListConfig, Client, Error Fatal, Embed IO] r =>
   Sem r ()
 list = do
   s <- buildList
-  fromEither =<< tryIOError (putStrLn s)
+  tryFatal (putStrLn s)

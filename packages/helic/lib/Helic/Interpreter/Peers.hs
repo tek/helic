@@ -11,6 +11,7 @@ import Exon (exon)
 import Path (Abs, File, Path, parseAbsFile)
 
 import Helic.Data.DiscoveredPeer (DiscoveredPeer (..))
+import Helic.Data.Fatal (Fatal (Fatal))
 import Helic.Data.Host (Host (..))
 import Helic.Data.KeyStatus (KeyStatus (..))
 import Helic.Data.Peer (Peer (..))
@@ -131,7 +132,7 @@ interpretPeersState configAllowed authEnabled path =
 -- File not found is treated as first run (empty state).
 -- Other read errors are propagated as IO exceptions.
 interpretPeers ::
-  Members [Error Text, Log, Embed IO] r =>
+  Members [Error Fatal, Log, Embed IO] r =>
   [PublicKey] ->
   Bool ->
   [Host] ->
@@ -139,8 +140,8 @@ interpretPeers ::
   InterpreterFor (Peers !! PeersError) r
 interpretPeers configAllowed authEnabled configHosts path sem = do
   peers <- tryIOError (Persist.readPeerState path) >>= \case
-    Left e -> throw [exon|Failed to read peers file: #{e}|]
-    Right (Left e) -> throw [exon|Invalid peers file: #{e}|]
+    Left e -> throw (Fatal [exon|Failed to read peers file: #{e}|])
+    Right (Left e) -> throw (Fatal [exon|Invalid peers file: #{e}|])
     Right (Right peers) -> pure peers
   let targets = computeTargets configAllowed authEnabled configHosts [] peers
       initial = PeersState {peers, discovered = [], configHosts, targets}
@@ -150,7 +151,7 @@ interpretPeers configAllowed authEnabled configHosts path sem = do
 -- or a custom path from 'AuthConfig.peersFile' if set.
 -- Invalid custom paths cause a fatal error.
 interpretPeersDefault ::
-  Members [Error Text, Log, Embed IO] r =>
+  Members [Error Fatal, Log, Embed IO] r =>
   [PublicKey] ->
   Bool ->
   [Host] ->
@@ -160,7 +161,7 @@ interpretPeersDefault configAllowed authEnabled configHosts peersFile sem = do
   path <- case peersFile of
     Just f -> case parseAbsFile (toString f) of
       Just p -> pure p
-      Nothing -> throw ([exon|Invalid peers file path: #{f}|] :: Text)
+      Nothing -> throw (Fatal [exon|Invalid peers file path: #{f}|])
     Nothing -> embed Persist.defaultPeersPath
   interpretPeers configAllowed authEnabled configHosts path sem
 

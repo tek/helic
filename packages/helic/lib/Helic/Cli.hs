@@ -3,7 +3,6 @@
 -- | CLI entry point and command dispatch
 module Helic.Cli where
 
-
 import Options.Applicative (customExecParser, fullDesc, header, helper, info, prefs, showHelpOnEmpty, showHelpOnError)
 import Polysemy.Log (Severity (Info, Trace))
 import System.IO (hIsTerminalDevice, stdin)
@@ -13,9 +12,10 @@ import Helic.Auth (acceptAllApp, acceptPeerApp, authApp, listPendingApp, rejectP
 import Helic.Cli.Options (AuthCommand (..), Command (Auth, List, Listen, Load, Paste, Yank), Conf (Conf), parser)
 import Helic.Config.File (findFileConfig)
 import Helic.Data.Config (Config (..))
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.YankConfig (YankConfig (..), YankSource (..))
 
-runCommand :: Config -> Command -> Sem AppStack ()
+runCommand :: Config -> Command -> Sem (Error Fatal : AppStack) ()
 runCommand config = \case
   Listen ->
     listenApp config
@@ -43,10 +43,10 @@ defaultCommand =
 
 withCliOptions :: Conf -> Maybe Command -> IO ()
 withCliOptions (Conf cliVerbose file) cmd = do
-  config <- runLevel cliVerbose (findFileConfig file)
+  config <- runLevel cliVerbose (mapError (.text) $ findFileConfig file)
   runLevel (cliVerbose <|> config.verbose) do
     cmd' <- maybe defaultCommand pure cmd
-    runCommand config cmd'
+    mapError (.text) $ runCommand config cmd'
   where
     runLevel l = runAppLevel (level l)
     level = \case
@@ -62,3 +62,4 @@ app = do
       prefs (showHelpOnEmpty <> showHelpOnError)
     desc =
       fullDesc <> header "Helic is a clipboard synchronization tool."
+

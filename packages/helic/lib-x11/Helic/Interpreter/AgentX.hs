@@ -10,6 +10,7 @@ import Polysemy.Chronos (ChronosTime)
 import qualified Polysemy.Log as Log
 import Time (MilliSeconds (MilliSeconds), Seconds (Seconds))
 
+import Helic.Data.Fatal (Fatal)
 import qualified Helic.Data.ContentType as ContentType
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (Event))
@@ -64,7 +65,7 @@ interpretAgentX =
 -- | Interpret 'Agent' for X11 if it is enabled by the configuration.
 interpretX ::
   Members [Reader X11Config, Events Event, Reader InstanceName] r =>
-  Members [ChronosTime, Log, Error Text, Race, Resource, Mask, Async, Embed IO, Final IO] r =>
+  Members [ChronosTime, Log, Error Fatal, Race, Resource, Mask, Async, Embed IO, Final IO] r =>
   InterpreterFor (Agent @@ AgentX) r
 interpretX =
   interpretAgentIf @X11Config $

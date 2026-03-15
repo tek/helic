@@ -19,7 +19,8 @@ import Servant.Types.SourceT (SourceT)
 import Time (MilliSeconds (MilliSeconds))
 
 import Helic.Data.Event (Event)
-import Helic.Data.Host (Host (Host))
+import Helic.Data.Fatal (Fatal (Fatal))
+import Helic.Data.Host (Host (..))
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig, Timeout)
 import Helic.Data.Peer (Peer)
@@ -70,14 +71,14 @@ encryptRequest sender recipient burl coreReq =
 
 -- | Fetch the remote server's X25519 public key from the @/key@ endpoint to encrypt yank payloads.
 fetchServerPublicKey ::
-  Members [Error Text, Embed IO] r =>
+  Members [Error Fatal, Embed IO] r =>
   ClientEnv ->
   Sem r X25519.PublicKey
 fetchServerPublicKey env =
   embed (runClientM getKey env) >>= \case
-    Left err -> throw [exon|Failed to fetch server key: #{show err}|]
+    Left err -> throw (Fatal [exon|Failed to fetch server key: #{show err}|])
     Right keyText ->
-      fromEither (decodePublicKey (encodeUtf8 keyText))
+      fromEither (first Fatal $ decodePublicKey (encodeUtf8 keyText))
 
 -- | Send an event to a remote host.
 --
@@ -90,7 +91,7 @@ fetchServerPublicKey env =
 -- The server can then decrypt with its private key + our public key,
 -- which also authenticates us as the sender.
 sendTo ::
-  Members [Manager, Log, Race, Error Text, Embed IO] r =>
+  Members [Manager, Log, Race, Error Fatal, Embed IO] r =>
   Maybe KeyPair ->
   Maybe Timeout ->
   Host ->
@@ -98,7 +99,7 @@ sendTo ::
   Sem r ()
 sendTo configKeyPair configTimeout (Host addr) event = do
   Log.debug [exon|sending to #{addr}|]
-  url <- note [exon|Invalid host name: #{addr}|] (parseBaseUrl (toString addr))
+  url <- note (Fatal [exon|Invalid host name: #{addr}|]) (parseBaseUrl (toString addr))
   mgr <- Manager.get
   let
     timeout =
@@ -110,8 +111,9 @@ sendTo configKeyPair configTimeout (Host addr) event = do
     Just sender -> do
       serverPk <- fetchServerPublicKey baseEnv
       pure baseEnv {makeClientRequest = encryptRequest sender serverPk}
-  let req = fmap (first show) <$> tryAny (runClientM (yank event) env)
-  void . fromEither =<< fromEither =<< Conc.timeoutAs_ (Left "timed out") timeout req
+  let req = first (Fatal . show) <$> tryAny (runClientM (yank event) env)
+  result <- Conc.timeoutAs_ (Left (Fatal "timed out")) timeout req
+  fromEither result >>= void . fromEither . first (Fatal . show)
 
 localhost ::
   Member (Reader NetConfig) r =>
@@ -121,8 +123,8 @@ localhost = do
   pure (Host [exon|localhost:#{show (fromMaybe defaultPort port)}|])
 
 localhostUrl ::
-  Members [Reader NetConfig, Error Text] r =>
+  Members [Reader NetConfig, Error Fatal] r =>
   Sem r BaseUrl
 localhostUrl = do
   Host host <- localhost
-  note [exon|Invalid server port: #{host}|] (parseBaseUrl (toString host))
+  note (Fatal [exon|Invalid server port: #{host}|]) (parseBaseUrl (toString host))

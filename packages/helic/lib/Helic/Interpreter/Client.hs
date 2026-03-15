@@ -14,6 +14,7 @@ import Servant.Client.Streaming (ClientM, withClientM)
 import Servant.Types.SourceT (foreach)
 
 import Helic.Data.Event (Event)
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig)
@@ -34,7 +35,7 @@ request env req =
   fmap join $ tryIOError $ withClientM req env (pure . first show)
 
 defaultRequest ::
-  Members [Manager, Reader NetConfig, Error Text, Embed IO] r =>
+  Members [Manager, Reader NetConfig, Error Fatal, Embed IO] r =>
   ClientM a ->
   Sem r (Either Text a)
 defaultRequest req = do
@@ -42,8 +43,8 @@ defaultRequest req = do
   request env req
 
 clientKeyPair ::
-  Members [KeyPairs !! KeyPairsError, Reader NetConfig, Error Text] r' =>
-  Sem r' (Maybe KeyPair)
+  Members [KeyPairs !! KeyPairsError, Reader NetConfig, Error Fatal] r =>
+  Sem r (Maybe KeyPair)
 clientKeyPair =
   asks NetConfig.authEnabled >>= \case
     True ->
@@ -53,7 +54,7 @@ clientKeyPair =
 
 -- | Interpret 'Client' via HTTP.
 interpretClientNet ::
-  Members [KeyPairs !! KeyPairsError, Manager, Reader NetConfig, Log, Error Text, Race, Embed IO, Final IO] r =>
+  Members [KeyPairs !! KeyPairsError, Manager, Reader NetConfig, Log, Error Fatal, Race, Embed IO, Final IO] r =>
   InterpreterFor Client r
 interpretClientNet =
   interpretH \case
@@ -65,7 +66,7 @@ interpretClientNet =
         host <- localhost
         timeout <- asks (.timeout)
         clientKey <- clientKeyPair
-        runError (sendTo clientKey timeout host event)
+        first (.text) <$> runError (sendTo clientKey timeout host event)
     Load event ->
       liftT do
         baseEnv <- mkClientEnv <$> Manager.get <*> localhostUrl

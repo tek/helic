@@ -11,6 +11,7 @@ import Time (Seconds (Seconds))
 import Helic.App (listenApp, yankApp)
 import Helic.Config.File (findFileConfig)
 import Helic.Data.Config (Config (Config))
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Data.YankConfig (YankConfig (YankConfig), YankSource (..))
 
@@ -20,20 +21,20 @@ conf =
 
 listen :: IO ()
 listen =
-  runAppLevel Trace (withAsync_ setenv (listenApp conf))
+  runAppLevel Trace (mapError (.text) $ withAsync_ setenv (listenApp conf))
   where
     setenv =
       Time.sleep (Seconds 12) *> embed (setEnv "DISPLAY" ":0")
 
 listenSystem :: IO ()
 listenSystem =
-  runAppLevel Trace do
+  runAppLevel Trace $ mapError (.text) do
     config <- findFileConfig Nothing
     listenApp config
 
 yank :: IO ()
 yank =
-  runAppLevel Trace do
+  runAppLevel Trace $ mapError (.text) do
     config <- findFileConfig Nothing
     num :: Int64 <- embed randomIO
     yankApp config (YankConfig Nothing (DirectText [exon|yanky #{show num}|]))

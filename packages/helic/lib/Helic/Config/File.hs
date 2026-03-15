@@ -10,28 +10,29 @@ import Path.IO (XdgDirectory (XdgConfig), doesFileExist, getXdgDir)
 import qualified Polysemy.Log as Log
 
 import Helic.Data.Config (Config)
+import Helic.Data.Fatal (Fatal (Fatal))
 
 parseFileConfig ::
-  Members [Log, Error Text, Embed IO] r =>
+  Members [Log, Error Fatal, Embed IO] r =>
   Path Abs File ->
   Sem r Config
 parseFileConfig (toFilePath -> path) = do
   Log.debug [exon|Reading config file #{toText path}|]
   result <- tryIOError (decodeFileEither path)
-  fromEither (bimap formatError (fromMaybe def) =<< result)
+  fromEither (first Fatal $ bimap formatError (fromMaybe def) =<< result)
   where
     formatError exc =
       toText [exon|invalid config file: #{prettyPrintParseException exc}|]
 
 findConfigPath ::
-  Members [Log, Error Text, Embed IO] r =>
+  Members [Log, Error Fatal, Embed IO] r =>
   Maybe (Path Abs File) ->
   Sem r (Maybe (Path Abs File))
 findConfigPath = \case
   Just f ->
     doesFileExist f >>= \case
       True -> pure (Just f)
-      False -> throw [exon|config file doesn't exist: #{toText (toFilePath f)}|]
+      False -> throw (Fatal [exon|config file doesn't exist: #{toText (toFilePath f)}|])
   Nothing -> do
     xdgConf <- getXdgDir XdgConfig Nothing
     let
@@ -46,7 +47,7 @@ findConfigPath = \case
         flip justIf etcFile <$> doesFileExist etcFile
 
 findFileConfig ::
-  Members [Log, Error Text, Embed IO] r =>
+  Members [Log, Error Fatal, Embed IO] r =>
   Maybe (Path Abs File) ->
   Sem r Config
 findFileConfig cliFile = do

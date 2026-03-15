@@ -51,6 +51,7 @@ library
       Helic.Data.DiscoveredPeer
       Helic.Data.DiscoveryConfig
       Helic.Data.Event
+      Helic.Data.Fatal
       Helic.Data.HistoryUpdate
       Helic.Data.Host
       Helic.Data.InstanceName
@@ -76,6 +77,7 @@ library
       Helic.Effect.History
       Helic.Effect.KeyPairs
       Helic.Effect.Peers
+      Helic.Fatal
       Helic.Interpreter
       Helic.Interpreter.Agent
       Helic.Interpreter.AgentNet

@@ -8,11 +8,12 @@ import Network.HostName (getHostName)
 import qualified Polysemy.Error as Polysemy
 import GHC.IO.Exception (IOException)
 
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.InstanceName (InstanceName (InstanceName))
 
 -- | If no instance name was given in the config file, query the system's host name.
 determineName ::
-  Members [Error Text, Embed IO] r =>
+  Members [Error Fatal, Embed IO] r =>
   Maybe Text ->
   Sem r InstanceName
 determineName = \case
@@ -22,12 +23,12 @@ determineName = \case
     Polysemy.fromExceptionVia err (fromString <$> getHostName)
   where
     err (e :: IOException) =
-      [exon|No name in config and unable to determine hostname: #{show e}|]
+      Fatal [exon|No name in config and unable to determine hostname: #{show e}|]
 
 -- | Interpret @'Reader' 'InstanceName'@ using the name specified in the config file, falling back to the system's host
 -- name if it wasn't given.
 interpretInstanceName ::
-  Members [Error Text, Embed IO] r =>
+  Members [Error Fatal, Embed IO] r =>
   Maybe Text ->
   InterpreterFor (Reader InstanceName) r
 interpretInstanceName configName sem = do

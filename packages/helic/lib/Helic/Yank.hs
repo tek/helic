@@ -18,6 +18,8 @@ import Helic.Data.InstanceName (InstanceName)
 import Helic.Data.YankConfig (YankConfig (..), YankSource (..))
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
+import Helic.Data.Fatal (Fatal)
+import Helic.Fatal (tryFatal)
 
 -- | Infer the MIME type from a file path's extension.
 mimeFromPath :: FilePath -> MimeType
@@ -39,10 +41,10 @@ resolveSource = \case
 
 -- | Send an event to the server.
 yank ::
-  Members [Reader InstanceName, Client, ChronosTime, Log, Error Text, Embed IO] r =>
+  Members [Reader InstanceName, Client, ChronosTime, Log, Error Fatal, Embed IO] r =>
   YankConfig ->
   Sem r ()
 yank conf = do
-  content <- fromEither =<< tryIOError (resolveSource conf.source)
+  content <- tryFatal (resolveSource conf.source)
   event <- Event.now (AgentId (fromMaybe "cli" conf.agent)) content
   Client.yank event >>= leftA \ err -> Log.debug [exon|Http client error: #{err}|]

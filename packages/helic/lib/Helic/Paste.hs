@@ -11,16 +11,18 @@ import System.IO (hIsTerminalDevice, stdout)
 
 import Helic.Data.ContentType (Content (..), isBinary)
 import Helic.Data.Event (Event (..))
+import Helic.Data.Fatal (Fatal (Fatal))
+import Helic.Fatal (tryFatal)
 import Helic.Data.PasteConfig (PasteConfig (..), PasteTarget (..))
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 
 detectStdout ::
   Member (Embed IO) r =>
-  Sem r (Either Text PasteTarget)
+  Sem r (Either Fatal PasteTarget)
 detectStdout =
   tryIOError (hIsTerminalDevice stdout) <&> \case
-    Right True -> Left "Binary content cannot be written to a terminal (use -o FILE, or -o - to force)"
+    Right True -> Left (Fatal "Binary content cannot be written to a terminal (use -o FILE, or -o - to force)")
     _ -> Right PasteStdout
 
 -- | Determine the effective output target.
@@ -31,7 +33,7 @@ resolveTarget ::
   Member (Embed IO) r =>
   PasteTarget ->
   Content ->
-  Sem r (Either Text PasteTarget)
+  Sem r (Either Fatal PasteTarget)
 resolveTarget = \cases
   PasteStdout content
     | isBinary content -> detectStdout
@@ -41,17 +43,17 @@ resolveTarget = \cases
 
 -- | Write content to stdout.
 writeStdout ::
-  Members [Error Text, Embed IO] r =>
+  Members [Error Fatal, Embed IO] r =>
   Content ->
   Sem r ()
 writeStdout =
-  fromEither <=< tryIOError . \case
+  tryFatal . \case
     TextContent text -> Text.putStr text
     BinaryContent _ bytes -> BS.putStr bytes
 
 -- | Write content to the resolved target.
 writeContent ::
-  Members [Error Text, Embed IO] r =>
+  Members [Error Fatal, Embed IO] r =>
   PasteTarget ->
   Content ->
   Sem r ()
@@ -59,13 +61,13 @@ writeContent = \case
   PasteStdout -> writeStdout
   PasteForceStdout -> writeStdout
   PasteFile path ->
-    fromEither <=< tryIOError . \case
+    tryFatal . \case
       TextContent text -> Text.writeFile path text
       BinaryContent _ bytes -> BS.writeFile path bytes
 
 -- | Fetch a history event and write its content to stdout or a file.
 paste ::
-  Members [Client, Log, Error Text, Embed IO] r =>
+  Members [Client, Log, Error Fatal, Embed IO] r =>
   PasteConfig ->
   Sem r ()
 paste conf =

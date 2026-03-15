@@ -9,6 +9,7 @@ import Time (Seconds (Seconds))
 
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.Host (Host (Host))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Data.PublicKey (PublicKey (..))
@@ -36,15 +37,15 @@ serverConf port =
   NetConfig (Just True) (Just port) Nothing Nothing Nothing
 
 assertSendFails ::
-  Members [Error Text, Manager, Log, Race, Embed IO] r =>
+  Members [Fail, Manager, Log, Race, Embed IO] r =>
   Maybe KeyPair ->
   Int ->
   Event ->
   Sem r ()
-assertSendFails clientKey port event = do
-    runError @Text (sendTo clientKey Nothing (makeHost port) event) >>= \case
+assertSendFails clientKey port event =
+    runError @Fatal (sendTo clientKey Nothing (makeHost port) event) >>= \case
       Left _ -> pure ()
-      Right () -> throw "Expected request to be rejected"
+      Right () -> fail "Expected request to be rejected"
 
 -- | Server with an allow list, client sends without any key pair -> rejected (no X-Helic-Public-Key header).
 test_authServerRejectsUnsigned :: UnitTest
@@ -93,5 +94,7 @@ test_authServerAcceptsCorrectKey = do
         Sync.takeWait (Seconds 5) >>= \case
           Just ServerReady -> do
             event <- Event.nowText "test" "payload"
-            sendTo (Just clientKp) Nothing (makeHost port) event
+            runError @Fatal (sendTo (Just clientKp) Nothing (makeHost port) event) >>= \case
+              Left err -> fail [exon|Expected request to succeed, but got: ##{err}|]
+              Right () -> pure ()
           Nothing -> fail "Server did not start within 5 seconds"
