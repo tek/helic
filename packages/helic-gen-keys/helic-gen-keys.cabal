@@ -64,13 +64,13 @@ executable helic-gen-keys
       ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
   build-depends:
-      base >=4.17.2.1 && <4.22
-    , base64-bytestring <1.3
-    , bytestring <0.13
-    , crypton <1.1
-    , incipit-base <0.7
-    , memory <0.19
-    , optparse-applicative >=0.16.1.0 && <0.20
+      base >=4.19.2.0 && <4.22
+    , base64-bytestring >=1.2.1.0 && <1.3
+    , bytestring >=0.12.1.0 && <0.13
+    , crypton >=1.0.0 && <1.1
+    , incipit-base >=0.6.1.0 && <0.7
+    , memory >=0.18.0 && <0.19
+    , optparse-applicative >=0.18.1.0 && <0.20
   mixins:
       base hiding (Prelude)
     , incipit-base (IncipitBase as Prelude)

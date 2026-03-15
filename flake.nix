@@ -280,6 +280,10 @@
         enable = true;
         latest.compiler = "ghc912";
         lower.enable = true;
+        lower.envs.solverOverrides = {jailbreak, unbreak, notest, ...}: {
+          crypton-box = jailbreak unbreak notest;
+        };
+
         latest.envs.solverOverrides = {buildInputs, enable, hackage, jailbreak, unbreak, notest, ...}: {
           helic = enable "wayland";
           gi-gtk = buildInputs (p: [p.gtk4.dev p.pkg-config]);
