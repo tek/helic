@@ -10,6 +10,7 @@ import Helic.Test.ContentTest (
   test_insertImageEvent,
   )
 import Helic.Test.InsertEventTest (test_insertEvent)
+import Helic.Test.KeyFileTest (test_literalKey, test_fileKey, test_nonexistentFileKey, test_resolveAuthConfig)
 import Helic.Test.ListTest (test_list)
 import Helic.Test.ListenTest (test_listen)
 import Helic.Test.LoadTest (test_load)
@@ -50,6 +51,10 @@ tests :: TestTree
 tests =
   testGroup "all" $
   [
+    unitTest "key file: literal key" test_literalKey,
+    unitTest "key file: read from file" test_fileKey,
+    unitTest "key file: nonexistent path" test_nonexistentFileKey,
+    unitTest "key file: resolve auth config" test_resolveAuthConfig,
     unitTest "insert an event" test_insertEvent,
     unitTest "content JSON roundtrip text" test_contentJsonText,
     unitTest "content JSON roundtrip binary" test_contentJsonBinary,

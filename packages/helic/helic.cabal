@@ -43,6 +43,7 @@ library
       Helic.Cli
       Helic.Cli.Options
       Helic.Config.File
+      Helic.Config.Key
       Helic.Data.AgentId
       Helic.Data.AuthConfig
       Helic.Data.Beacon
@@ -149,6 +150,7 @@ library
     , chronos >=1.1.6.2 && <1.2
     , crypton >=1.0.0 && <1.1
     , crypton-box >=1.1.0 && <1.2
+    , directory
     , exon >=1.6.1.1 && <1.8
     , fast-logger >=3.1.2 && <3.3
     , gi-gdk >=4.0.10 && <4.1
@@ -308,6 +310,7 @@ test-suite helic-test
       Helic.Test.DiscoveryTest
       Helic.Test.HttpTest
       Helic.Test.InsertEventTest
+      Helic.Test.KeyFileTest
       Helic.Test.ListenTest
       Helic.Test.ListTest
       Helic.Test.LoadTest

@@ -9,6 +9,7 @@ import Polysemy.Http (Manager)
 import Polysemy.Http.Interpreter.Manager (interpretManager)
 
 import Helic.Compat.Display (interpretDisplay)
+import Helic.Config.Key (resolveAuthConfig)
 import Helic.Data.AuthConfig (AuthConfig (..))
 import qualified Helic.Data.Config
 import Helic.Data.Config (Config (Config, debounceMillis))
@@ -43,29 +44,29 @@ import Helic.Yank (yank)
 listenApp ::
   Config ->
   Sem (Error Fatal : AppStack) ()
-listenApp Config {..} =
-  runReader netConf $
-  runReader (fromMaybe def x11) $
-  runReader (fromMaybe def wayland) $
-  runReader (fromMaybe def tmux) $
-  interpretEventsChan @Event $
-  interpretEventsChan @HistoryUpdate $
-  interpretAtomic mempty $
-  interpretInstanceName name $
-  interpretManager $
-  interpretPeersDefault (PublicKey <$> fold authConf.allowedKeys) (authConf.enable == Just True) configHosts authConf.peersFile $
-  interpretKeyPairs $
-  runDiscoveryIfEnabled discoveryConf netConf $
-  interpretDisplay $
-  interpretAgentNetIfEnabled $
-  interpretAgentTmuxIfEnabled $
-  interpretHistory maxHistory debounceMillis $
-  interpretSync $
-  withAsync_ serve $
-  Conc.subscribeLoop History.receive
+listenApp Config {..} = do
+  authConf <- embed (resolveAuthConfig (fromMaybe def netConf.auth))
+  runReader netConf
+    $ runReader (fromMaybe def x11)
+    $ runReader (fromMaybe def wayland)
+    $ runReader (fromMaybe def tmux)
+    $ interpretEventsChan @Event
+    $ interpretEventsChan @HistoryUpdate
+    $ interpretAtomic mempty
+    $ interpretInstanceName name
+    $ interpretManager
+    $ interpretPeersDefault (PublicKey <$> fold authConf.allowedKeys) (authConf.enable == Just True) configHosts authConf.peersFile
+    $ interpretKeyPairs
+    $ runDiscoveryIfEnabled discoveryConf netConf
+    $ interpretDisplay
+    $ interpretAgentNetIfEnabled
+    $ interpretAgentTmuxIfEnabled
+    $ interpretHistory maxHistory debounceMillis
+    $ interpretSync
+    $ withAsync_ serve
+    $ Conc.subscribeLoop History.receive
   where
     netConf = fromMaybe def net
-    authConf = fromMaybe def netConf.auth
     discoveryConf = fromMaybe def discovery
     configHosts = fold netConf.hosts
 
