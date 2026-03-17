@@ -4,7 +4,7 @@
 module Helic.Data.NetConfig where
 
 import Helic.Data.AuthConfig (AuthConfig (..))
-import Helic.Data.Host (Host)
+import Helic.Data.Host (PeerSpec)
 
 newtype Timeout =
   Timeout { unTimeout :: Int }
@@ -18,7 +18,7 @@ data NetConfig =
     enable :: Maybe Bool,
     port :: Maybe Int,
     timeout :: Maybe Timeout,
-    hosts :: Maybe [Host],
+    hosts :: Maybe [PeerSpec],
     auth :: Maybe AuthConfig
   }
   deriving stock (Eq, Show, Generic)

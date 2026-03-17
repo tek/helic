@@ -3,8 +3,10 @@
 -- | Base64-encoded X25519 public key
 module Helic.Data.PublicKey where
 
+import Data.Aeson (FromJSONKey, ToJSONKey)
+
 -- | A base64-encoded X25519 public key transmitted in headers and peer state.
 newtype PublicKey =
   PublicKey { unPublicKey :: Text }
   deriving stock (Eq, Ord, Show)
-  deriving newtype (IsString, ToJSON, FromJSON)
+  deriving newtype (IsString, ToJSON, FromJSON, ToJSONKey, FromJSONKey)

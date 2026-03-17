@@ -8,7 +8,6 @@ module Helic.Net.Beacon where
 
 import qualified Data.Aeson as Aeson
 import Data.Bitraversable.Compat (firstA)
-import Exon (exon)
 import qualified Network.Socket as Sock
 import Network.Socket (
   Family (AF_INET),
@@ -24,6 +23,7 @@ import Network.Socket (
 import Network.Socket.ByteString (recvFrom, sendAllTo)
 
 import Helic.Data.Beacon (Beacon)
+import Helic.Net.Address (formatHostAddr)
 
 defaultDiscoveryPort :: Int
 defaultDiscoveryPort = 9501
@@ -59,11 +59,6 @@ sendBeacon sock port beacon =
 receiveBeacon :: Socket -> IO (Maybe (Beacon, SockAddr))
 receiveBeacon sock =
   firstA Aeson.decodeStrict <$> recvFrom sock maxBeaconSize
-
--- | Format a host address tuple as a dotted-quad string.
-formatHostAddr :: (Word8, Word8, Word8, Word8) -> Text
-formatHostAddr (a, b, c, d) =
-  [exon|#{show a}.#{show b}.#{show c}.#{show d}|]
 
 -- | Extract an IP address.
 peerHost :: SockAddr -> Maybe Text

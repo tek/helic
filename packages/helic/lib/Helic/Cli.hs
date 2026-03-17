@@ -31,8 +31,8 @@ runCommand config = \case
     runAuthClient config.net case authCmd of
       AuthInteractive -> authApp
       AuthList -> listPendingApp
-      AuthAccept host -> acceptPeerApp host
-      AuthReject host -> rejectPeerApp host
+      AuthAccept spec -> acceptPeerApp spec
+      AuthReject spec -> rejectPeerApp spec
       AuthAcceptAll -> acceptAllApp
 
 defaultCommand :: Sem AppStack Command

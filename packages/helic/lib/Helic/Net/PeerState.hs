@@ -1,96 +1,126 @@
 {-# options_haddock hide, prune #-}
 
--- | Persistent peer state file management
+-- | Pure peer state operations
 --
--- Stores peer authorization decisions (allowed, rejected, pending) in a YAML file
--- in the XDG state directory.
+-- Functions for querying and modifying peer authorization state.
 module Helic.Net.PeerState where
 
-import qualified Data.ByteString as BS
-import Exon (exon)
-import qualified Data.Yaml as Yaml
-import Path (Abs, File, Path, parent, reldir, relfile, toFilePath, (</>))
-import Path.IO (XdgDirectory (XdgState), createDirIfMissing, doesFileExist, getXdgDir)
+import qualified Data.Map.Strict as Map
 
+import Helic.Data.AuthStatus (AuthStatus (..))
+import Helic.Data.Host (PeerAddress (..), PeerSpec (..))
 import Helic.Data.Peer (Peer (..))
-import Helic.Data.PeerState (PeerState (..))
-import Helic.Data.PublicKey (PublicKey (..))
+import Helic.Data.PeerAuth (PeerAuth (..), PeerHost (..))
+import Helic.Data.AuthState (AuthState (..))
+import Helic.Data.PublicKey (PublicKey)
 
-matchKey :: PublicKey -> Peer -> Bool
-matchKey key peer = peer.publicKey == key
+-- | Look up the status of a public key.
+lookupStatus :: PublicKey -> AuthState -> Maybe AuthStatus
+lookupStatus key (AuthState ps) =
+  (.status) <$> Map.lookup key ps
 
-containsKey :: Foldable t => PublicKey -> t Peer -> Bool
-containsKey key = any (matchKey key)
+-- | Insert or update a peer entry, respecting 'AuthStatus' precedence.
+-- If the key already exists, the new entry wins only if its status has higher priority (higher 'Ord' value).
+-- When the new entry wins, a known host from the existing entry is preserved if the new host is unknown.
+insertPeer :: AuthState -> PublicKey -> PeerAuth -> AuthState
+insertPeer (AuthState ps) key new =
+  AuthState (Map.alter go key ps)
+  where
+    go = \case
+      Nothing -> Just new
+      Just existing
+        | newHasPriority existing -> Just (preserveKnownHost existing new)
+        | otherwise -> Just existing
 
--- | Default path for the peers state file.
-defaultPeersPath :: IO (Path Abs File)
-defaultPeersPath = do
-  stateDir <- getXdgDir XdgState (Just [reldir|helic|])
-  pure (stateDir </> [relfile|peers.yaml|])
+    newHasPriority existing = new.status >= existing.status
 
--- | Read the peer state from a file, returning 'Default' if the file doesn't exist.
-readPeerState :: Path Abs File -> IO (Either Text PeerState)
-readPeerState path =
-  doesFileExist path >>= \case
-    False -> pure (Right def)
-    True -> do
-      raw <- BS.readFile (toFilePath path)
-      pure case Yaml.decodeEither' raw of
-        Left err -> Left [exon|Invalid peers file #{toText (toFilePath path)}: #{show err}|]
-        Right ps -> Right ps
+    preserveKnownHost PeerAuth {peerHost} entry = case entry.peerHost of
+      PeerHostUnknown -> entry {peerHost}
+      PeerHostKnown _ -> entry
 
--- | Write the peer state to a file.
-writePeerState :: Path Abs File -> PeerState -> IO ()
-writePeerState path ps = do
-  createDirIfMissing True (parent path)
-  BS.writeFile (toFilePath path) (Yaml.encode ps)
+-- | Whether a public key is known (allowed or rejected, not pending).
+isKnownKey :: PublicKey -> AuthState -> Bool
+isKnownKey key ps =
+  maybe False checkStatus (lookupStatus key ps)
+  where
+    checkStatus = \case
+      Allowed -> True
+      ConfigAllowed -> True
+      Rejected -> True
+      Pending -> False
 
--- | Modify the peer state file atomically (read-modify-write).
-modifyPeerState :: Path Abs File -> (PeerState -> PeerState) -> IO (Either Text PeerState)
-modifyPeerState path f =
-  readPeerState path >>= \case
-    Left err -> pure (Left err)
-    Right ps -> do
-      let ps' = f ps
-      Right ps' <$ writePeerState path ps'
+-- | Add a peer as pending if it isn't known.
+-- Since 'Pending' has the lowest priority, this only inserts if the key is absent.
+addPending :: Peer -> AuthState -> AuthState
+addPending Peer {host, publicKey} ps =
+  insertPeer ps publicKey PeerAuth {peerHost = PeerHostKnown host, status = Pending}
 
--- | Whether a public key is in the allowed list.
-isAllowedKey :: PublicKey -> PeerState -> Bool
-isAllowedKey key PeerState {allowed} =
-  containsKey key allowed
+-- | Set a peer's authorization status.
+setStatus :: AuthStatus -> PublicKey -> AuthState -> AuthState
+setStatus status key (AuthState ps) =
+  AuthState (Map.adjust (#status .~ status) key ps)
 
--- | Whether a public key is in the pending list.
-isPendingKey :: PublicKey -> PeerState -> Bool
-isPendingKey key PeerState {pending} =
-  containsKey key pending
+-- | Accept a pending peer, changing its status to allowed.
+acceptPeer :: PublicKey -> AuthState -> AuthState
+acceptPeer = setStatus Allowed
 
--- | Whether a public key is in the rejected list.
-isRejectedKey :: PublicKey -> PeerState -> Bool
-isRejectedKey key PeerState {rejected} =
-  containsKey key rejected
+-- | Reject a pending peer, changing its status to rejected.
+rejectPeer :: PublicKey -> AuthState -> AuthState
+rejectPeer = setStatus Rejected
 
--- | Whether a public key appears in the allowed or rejected lists.
-isKnownKey :: PublicKey -> PeerState -> Bool
-isKnownKey key state =
-  isAllowedKey key state || containsKey key state.rejected
+-- | Accept all pending peers in a single map traversal.
+acceptAllPending :: AuthState -> AuthState
+acceptAllPending (AuthState ps) =
+  AuthState (Map.map acceptIfPending ps)
+  where
+    acceptIfPending entry
+      | Pending <- entry.status = entry {status = Allowed}
+      | otherwise = entry
 
--- | Add a peer to the pending list if it's not already known.
-addPending :: Peer -> PeerState -> PeerState
-addPending peer ps
-  | isKnownKey peer.publicKey ps = ps
-  | isPendingKey peer.publicKey ps = ps
-  | otherwise = ps {pending = peer : ps.pending}
+-- | Collect hosts of all authorized peers (both 'Allowed' and 'ConfigAllowed').
+allowedHosts :: AuthState -> [PeerAddress]
+allowedHosts (AuthState ps) =
+  Map.foldlWithKey' acc [] ps
+  where
+    acc hosts _ = \case
+      PeerAuth {peerHost = PeerHostKnown host, status}
+        | isAuthorized status
+        -> host : hosts
+      _ -> hosts
 
-updatePending :: ([Peer] -> PeerState -> PeerState) -> PublicKey -> PeerState -> PeerState
-updatePending f key ps =
-  f (filter (matchKey key) ps.pending) ps { pending = filter (not . matchKey key) ps.pending }
+    isAuthorized status = status == Allowed || status == ConfigAllowed
 
--- | Accept a pending peer, moving it from pending to allowed.
-acceptPeer :: PublicKey -> PeerState -> PeerState
-acceptPeer =
-  updatePending \ accepted -> #allowed <>~ accepted
+-- | List all pending peers.
+pendingPeers :: AuthState -> [Peer]
+pendingPeers (AuthState ps) =
+  mapMaybe (uncurry select) (Map.toList ps)
+  where
+    select publicKey = \case
+      PeerAuth {peerHost = PeerHostKnown host, status = Pending} ->
+        Just Peer {host, publicKey}
+      _ -> Nothing
 
--- | Reject a pending peer, moving it from pending to rejected.
-rejectPeer :: PublicKey -> PeerState -> PeerState
-rejectPeer =
-  updatePending \ rejected -> #rejected <>~ rejected
+-- | Unconditionally set the host of an existing peer entry.
+-- Used after successful cryptographic authentication to record the peer's current address.
+setHost :: PublicKey -> PeerAddress -> AuthState -> AuthState
+setHost key addr (AuthState ps) =
+  AuthState (Map.adjust (#peerHost .~ PeerHostKnown addr) key ps)
+
+-- | Find a peer's public key by host.
+findKeyByHost :: PeerAddress -> AuthState -> Maybe PublicKey
+findKeyByHost addr (AuthState ps) =
+  fst <$> find (\ (_, e) -> e.peerHost == PeerHostKnown addr) (Map.toList ps)
+
+-- | Find a peer's public key by spec.
+-- When the spec has no port, matches any peer with the same host.
+-- When the spec has a port, matches exactly.
+findKeyBySpec :: PeerSpec -> AuthState -> Maybe PublicKey
+findKeyBySpec spec (AuthState ps) =
+  fst <$> find (\ (_, e) -> matchesPeerHost e.peerHost) (Map.toList ps)
+  where
+    matchesPeerHost = \case
+      PeerHostKnown addr -> matchesSpec addr
+      PeerHostUnknown -> False
+
+    matchesSpec PeerAddress {host = h, port = p} =
+      spec.host == h && maybe True (== p) spec.port

@@ -20,13 +20,13 @@ import Time (MilliSeconds (MilliSeconds))
 
 import Helic.Data.ClientError (ClientError (..))
 import Helic.Data.Event (Event)
-import Helic.Data.Host (Host (..))
+import Helic.Data.Host (PeerAddress (..), PeerSpec, defaultPort, formatAddress)
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig, Timeout)
 import Helic.Data.Peer (Peer)
-import Helic.Net.Api (Api, ListenFrame, defaultPort)
+import Helic.Net.Api (Api, ListenFrame)
 import Helic.Net.Sign (KeyPair (..), decodePublicKey, encodePublicKey, seal)
-import Helic.Net.Verify (publicKeyHeader)
+import Helic.Net.Verify (authHeader, publicKeyHeader)
 
 extractBody :: Client.RequestBody -> ByteString
 extractBody = \case
@@ -41,8 +41,8 @@ peek :: Maybe Int -> ClientM (Maybe Event)
 listen :: ClientM (SourceT IO ListenFrame)
 getKey :: ClientM Text
 listPending :: ClientM [Peer]
-acceptPeer :: Text -> ClientM NoContent
-rejectPeer :: Text -> ClientM NoContent
+acceptPeer :: PeerSpec -> ClientM NoContent
+rejectPeer :: PeerSpec -> ClientM NoContent
 acceptAllPeers :: ClientM NoContent
 (get :<|> yank :<|> load :<|> peek :<|> listen)
   :<|>
@@ -61,11 +61,15 @@ encryptRequest :: KeyPair -> X25519.PublicKey -> BaseUrl -> Core.Request -> IO C
 encryptRequest sender recipient burl coreReq =
   defaultMakeClientRequest burl coreReq >>= \ req -> do
     let body = extractBody (Client.requestBody req)
-    seal sender recipient body <&> \ ciphertext ->
-      req {
-        Client.requestBody = Client.RequestBodyBS (Base64.encode ciphertext),
-        Client.requestHeaders = (publicKeyHeader, senderPublicKey) : Client.requestHeaders req
-      }
+    ciphertext <- seal sender recipient body
+    authCiphertext <- seal sender recipient (Client.path req)
+    pure req {
+      Client.requestBody = Client.RequestBodyBS (Base64.encode ciphertext),
+      Client.requestHeaders =
+        (publicKeyHeader, senderPublicKey) :
+        (authHeader, Base64.encode authCiphertext) :
+        Client.requestHeaders req
+    }
   where
     senderPublicKey = encodeUtf8 (encodePublicKey sender.publicKey)
 
@@ -94,12 +98,13 @@ sendEvent ::
   Members [Manager, Log, Race, Stop ClientError, Embed IO] r =>
   Maybe KeyPair ->
   Maybe Timeout ->
-  Host ->
+  PeerAddress ->
   Event ->
   Sem r ()
-sendEvent configKeyPair configTimeout (Host addr) event = do
-  Log.debug [exon|sending to #{addr}|]
-  url <- stopNote (ClientError [exon|Invalid host name: #{addr}|]) (parseBaseUrl (toString addr))
+sendEvent configKeyPair configTimeout addr event = do
+  let formatted = formatAddress addr
+  Log.debug [exon|sending to #{formatted}|]
+  url <- stopNote (ClientError [exon|Invalid host name: #{formatted}|]) (parseBaseUrl (toString formatted))
   mgr <- Manager.get
   let
     timeout =
@@ -120,33 +125,34 @@ sendEventEither ::
   Members [Manager, Log, Race, Embed IO] r =>
   Maybe KeyPair ->
   Maybe Timeout ->
-  Host ->
+  PeerAddress ->
   Event ->
   Sem r (Either ClientError ())
-sendEventEither keyPair timeout host event =
-  runStop (sendEvent keyPair timeout host event)
+sendEventEither keyPair timeout addr event =
+  runStop (sendEvent keyPair timeout addr event)
 
 -- | Send an event to a remote host, logging the error on failure.
 sendEventLog ::
   Members [Manager, Log, Race, Embed IO] r =>
   Maybe KeyPair ->
   Maybe Timeout ->
-  Host ->
+  PeerAddress ->
   Event ->
   Sem r ()
-sendEventLog keyPair timeout host event =
-  sendEventEither keyPair timeout host event >>= leftA \ (ClientError err) -> Log.debug [exon|Failed to send event: #{err}|]
+sendEventLog keyPair timeout addr event =
+  sendEventEither keyPair timeout addr event >>= leftA \ (ClientError err) -> Log.debug [exon|Failed to send event: #{err}|]
 
 localhost ::
   Member (Reader NetConfig) r =>
-  Sem r Host
+  Sem r PeerAddress
 localhost = do
   port <- asks (.port)
-  pure (Host [exon|localhost:#{show (fromMaybe defaultPort port)}|])
+  pure PeerAddress {host = "localhost", port = fromMaybe defaultPort port}
 
 localhostUrl ::
   Members [Reader NetConfig, Stop ClientError] r =>
   Sem r BaseUrl
 localhostUrl = do
-  Host host <- localhost
-  stopNote (ClientError [exon|Invalid server port: #{host}|]) (parseBaseUrl (toString host))
+  addr <- localhost
+  let formatted = formatAddress addr
+  stopNote (ClientError [exon|Invalid server port: #{formatted}|]) (parseBaseUrl (toString formatted))

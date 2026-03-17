@@ -11,23 +11,26 @@ import Polysemy.Http.Interpreter.Manager (interpretManager)
 import Helic.Compat.Display (interpretDisplay)
 import Helic.Config.Key (resolveAuthConfig)
 import Helic.Data.AuthConfig (AuthConfig (..))
+import Helic.Data.ClientError (ClientError (..))
 import qualified Helic.Data.Config
 import Helic.Data.Config (Config (Config, debounceMillis))
-import Helic.Data.ClientError (ClientError (..))
 import Helic.Data.Event (Event)
 import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.HistoryUpdate (HistoryUpdate)
-import Helic.Data.KeyPairsError (KeyPairsError)
+import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.ListConfig (ListConfig)
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
+import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig (..))
 import Helic.Data.PasteConfig (PasteConfig)
+import Helic.Data.PeersError (PeersError (..))
 import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Data.YankConfig (YankConfig)
 import Helic.Discovery (runDiscoveryIfEnabled)
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
 import qualified Helic.Effect.History as History
+import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
 import Helic.Interpreter.AgentNet (interpretAgentNetIfEnabled)
 import Helic.Interpreter.AgentTmux (interpretAgentTmuxIfEnabled)
@@ -35,9 +38,12 @@ import Helic.Interpreter.Client (interpretClientNet)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Interpreter.InstanceName (interpretInstanceName)
 import Helic.Interpreter.KeyPairs (interpretKeyPairs)
-import Helic.Interpreter.Peers (interpretPeersDefault)
+import Helic.Interpreter.Peers (interpretPeers)
+import Helic.Interpreter.PeersPersist (interpretPeersPersistFile, resolvePeersPath)
 import Helic.List (list)
+import Helic.Data.Host (defaultPort, resolvePeerSpec)
 import Helic.Net.Api (serve)
+import Helic.Net.Sign (KeyPair)
 import Helic.Paste (paste)
 import Helic.Yank (yank)
 
@@ -46,6 +52,9 @@ listenApp ::
   Sem (Error Fatal : AppStack) ()
 listenApp Config {..} = do
   authConf <- embed (resolveAuthConfig (fromMaybe def netConf.auth))
+  path <- resolvePeersPath authConf.peersFile
+  let configAllowed = PublicKey <$> fold authConf.allowedKeys
+      authEnabled = authConf.enable == Just True
   runReader netConf
     $ runReader (fromMaybe def x11)
     $ runReader (fromMaybe def wayland)
@@ -55,7 +64,9 @@ listenApp Config {..} = do
     $ interpretAtomic mempty
     $ interpretInstanceName name
     $ interpretManager
-    $ interpretPeersDefault (PublicKey <$> fold authConf.allowedKeys) (authConf.enable == Just True) configHosts authConf.peersFile
+    $ stopToErrorWith (Fatal . (.unPeersError))
+    $ interpretPeersPersistFile path
+    $ interpretPeers configAllowed authEnabled configHosts
     $ interpretKeyPairs
     $ runDiscoveryIfEnabled discoveryConf netConf
     $ interpretDisplay
@@ -68,7 +79,7 @@ listenApp Config {..} = do
   where
     netConf = fromMaybe def net
     discoveryConf = fromMaybe def discovery
-    configHosts = fold netConf.hosts
+    configHosts = resolvePeerSpec defaultPort <$> fold netConf.hosts
 
 resumeClientFatal ::
   Members [Client !! ClientError, Error Fatal] r =>
@@ -87,13 +98,26 @@ runClient net =
   interpretKeyPairs .
   interpretClientNet
 
+-- | Obtain the key pair when auth is enabled and provide it as a reader.
+acquireAuthKeyPair ::
+  Members [KeyPairs !! KeyPairsError, Reader NetConfig, Error Fatal, Embed IO] r =>
+  InterpreterFor (Reader (Maybe KeyPair)) r
+acquireAuthKeyPair sem = do
+  enabled <- asks NetConfig.authEnabled
+  kp <- if enabled
+    then Just <$> resumeHoistError (Fatal . (.unKeyPairsError)) KeyPairs.obtainKeyPair
+    else pure Nothing
+  runReader kp sem
+
 runAuthClient ::
   Members [Log, Error Fatal, Race, Embed IO, Final IO] r =>
   Maybe NetConfig ->
-  InterpretersFor [Reader NetConfig, Manager] r
+  InterpretersFor [Reader (Maybe KeyPair), KeyPairs !! KeyPairsError, Reader NetConfig, Manager] r
 runAuthClient net =
   interpretManager .
-  runReader (fromMaybe def net)
+  runReader (fromMaybe def net) .
+  interpretKeyPairs .
+  acquireAuthKeyPair
 
 yankApp ::
   Config ->

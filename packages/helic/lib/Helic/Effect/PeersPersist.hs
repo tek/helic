@@ -1,0 +1,15 @@
+{-# options_haddock hide, prune #-}
+
+-- | Persistence abstraction for peer state
+module Helic.Effect.PeersPersist where
+
+import Helic.Data.AuthState (AuthState)
+
+-- | Effect for loading and saving peer state, abstracting the storage backend.
+data PeersPersist :: Effect where
+  -- | Load peer state from storage.
+  Load :: PeersPersist m AuthState
+  -- | Save peer state to storage.
+  Save :: AuthState -> PeersPersist m ()
+
+makeSem ''PeersPersist

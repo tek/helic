@@ -38,6 +38,8 @@ import Servant (
 import qualified Sync
 import System.Log.FastLogger (fromLogStr)
 
+import Helic.Net.Verify (VerifyLower (..))
+
 newtype ApiError =
   ApiError { unApiError :: Text }
   deriving stock (Eq, Show)
@@ -67,7 +69,7 @@ runServerWithContext ::
   Members [Sync ServerReady, Log, Interrupt, Final IO] r =>
   ServerT api (Sem r) ->
   Context context ->
-  ((∀ x . Sem r x -> IO (Maybe x)) -> Wai.Middleware) ->
+  (VerifyLower r -> Wai.Middleware) ->
   Int ->
   Sem r ()
 runServerWithContext srv context mkMiddleware port = do
@@ -97,4 +99,4 @@ runServerWithContext srv context mkMiddleware port = do
       log msg = void (wv ((Log.debug (decodeUtf8 (fromLogStr msg))) <$ s))
 
     logger <- mkRequestLogger def { destination = Logger.Callback log }
-    (<$ s) <$> Warp.runSettings settings (logger (mkMiddleware lower app))
+    (<$ s) <$> Warp.runSettings settings (logger (mkMiddleware (VerifyLower lower) app))

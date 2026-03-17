@@ -2,170 +2,180 @@
 
 -- | Peer authorization with cached broadcast targets
 --
--- Interprets Peers with in-memory state, YAML file persistence on mutation,
+-- Interprets Peers with in-memory state, persistence via PeersPersist on mutation,
 -- and a cached list of broadcast targets recomputed when any source changes.
 module Helic.Interpreter.Peers where
 
 import Conc (interpretAtomic)
-import Exon (exon)
-import Path (Abs, File, Path, parseAbsFile)
+import qualified Data.Map.Strict as Map
 
+import Helic.Data.AuthEnabled (AuthEnabled (..))
+import Helic.Data.AuthState (AuthState (..))
+import Helic.Data.AuthStatus (AuthStatus (..))
 import Helic.Data.DiscoveredPeer (DiscoveredPeer (..))
-import Helic.Data.Fatal (Fatal (Fatal))
-import Helic.Data.Host (Host (..))
-import Helic.Data.KeyStatus (KeyStatus (..))
+import Helic.Data.Host (PeerAddress (..))
 import Helic.Data.Peer (Peer (..))
-import Helic.Data.PeerState (PeerState (..))
+import Helic.Data.PeerAuth (PeerAuth (..), PeerHost (..))
 import Helic.Data.PeersError (PeersError (..))
 import Helic.Data.PeersState (PeersState (..))
 import Helic.Data.PublicKey (PublicKey (..))
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
-import qualified Helic.Net.PeerState as Persist
-import Helic.Net.PeerState (isAllowedKey, isPendingKey, isRejectedKey)
+import qualified Helic.Effect.PeersPersist as PeersPersist
+import Helic.Effect.PeersPersist (PeersPersist)
+import Helic.Interpreter.PeersPersist (interpretPeersPersistNull)
+import qualified Helic.Net.PeerState as PeerState
 
--- | Determine the status of a public key given config allowed keys, auth enabled flag, and the current peer state.
--- When auth is disabled, always returns 'KeyOpenMode'.
--- When auth is enabled, unknown keys are rejected.
-checkKeyStatus :: [PublicKey] -> Bool -> PeerState -> PublicKey -> KeyStatus
-checkKeyStatus _ False _ _ = KeyOpenMode
-checkKeyStatus configAllowed True ps senderKey
-  | senderKey `elem` configAllowed = KeyConfigAllowed
-  | isAllowedKey senderKey ps = KeyAllowed
-  | isRejectedKey senderKey ps = KeyRejected
-  | isPendingKey senderKey ps = KeyPending
-  | otherwise = KeyUnknown
-
--- | Whether a discovered peer is authorized for broadcasting.
-isAuthorized :: KeyStatus -> Bool
-isAuthorized = \case
-  KeyConfigAllowed -> True
-  KeyOpenMode -> True
-  KeyAllowed -> True
-  _ -> False
+-- | Check the authorization status of a key.
+-- In open mode (auth disabled), all keys are authorized.
+checkKeyStatus :: Bool -> AuthState -> PublicKey -> Maybe AuthStatus
+checkKeyStatus False _ _ = Just ConfigAllowed
+checkKeyStatus True ps key = PeerState.lookupStatus key ps
 
 -- | Recompute broadcast targets from the current state.
--- Config hosts are always included.
--- Allowed peers from the peer state are included.
--- Discovered peers are included if their key is authorized.
--- Discovered peers without a key are only included when auth is disabled.
-computeTargets :: [PublicKey] -> Bool -> [Host] -> [DiscoveredPeer] -> PeerState -> [Host]
-computeTargets configAllowed authEnabled configHosts discovered peers =
+computeTargets :: Bool -> [PeerAddress] -> [DiscoveredPeer] -> AuthState -> [PeerAddress]
+computeTargets authEnabled configHosts discovered peers =
   configHosts <> peerHosts <> discoveredHosts
   where
-    peerHosts = [Host p.host | p <- peers.allowed]
+    peerHosts
+      | authEnabled = PeerState.allowedHosts peers
+      | otherwise = []
+    discoveredHosts
+      | authEnabled = []
+      | otherwise = peerToAddress <$> discovered
 
-    discoveredHosts = [peerToHost dp | dp <- discovered, isDiscoveredAuthorized dp]
+-- | Convert a discovered peer to a PeerAddress.
+peerToAddress :: DiscoveredPeer -> PeerAddress
+peerToAddress p =
+  PeerAddress {host = fromString (toString p.host), port = p.port}
 
-    isDiscoveredAuthorized dp = case dp.publicKey of
-      Nothing -> not authEnabled
-      Just senderKey -> isAuthorized (checkKeyStatus configAllowed authEnabled peers senderKey)
+-- | Convert a DiscoveredPeer with a public key into a Peer for the pending list.
+discoveredToPeer :: DiscoveredPeer -> Maybe Peer
+discoveredToPeer dp =
+  dp.publicKey <&> \ key -> Peer {host = peerToAddress dp, publicKey = key}
 
--- | Convert a discovered peer to a Host value (host:port format).
-peerToHost :: DiscoveredPeer -> Host
-peerToHost p =
-  Host [exon|#{p.host}:#{show p.port}|]
+-- | Filter discovered peers that should be added to pending:
+-- has a public key, and key is not already in any list or config.
+newPendingFromDiscovered :: AuthState -> [DiscoveredPeer] -> [Peer]
+newPendingFromDiscovered peers =
+  mapMaybe \ dp -> do
+    peer <- discoveredToPeer dp
+    guard (isNothing (PeerState.lookupStatus peer.publicKey peers))
+    pure peer
 
--- | Find a peer by host name in a list.
-findPeerByHost :: Text -> [Peer] -> Maybe Peer
-findPeerByHost host =
-  find \ p -> p.host == host
+-- | Update the 'peers' field of a 'PeersState'.
+overPeers :: (AuthState -> AuthState) -> PeersState -> PeersState
+overPeers f s = s {peers = f s.peers}
 
--- | Atomically modify PeersState: update, recompute targets, persist if peer state changed, return result.
-modifyState ::
-  Members [AtomicState PeersState, Stop PeersError, Embed IO] r =>
-  [PublicKey] ->
-  Bool ->
-  Maybe (Path Abs File) ->
-  (PeersState -> PeersState) ->
-  Bool ->
+-- | Persist the peer state via the 'PeersPersist' effect.
+persistPeers ::
+  Members [AtomicState PeersState, PeersPersist !! PeersError, Stop PeersError] r =>
   Sem r ()
-modifyState configAllowed authEnabled path f persist = do
-  atomicModify' \ old ->
-    let new = f old
-    in new {targets = computeTargets configAllowed authEnabled new.configHosts new.discovered new.peers}
-  when persist do
-    for_ path \ p -> do
-      s <- atomicGet
-      stopTryIOError PeersError (Persist.writePeerState p s.peers)
+persistPeers = do
+  s <- atomicGet
+  restop (PeersPersist.save s.peers)
 
--- | Interpret 'Peers' with in-memory state and optional YAML persistence.
+-- | Apply a function to the state and recompute targets in a single atomic step.
+modifyAndRecomputeTargets ::
+  Members [AtomicState PeersState, Reader AuthEnabled] r =>
+  (PeersState -> PeersState) ->
+  Sem r ()
+modifyAndRecomputeTargets f = do
+  AuthEnabled authEnabled <- ask
+  atomicModify' \ s ->
+    let s' = f s
+    in s' {targets = computeTargets authEnabled s'.configHosts s'.discovered s'.peers}
+
+-- | Modify state, recompute targets, and persist.
+modifyAndRecompute ::
+  Members [AtomicState PeersState, PeersPersist !! PeersError, Reader AuthEnabled, Stop PeersError] r =>
+  (PeersState -> PeersState) ->
+  Sem r ()
+modifyAndRecompute f = do
+  modifyAndRecomputeTargets f
+  persistPeers
+
+-- | Modify state and persist without recomputing targets.
+modifyAndPersist ::
+  Members [AtomicState PeersState, PeersPersist !! PeersError, Stop PeersError] r =>
+  (PeersState -> PeersState) ->
+  Sem r ()
+modifyAndPersist f = do
+  atomicModify' f
+  persistPeers
+
+-- | Interpret 'Peers' with in-memory state and persistence via 'PeersPersist'.
 interpretPeersState ::
-  Members [AtomicState PeersState, Log, Embed IO] r =>
-  [PublicKey] ->
-  Bool ->
-  Maybe (Path Abs File) ->
+  Members [AtomicState PeersState, PeersPersist !! PeersError, Reader AuthEnabled, Log] r =>
   InterpreterFor (Peers !! PeersError) r
-interpretPeersState configAllowed authEnabled path =
+interpretPeersState =
   interpretResumable \case
     Peers.BroadcastTargets ->
       (.targets) <$> atomicGet
-    Peers.UpdateDiscovered discovered ->
-      modifyState configAllowed authEnabled path (\ s -> s {discovered}) False
+    Peers.UpdateDiscovered discovered -> do
+      AuthEnabled authEnabled <- ask
+      new <- atomicGets \ PeersState {peers} -> newPendingFromDiscovered peers discovered
+      let update = updateDiscovered new authEnabled discovered
+      if authEnabled && not (null new)
+      then modifyAndRecompute update
+      else modifyAndRecomputeTargets update
     Peers.AddPending peer ->
-      modifyState configAllowed authEnabled path (\ s -> s {peers = Persist.addPending peer s.peers}) True
+      modifyAndPersist (overPeers (PeerState.addPending peer))
+    Peers.UpdateHost key host ->
+      modifyAndRecompute (overPeers (PeerState.setHost key host))
     Peers.CheckKey senderKey -> do
-      s <- atomicGet
-      pure (checkKeyStatus configAllowed authEnabled s.peers senderKey)
+      AuthEnabled authEnabled <- ask
+      atomicGets \ s -> checkKeyStatus authEnabled s.peers senderKey
     Peers.ListPending ->
-      (.peers.pending) <$> atomicGet
-    Peers.AcceptPeer host -> do
-      s <- atomicGet
-      case findPeerByHost host s.peers.pending of
-        Nothing -> unit
-        Just peer ->
-          modifyState configAllowed authEnabled path (\ s' -> s' {peers = Persist.acceptPeer peer.publicKey s'.peers}) True
-    Peers.RejectPeer host -> do
-      s <- atomicGet
-      case findPeerByHost host s.peers.pending of
-        Nothing -> unit
-        Just peer ->
-          modifyState configAllowed authEnabled path (\ s' -> s' {peers = Persist.rejectPeer peer.publicKey s'.peers}) True
+      atomicGets \ s -> PeerState.pendingPeers s.peers
+    Peers.AcceptPeer spec ->
+      atomicGets (\ s -> PeerState.findKeyBySpec spec s.peers) >>= traverse_ \ key ->
+        modifyAndRecompute (overPeers (PeerState.acceptPeer key))
+    Peers.RejectPeer spec ->
+      atomicGets (\ s -> PeerState.findKeyBySpec spec s.peers) >>= traverse_ \ key ->
+        modifyAndPersist (overPeers (PeerState.rejectPeer key))
     Peers.AcceptAll ->
-      modifyState configAllowed authEnabled path acceptAll True
-      where
-        acceptAll s =
-          s {peers = foldl' (\ ps p -> Persist.acceptPeer p.publicKey ps) s.peers s.peers.pending}
+      modifyAndRecompute (overPeers PeerState.acceptAllPending)
+  where
+    updateDiscovered new authEnabled discovered s =
+      overPeers (addNewPending new authEnabled) s {discovered}
 
--- | Interpret 'Peers' with YAML file persistence at the given path.
--- Reads the initial peer state from disk.
--- File not found is treated as first run (empty state).
--- Other read errors are propagated as IO exceptions.
+    addNewPending new authEnabled ps
+      | authEnabled = foldr' PeerState.addPending ps new
+      | otherwise = ps
+
+-- | Create an initial auth state from config-allowed keys.
+prepopulateConfigKeys :: [PublicKey] -> AuthState
+prepopulateConfigKeys keys =
+  AuthState (Map.fromList [(k, PeerAuth {peerHost = PeerHostUnknown, status = ConfigAllowed}) | k <- keys])
+
+-- | Merge peers read from disk into an initial state via precedence-based insertion.
+mergePersistedPeers :: AuthState -> AuthState -> AuthState
+mergePersistedPeers (AuthState persisted) initial =
+  Map.foldlWithKey' PeerState.insertPeer initial persisted
+
+-- | Build the initial peer state from config keys and persisted data.
+initializePeers :: [PublicKey] -> AuthState -> AuthState
+initializePeers configAllowed persisted =
+  mergePersistedPeers persisted (prepopulateConfigKeys configAllowed)
+
+-- | Interpret 'Peers' with a 'PeersPersist' backend.
+-- Loads persisted state on startup, initializes with config keys,
+-- and delegates persistence to the 'PeersPersist' effect.
 interpretPeers ::
-  Members [Error Fatal, Log, Embed IO] r =>
+  Members [PeersPersist !! PeersError, Stop PeersError, Log, Embed IO] r =>
   [PublicKey] ->
   Bool ->
-  [Host] ->
-  Path Abs File ->
+  [PeerAddress] ->
   InterpreterFor (Peers !! PeersError) r
-interpretPeers configAllowed authEnabled configHosts path sem = do
-  peers <- tryIOError (Persist.readPeerState path) >>= \case
-    Left e -> throw (Fatal [exon|Failed to read peers file: #{e}|])
-    Right (Left e) -> throw (Fatal [exon|Invalid peers file: #{e}|])
-    Right (Right peers) -> pure peers
-  let targets = computeTargets configAllowed authEnabled configHosts [] peers
+interpretPeers configAllowed authEnabled configHosts sem = do
+  persisted <- restop PeersPersist.load
+  let peers = initializePeers configAllowed persisted
+      targets = computeTargets authEnabled configHosts [] peers
       initial = PeersState {peers, discovered = [], configHosts, targets}
-  interpretAtomic initial $ interpretPeersState configAllowed authEnabled (Just path) $ raiseUnder sem
+  interpretAtomic initial $ runReader (AuthEnabled authEnabled) $ interpretPeersState $ raiseUnder2 sem
 
--- | Interpret 'Peers' using the default XDG state directory path,
--- or a custom path from 'AuthConfig.peersFile' if set.
--- Invalid custom paths cause a fatal error.
-interpretPeersDefault ::
-  Members [Error Fatal, Log, Embed IO] r =>
-  [PublicKey] ->
-  Bool ->
-  [Host] ->
-  Maybe Text ->
-  InterpreterFor (Peers !! PeersError) r
-interpretPeersDefault configAllowed authEnabled configHosts peersFile sem = do
-  path <- case peersFile of
-    Just f -> case parseAbsFile (toString f) of
-      Just p -> pure p
-      Nothing -> throw (Fatal [exon|Invalid peers file path: #{f}|])
-    Nothing -> embed Persist.defaultPeersPath
-  interpretPeers configAllowed authEnabled configHosts path sem
-
--- | No-op interpreter for when peer state is not available.
+-- | No-op interpreter for testing.
 interpretPeersNull ::
   InterpreterFor (Peers !! PeersError) r
 interpretPeersNull =
@@ -173,24 +183,24 @@ interpretPeersNull =
     Peers.BroadcastTargets -> pure []
     Peers.UpdateDiscovered _ -> unit
     Peers.AddPending _ -> unit
-    Peers.CheckKey _ -> pure KeyOpenMode
+    Peers.UpdateHost _ _ -> unit
+    Peers.CheckKey _ -> pure Nothing
     Peers.ListPending -> pure []
     Peers.AcceptPeer _ -> unit
     Peers.RejectPeer _ -> unit
     Peers.AcceptAll -> unit
 
--- | In-memory interpreter using 'AtomicState', suitable for testing.
--- Respects config allowed keys and checks peer state like the real interpreter.
+-- | In-memory interpreter for testing.
 interpretPeersPure ::
   Members [Log, Embed IO] r =>
   [PublicKey] ->
   Bool ->
   InterpreterFor (Peers !! PeersError) r
 interpretPeersPure configAllowed authEnabled =
-  interpretAtomic initial
-  .
-  interpretPeersState configAllowed authEnabled Nothing
-  .
-  raiseUnder
+  interpretPeersPersistNull
+  . interpretAtomic initial
+  . runReader (AuthEnabled authEnabled)
+  . interpretPeersState
+  . raiseUnder3
   where
-    initial = PeersState {peers = def, discovered = [], configHosts = [], targets = []}
+    initial = PeersState {peers = prepopulateConfigKeys configAllowed, discovered = [], configHosts = [], targets = []}

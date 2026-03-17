@@ -3,6 +3,7 @@
 -- | NaCl crypto_box verification middleware
 module Helic.Net.Verify where
 
+import qualified Crypto.PubKey.Curve25519 as X25519
 import qualified Data.ByteString.Base64 as Base64
 import qualified Data.ByteString.Lazy as LBS
 import Data.CaseInsensitive (CI)
@@ -10,61 +11,117 @@ import Data.IORef (atomicModifyIORef', newIORef)
 import qualified Data.List as List
 import Exon (exon)
 import qualified Network.HTTP.Types as Http
-import Network.Socket (SockAddr)
+import Network.Socket (SockAddr (..))
 import qualified Network.Wai as Wai
 import Network.Wai (setRequestBodyChunks)
 
-import Helic.Data.KeyStatus (KeyStatus (..))
+import Helic.Data.AuthResult (AuthResult (..))
+import Helic.Data.AuthStatus (AuthStatus (..))
 import Helic.Data.Peer (Peer (..))
 import Helic.Data.PeersError (PeersError (..))
 import Helic.Data.PublicKey (PublicKey (..))
+import Helic.Data.VerifyError (VerifyError (..))
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
+import Helic.Net.Address (peerAddressFromSockAddr)
 import Helic.Net.Sign (KeyPair (..), decodePublicKey, encodePublicKey, unseal)
 
 publicKeyHeader :: CI ByteString
 publicKeyHeader = "X-Helic-Public-Key"
 
+authHeader :: CI ByteString
+authHeader = "X-Helic-Auth"
+
 -- | Authorize a sender's public key, aborting the request if the peer is rejected.
--- If the peer is unknown, add it to the set of peers pending verification, and abort as well.
+-- Called after successful cryptographic verification to ensure state mutations
+-- only occur for peers that have proven possession of their private key.
 authorizeKey ::
-  Members [Peers, Error Text] r =>
+  Members [Peers, Error VerifyError] r =>
   SockAddr ->
   PublicKey ->
   Sem r ()
-authorizeKey addr senderPublicKey =
+authorizeKey addr senderPublicKey = do
+  host <- maybe (throw (VerifyError "Unsupported address type")) pure (peerAddressFromSockAddr addr)
   Peers.checkKey senderPublicKey >>= \case
-    KeyConfigAllowed -> unit
-    KeyOpenMode -> unit
-    KeyAllowed -> unit
-    KeyRejected -> throw "Rejected public key"
-    KeyPending -> throw "Key is pending authorization"
-    KeyUnknown -> do
-      Peers.addPending (Peer {host = show addr, publicKey = senderPublicKey})
-      throw "Unknown peer added to pending list"
+    Just ConfigAllowed -> Peers.updateHost senderPublicKey host
+    Just Allowed -> Peers.updateHost senderPublicKey host
+    Just Rejected -> throw (VerifyError "Rejected public key")
+    Just Pending -> throw (VerifyError "Key is pending authorization")
+    Nothing -> do
+      Peers.addPending (Peer {host, publicKey = senderPublicKey})
+      throw (VerifyError "Unknown peer added to pending list")
 
 lookupHeader ::
-  Member (Error Text) r =>
+  Member (Error VerifyError) r =>
   CI ByteString ->
   Wai.Request ->
   Sem r ByteString
 lookupHeader name req =
-  maybe (throw [exon|Missing header #{show name}|]) pure (List.lookup name (Wai.requestHeaders req))
+  fromMaybeA missingHeader (List.lookup name (Wai.requestHeaders req))
+  where
+    missingHeader = throw (VerifyError [exon|Missing header #{show name}|])
+
+-- | Decode the sender's public key from the request header.
+-- Does not perform authorization or state mutations.
+resolveSender ::
+  Member (Error VerifyError) r =>
+  Wai.Request ->
+  Sem r X25519.PublicKey
+resolveSender req = do
+  encodedKey <- lookupHeader publicKeyHeader req
+  fromEither (first VerifyError (decodePublicKey encodedKey))
+
+-- | Authenticate a GET request using the @X-Helic-Auth@ header.
+-- The header must contain the request path encrypted with the sender's private key and the server's public key.
+-- Performs cryptographic verification first, then authorizes the key and updates peer state.
+-- Returns 'AuthSuccess' if the decrypted path matches, or 'AuthFailure' with a reason.
+authenticateHeader ::
+  Members [Peers, Error VerifyError] r =>
+  KeyPair ->
+  Wai.Request ->
+  Sem r AuthResult
+authenticateHeader serverKey req = do
+  senderPublicKey <- resolveSender req
+  authBytes <- lookupHeader authHeader req
+  ciphertext <- fromEither (first (VerifyError . toText) (Base64.decode authBytes))
+  case unseal serverKey senderPublicKey ciphertext of
+    Left err -> pure (AuthFailure (toText err))
+    Right decryptedPath
+      | headerMatchesRequestPath decryptedPath -> do
+        -- If the sender's public key is the server key, we don't need to authorize.
+        -- This is safe because we already successfully decrypted the proof.
+        unless (isSelfSigned senderPublicKey) do
+          authorizeKey (Wai.remoteHost req) (encodedSenderKey senderPublicKey)
+        pure AuthSuccess
+      | otherwise -> pure (AuthFailure [exon|Path mismatch: expected #{decodeUtf8 requestPath}|])
+  where
+    requestPath = Wai.rawPathInfo req
+
+    headerMatchesRequestPath decryptedPath = decryptedPath == requestPath
+
+    isSelfSigned key = key == serverKey.publicKey
+
+    encodedSenderKey key = PublicKey (encodePublicKey key)
 
 -- | Authenticate and decrypt a request body.
+-- Performs cryptographic verification first, then authorizes the key and updates peer state.
 authenticate ::
-  Members [Peers, Error Text] r =>
+  Members [Peers, Error VerifyError] r =>
   KeyPair ->
   Wai.Request ->
   ByteString ->
   Sem r ByteString
 authenticate serverKey req body = do
-  senderPkBytes <- lookupHeader publicKeyHeader req
-  senderPk <- fromEither (decodePublicKey senderPkBytes)
-  unless (senderPk == serverKey.publicKey) do
-    authorizeKey (Wai.remoteHost req) (PublicKey (encodePublicKey senderPk))
-  ciphertext <- fromEither (first toText (Base64.decode body))
-  fromEither (unseal serverKey senderPk ciphertext)
+  senderPublicKey <- resolveSender req
+  ciphertext <- fromEither (first (VerifyError . toText) (Base64.decode body))
+  plaintext <- fromEither (first VerifyError (unseal serverKey senderPublicKey ciphertext))
+  unless (isSelfSigned senderPublicKey) do
+    authorizeKey (Wai.remoteHost req) (encodedSenderKey senderPublicKey)
+  pure plaintext
+  where
+    isSelfSigned key = key == serverKey.publicKey
+
+    encodedSenderKey key = PublicKey (encodePublicKey key)
 
 -- | Replace the request body with the decrypted event JSON.
 replaceBody :: LByteString -> Wai.Request -> IO Wai.Request
@@ -72,36 +129,68 @@ replaceBody body req = do
   ref <- newIORef (LBS.toStrict body)
   pure (setRequestBodyChunks (atomicModifyIORef' ref (\ chunk -> ("", chunk))) req)
 
--- | Middleware that decrypts and authenticates non-GET requests using NaCl crypto_box.
+newtype VerifyLower r =
+  VerifyLower (∀ x . Sem r x -> IO (Maybe x))
+
+-- | Run an auth action through the Sem stack and produce a WAI response.
+-- Handles 'VerifyError' as 403, 'PeersError' as 500, and interpreter failure as 500.
+withAuth ::
+  Members [Peers !! PeersError, Embed IO] r =>
+  VerifyLower r ->
+  (Wai.Response -> IO Wai.ResponseReceived) ->
+  Sem (Error VerifyError : Peers : r) a ->
+  (a -> IO Wai.ResponseReceived) ->
+  IO Wai.ResponseReceived
+withAuth (VerifyLower lower) respond action onSuccess =
+  lower (resumeEither @PeersError @Peers (runError @VerifyError action)) >>= \case
+    Nothing ->
+      respondError Http.status500 "Internal server error"
+    Just (Left (PeersError err)) ->
+      respondError Http.status500 [exon|Peer state error: #{err}|]
+    Just (Right (Left (VerifyError err))) ->
+      respondError Http.status403 err
+    Just (Right (Right a)) ->
+      onSuccess a
+  where
+    respondError status message =
+      respond (Wai.responseLBS status [] (encodeUtf8 message))
+
+-- | Middleware that authenticates requests using NaCl crypto_box.
 --
 -- @serverKey@ is the server's own key pair (used for decryption).
 --
--- For each non-GET request:
---   1. Read the sender's public key from the header @X-Helic-Public-Key@
---   2. Check the key against config allow list and peer state
---   3. Decrypt the body using our private key and sender's public key
+-- For GET requests with @X-Helic-Auth@:
+--   Verify the header contains the request path encrypted with the sender's key.
+--
+-- For GET requests without @X-Helic-Auth@:
+--   Pass through unauthenticated (e.g., @GET /key@, @GET /event@).
+--
+-- For non-GET requests:
+--   1. Read the sender's public key from @X-Helic-Public-Key@
+--   2. Decrypt the body using our private key and sender's public key
+--   3. Authorize the key against config allow list and peer state
 --   4. Replace the request body with the decrypted plaintext for Servant
 --
--- Successful decryption proves the sender possesses the corresponding private key.
+-- Authorization and peer state mutations occur only after successful
+-- cryptographic verification, preventing unauthenticated state pollution.
 verifyRequest ::
   Members [Peers !! PeersError, Embed IO] r =>
   KeyPair ->
-  (∀ x . Sem r x -> IO (Maybe x)) ->
+  VerifyLower r ->
   Wai.Middleware
-verifyRequest serverKey lower app req respond
-  | Wai.requestMethod req == Http.methodGet
+verifyRequest serverKey vl app req respond
+  | isGetRequest, hasAuthHeader
+  = withAuth vl respond (authenticateHeader serverKey req) \case
+      AuthSuccess -> app req respond
+      AuthFailure err -> respond (Wai.responseLBS Http.status403 [] (encodeUtf8 err))
+  | isGetRequest
   = app req respond
   | otherwise
   = do
     body <- LBS.toStrict <$> Wai.consumeRequestBodyStrict req
-    -- Peer state errors (file IO) produce 500; auth failures (bad signature, unknown key) produce 403.
-    lower (runError @Text (resumeEither @PeersError @Peers (authenticate serverKey req body))) >>= \case
-      Nothing ->
-        respond (Wai.responseLBS Http.status500 [] "Internal server error")
-      Just (Left err) ->
-        respond (Wai.responseLBS Http.status403 [] (encodeUtf8 err))
-      Just (Right (Left (PeersError err))) ->
-        respond (Wai.responseLBS Http.status500 [] (encodeUtf8 [exon|Peer state error: #{err}|]))
-      Just (Right (Right plaintext)) -> do
-        req' <- replaceBody (toLazy plaintext) req
-        app req' respond
+    withAuth vl respond (authenticate serverKey req body) \ plaintext -> do
+      req' <- replaceBody (toLazy plaintext) req
+      app req' respond
+  where
+    isGetRequest = Wai.requestMethod req == Http.methodGet
+    hasAuthHeader = isJust (List.lookup authHeader (Wai.requestHeaders req))

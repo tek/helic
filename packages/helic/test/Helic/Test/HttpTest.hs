@@ -12,6 +12,7 @@ import Polysemy.Test (UnitTest)
 import Zeugma (TestStack, runTest)
 
 import Helic.Data.Event (Event)
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Data.InstanceName (InstanceName)
 import Helic.Effect.Agent (Agent, AgentNet, AgentTmux, AgentWayland, AgentX)
@@ -26,6 +27,7 @@ import Helic.Net.Sign (KeyPair (..))
 
 type HttpTestStack =
   [
+    Error Fatal,
     Sync ServerReady,
     History,
     Agent @@ AgentWayland,
@@ -55,3 +57,10 @@ runHttpTest serverKp =
   . interpretAgentNull @AgentWayland
   . interpretHistory Nothing Nothing
   . interpretSync @ServerReady
+  . fatalToFail
+
+fatalToFail :: Sem (Error Fatal : r) a -> Sem r a
+fatalToFail sem =
+  runError sem >>= \case
+    Left (Fatal msg) -> error (toString msg)
+    Right a -> pure a

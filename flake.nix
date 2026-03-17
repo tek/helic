@@ -160,10 +160,12 @@
           paths = true;
           dependencies = [
             "aeson"
+            "base64-bytestring"
             "chronos"
             "containers"
             "crypton"
             "exon"
+            "http-client"
             "network"
             "path"
             "polysemy-chronos"
@@ -171,6 +173,8 @@
             "polysemy-http"
             "polysemy-log"
             "polysemy-test"
+            "servant-client"
+            "servant-client-core"
             "random"
             "tasty"
             "torsor"

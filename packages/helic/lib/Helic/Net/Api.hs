@@ -33,10 +33,12 @@ import Servant.Types.SourceT (SourceT (..), StepT (Effect, Yield))
 import Time (Seconds (Seconds))
 
 import Helic.Data.Event (Event)
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.HistoryUpdate (HistoryUpdate (HistoryUpdate))
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Data.NetConfig as NetConfig
-import Helic.Data.NetConfig (NetConfig (NetConfig))
+import Helic.Data.NetConfig (NetConfig)
+import Helic.Data.Host (PeerSpec, defaultPort)
 import Helic.Data.Peer (Peer)
 import Helic.Data.PeersError (PeersError (..))
 import qualified Helic.Effect.History as History
@@ -108,9 +110,9 @@ type Api =
   "auth" :> (
     "pending" :> Get '[JSON] [Peer]
     :<|>
-    "accept" :> ReqBody '[JSON] Text :> PostNoContent
+    "accept" :> ReqBody '[JSON] PeerSpec :> PostNoContent
     :<|>
-    "reject" :> ReqBody '[JSON] Text :> PostNoContent
+    "reject" :> ReqBody '[JSON] PeerSpec :> PostNoContent
     :<|>
     "accept-all" :> PostNoContent
   )
@@ -160,25 +162,23 @@ server =
     (NoContent <$ Peers.acceptAll) !! peersError
   )
 
--- | The default port, 9500.
-defaultPort :: Int
-defaultPort = 9500
-
 -- | Run the daemon API.
 serve ::
-  Members [History, EventConsumer HistoryUpdate, Peers !! PeersError, KeyPairs !! KeyPairsError, Reader NetConfig, Sync ServerReady] r =>
+  Members [History, EventConsumer HistoryUpdate, Peers !! PeersError, KeyPairs !! KeyPairsError, Reader NetConfig] r =>
+  Members [Sync ServerReady, Error Fatal] r =>
   Members [Log, Interrupt, Race, Embed IO, Final IO] r =>
   Sem r ()
 serve = do
-  NetConfig {..} <- ask
-  when (fromMaybe False enable) do
-    -- Key pair is required for the server to verify incoming requests and encrypt responses.
-    -- Without it, the server cannot start, so we leave the daemon in local-only mode.
-    resumeOr KeyPairs.obtainKeyPair (run port) noKeys
+  conf <- ask @NetConfig
+  when (fromMaybe False conf.enable) do
+    (key, verify) <- if NetConfig.authEnabled conf then authResources else pure (Nothing, const id)
+    runReader key $ runServerWithContext @Api server EmptyContext verify (fromMaybe defaultPort conf.port)
   where
-    run port serverKey =
-      runReader (Just serverKey) $
-      runServerWithContext @Api server EmptyContext (verifyRequest serverKey) (fromMaybe defaultPort port)
+    -- Key pair is required for the server to verify incoming requests and encrypt responses.
+    -- Without it, the server cannot start, so the app terminates.
+    authResources = do
+      key <- resumeHoistError noKeys KeyPairs.obtainKeyPair
+      pure (Just key, verifyRequest key)
 
-    noKeys err =
-      Log.error [exon|Failed to obtain key pair: #{err.unKeyPairsError}|]
+    noKeys (KeyPairsError err) =
+      Fatal [exon|Failed to obtain key pair: #{err}|]

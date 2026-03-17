@@ -93,8 +93,11 @@ self: {util, ...}: let
     net:
       enable: true
       port: 9500
+      timeout: 5000
       auth:
         enable: true
+        privateKey: CFUmbCKzYtmnvy7duaq4BPA8bp4U5MDUd9TGdEOuWEM=
+        publicKey: eDsSQYyE3555i3dDAiSiMeoOyo7EL2oGeFW1M2YeKHQ=
         peersFile: /tmp/helic-a/peers.yaml
     tmux:
       enable: false
@@ -114,8 +117,11 @@ self: {util, ...}: let
     net:
       enable: true
       port: 9502
+      timeout: 5000
       auth:
         enable: true
+        privateKey: IOVMnyBg34PN52t0Rt85XJd++hNCik89/T0gKxBTtF8=
+        publicKey: FplCPBqA4D7PRhmDjL2e9QqXF7JZIQziBuO74fqMt3c=
         peersFile: /tmp/helic-b/peers.yaml
     tmux:
       enable: false
@@ -138,13 +144,19 @@ self: {util, ...}: let
       pkgs.iproute2
     ];
 
+    environment.etc."helic-leak-key".text = "dummy-public-key-for-testing";
+
     environment.etc."helic-leak.yaml".text = ''
     name: leak-test
     verbose: true
     net:
       enable: true
       port: 9500
+      timeout: 5000
       hosts: ['nonexistent:9500']
+      auth:
+        enable: false
+        publicKey: /etc/helic-leak-key
     tmux:
       enable: false
     x11:
@@ -332,6 +344,9 @@ in {
   commands.discovery-test = let
 
     check = util.zscript "check" ''
+    # Clean up stale peers files from previous runs
+    rm -rf /tmp/helic-a /tmp/helic-b
+
     # Start two helic instances as background processes
     hel --config-file /etc/helic-a.yaml listen &
     pid_a=$!
@@ -357,8 +372,15 @@ in {
     # Trigger connection attempts on both sides so each discovers the other's key.
     # In auth mode, broadcastTargets adds unknown discovered peers to pending.
     echo -n 'trigger-auth-a' | hel --config-file /etc/helic-a.yaml yank
+    echo 'trigger-auth-a yank exit code: '$?
     echo -n 'trigger-auth-b' | hel --config-file /etc/helic-b.yaml yank
+    echo 'trigger-auth-b yank exit code: '$?
     sleep 2
+
+    echo '--- B list ---'
+    hel --config-file /etc/helic-b.yaml list
+    echo '--- A list ---'
+    hel --config-file /etc/helic-a.yaml list
 
     # Verify that auth blocked the events from being synced.
     # trigger-auth-a was yanked on A but should NOT appear on B.

@@ -101,15 +101,15 @@ generateAndWrite path = do
 obtainKeyPair :: Maybe Text -> Maybe Text -> IO (Either Text KeyPair)
 obtainKeyPair configPrivate configPublic =
   case configPrivate of
-    Just rawSk ->
-      pure (fromConfig rawSk configPublic)
+    Just rawSecretKey ->
+      pure (fromConfig rawSecretKey configPublic)
     Nothing -> do
       path <- defaultKeyPath
       ensureKeyPair path
   where
-    fromConfig rawSk rawPk = do
-      secretKey <- decodeSecretKey (encodeUtf8 rawSk)
-      publicKey <- case rawPk of
+    fromConfig rawSecretKey rawPublicKey = do
+      secretKey <- decodeSecretKey (encodeUtf8 rawSecretKey)
+      publicKey <- case rawPublicKey of
         Nothing -> pure (X25519.toPublic secretKey)
         Just raw -> decodePublicKey (encodeUtf8 raw)
       pure KeyPair {secretKey, publicKey}
@@ -126,19 +126,19 @@ generateNonce =
 -- | Encrypt and authenticate a plaintext message using NaCl crypto_box.
 -- The result is the nonce prepended to the ciphertext.
 seal :: MonadIO m => KeyPair -> X25519.PublicKey -> ByteString -> m ByteString
-seal KeyPair {secretKey} recipientPk plaintext = do
+seal KeyPair {secretKey} recipientPublicKey plaintext = do
   nonce <- generateNonce
-  let ciphertext = Box.create plaintext nonce recipientPk secretKey
+  let ciphertext = Box.create plaintext nonce recipientPublicKey secretKey
   pure (nonce <> ciphertext)
 
 -- | Decrypt and verify a NaCl crypto_box message.
 -- Expects the nonce prepended to the ciphertext.
 -- Returns the decrypted plaintext.
 unseal :: KeyPair -> X25519.PublicKey -> ByteString -> Either Text ByteString
-unseal KeyPair {secretKey} senderPk packet
+unseal KeyPair {secretKey} senderPublicKey packet
   | ByteString.length packet < nonceSize
   = Left "Packet too short"
   | otherwise
-  = maybeToRight "Decryption failed" (Box.open ciphertext nonce senderPk secretKey)
+  = maybeToRight "Decryption failed" (Box.open ciphertext nonce senderPublicKey secretKey)
   where
     (nonce, ciphertext) = ByteString.splitAt nonceSize packet

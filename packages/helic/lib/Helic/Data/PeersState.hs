@@ -4,19 +4,19 @@
 module Helic.Data.PeersState where
 
 import Helic.Data.DiscoveredPeer (DiscoveredPeer)
-import Helic.Data.Host (Host)
-import Helic.Data.PeerState (PeerState)
+import Helic.Data.Host (PeerAddress)
+import Helic.Data.AuthState (AuthState)
 
 -- | Combined state managed by the Peers interpreter.
 data PeersState =
   PeersState {
     -- | Persistent peer authorization state (allowed, rejected, pending).
-    peers :: PeerState,
+    peers :: AuthState,
     -- | Currently discovered peers from beacon listener.
     discovered :: [DiscoveredPeer],
     -- | Static hosts from config.
-    configHosts :: [Host],
+    configHosts :: [PeerAddress],
     -- | Cached broadcast targets, recomputed on state change.
-    targets :: [Host]
+    targets :: [PeerAddress]
   }
-  deriving stock (Eq, Show)
+  deriving stock (Eq, Show, Generic)

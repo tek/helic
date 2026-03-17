@@ -29,6 +29,7 @@ import Path (Abs, File, Path, parseAbsFile)
 import Prelude hiding (Mod)
 
 import Helic.Data.ContentType (MimeType (..))
+import Helic.Data.Host (PeerSpec, parsePeerSpec)
 import Helic.Data.ListConfig (ListConfig (ListConfig))
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
 import Helic.Data.PasteConfig (PasteConfig (PasteConfig), PasteTarget (..))
@@ -47,9 +48,9 @@ data AuthCommand =
   |
   AuthList
   |
-  AuthAccept Text
+  AuthAccept PeerSpec
   |
-  AuthReject Text
+  AuthReject PeerSpec
   |
   AuthAcceptAll
   deriving stock (Eq, Show)
@@ -148,9 +149,11 @@ authParser =
     authList =
       AuthList <$ switch (long "list" <> help "List pending peers without prompting")
     authAccept =
-      AuthAccept <$> strOption (long "accept" <> help "Accept a pending peer by host" <> metavar "HOST")
+      AuthAccept <$> specOption (long "accept" <> help "Accept a pending peer by host[:port]" <> metavar "HOST[:PORT]")
     authReject =
-      AuthReject <$> strOption (long "reject" <> help "Reject a pending peer by host" <> metavar "HOST")
+      AuthReject <$> specOption (long "reject" <> help "Reject a pending peer by host[:port]" <> metavar "HOST[:PORT]")
+    specOption mods =
+      option (parsePeerSpec . toText <$> readerAsk) mods
     authAcceptAll =
       AuthAcceptAll <$ switch (long "accept-all" <> help "Accept all pending peers")
 

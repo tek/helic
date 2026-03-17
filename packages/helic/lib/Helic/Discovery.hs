@@ -31,7 +31,7 @@ import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
-import Helic.Net.Api (defaultPort)
+import Helic.Data.Host (defaultPort)
 import Helic.Net.Beacon (defaultDiscoveryPort, mkRecvSocket, mkSendSocket, peerHost, receiveBeacon, sendBeacon)
 import Helic.Net.Sign (KeyPair (..), encodePublicKey)
 

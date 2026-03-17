@@ -12,7 +12,7 @@ module Helic (
   -- ** Peers
   Peers,
   PeersError (..),
-  KeyStatus (..),
+  AuthStatus (..),
   AuthConfig (..),
   PublicKey (..),
   -- ** KeyPairs
@@ -34,8 +34,11 @@ module Helic (
   interpretAgentNet,
   interpretAgentTmux,
   interpretPeers,
-  interpretPeersDefault,
   interpretPeersNull,
+  -- ** PeersPersist
+  PeersPersist,
+  interpretPeersPersistFile,
+  interpretPeersPersistNull,
   -- ** Discovery
   runDiscovery,
   runDiscoveryIfEnabled,
@@ -88,10 +91,12 @@ import Helic.Data.Selection (Selection (..))
 import Helic.Effect.Agent (Agent, AgentTag, Agents)
 import Helic.Compat.Display (interpretDisplay)
 import Helic.Interpreter.AgentNet (interpretAgentNet)
-import Helic.Data.KeyStatus (KeyStatus (..))
+import Helic.Data.AuthStatus (AuthStatus (..))
 import Helic.Effect.Peers (Peers)
 import Helic.Interpreter.AgentTmux (interpretAgentTmux)
-import Helic.Interpreter.Peers (interpretPeers, interpretPeersDefault, interpretPeersNull)
+import Helic.Effect.PeersPersist (PeersPersist)
+import Helic.Interpreter.Peers (interpretPeers, interpretPeersNull)
+import Helic.Interpreter.PeersPersist (interpretPeersPersistFile, interpretPeersPersistNull)
 import Helic.Effect.KeyPairs (KeyPairs)
 import Helic.Discovery (runDiscovery, runDiscoveryIfEnabled)
 import Helic.Interpreter.KeyPairs (interpretKeyPairs, interpretKeyPairsPure)

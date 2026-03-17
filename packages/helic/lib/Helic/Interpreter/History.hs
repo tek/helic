@@ -74,7 +74,6 @@ inRecent now debounce (Event _ _ _ c) =
     newer (Event _ _ t _) =
       diff now t <= debounce
 
-
 sanitize :: Event -> Event
 sanitize event@Event {content} =
   event { content = ContentType.sanitize content }

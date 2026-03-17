@@ -46,6 +46,10 @@ library
       Helic.Config.Key
       Helic.Data.AgentId
       Helic.Data.AuthConfig
+      Helic.Data.AuthEnabled
+      Helic.Data.AuthResult
+      Helic.Data.AuthState
+      Helic.Data.AuthStatus
       Helic.Data.Beacon
       Helic.Data.ClientError
       Helic.Data.Config
@@ -58,18 +62,18 @@ library
       Helic.Data.Host
       Helic.Data.InstanceName
       Helic.Data.KeyPairsError
-      Helic.Data.KeyStatus
       Helic.Data.ListConfig
       Helic.Data.LoadConfig
       Helic.Data.NetConfig
       Helic.Data.PasteConfig
       Helic.Data.Peer
+      Helic.Data.PeerAuth
       Helic.Data.PeersError
       Helic.Data.PeersState
-      Helic.Data.PeerState
       Helic.Data.PublicKey
       Helic.Data.Selection
       Helic.Data.TmuxConfig
+      Helic.Data.VerifyError
       Helic.Data.WaylandConfig
       Helic.Data.X11Config
       Helic.Data.YankConfig
@@ -79,6 +83,7 @@ library
       Helic.Effect.History
       Helic.Effect.KeyPairs
       Helic.Effect.Peers
+      Helic.Effect.PeersPersist
       Helic.Error
       Helic.Interpreter
       Helic.Interpreter.Agent
@@ -89,8 +94,10 @@ library
       Helic.Interpreter.InstanceName
       Helic.Interpreter.KeyPairs
       Helic.Interpreter.Peers
+      Helic.Interpreter.PeersPersist
       Helic.List
       Helic.Listen
+      Helic.Net.Address
       Helic.Net.Api
       Helic.Net.Beacon
       Helic.Net.Client
@@ -150,7 +157,6 @@ library
     , chronos >=1.1.6.2 && <1.2
     , crypton >=1.0.0 && <1.1
     , crypton-box >=1.1.0 && <1.2
-    , directory
     , exon >=1.6.1.1 && <1.8
     , fast-logger >=3.1.2 && <3.3
     , gi-gdk >=4.0.10 && <4.1
@@ -318,6 +324,7 @@ test-suite helic-test
       Helic.Test.PeerStateTest
       Helic.Test.Port
       Helic.Test.SignTest
+      Helic.Test.SpoofedClient
       Helic.Test.StreamTest
   hs-source-dirs:
       test
@@ -361,11 +368,13 @@ test-suite helic-test
   build-depends:
       aeson >=2.2.3.0 && <2.3
     , base >=4.19.2.0 && <4.22
+    , base64-bytestring >=1.2.1.0 && <1.3
     , chronos >=1.1.6.2 && <1.2
     , containers >=0.6.8 && <0.8
     , crypton >=1.0.0 && <1.1
     , exon >=1.6.1.1 && <1.8
     , helic
+    , http-client >=0.7.14 && <0.8
     , network >=3.2.8.0 && <3.3
     , path >=0.9.6 && <0.10
     , polysemy >=1.9.1.3 && <1.10
@@ -377,6 +386,8 @@ test-suite helic-test
     , polysemy-test >=0.7.0.0 && <0.11
     , prelate >=0.8.0.0 && <0.9
     , random >=1.2.1.3 && <1.3
+    , servant-client ==0.20.*
+    , servant-client-core >=0.20.2 && <0.21
     , tasty >=1.5.2 && <1.6
     , torsor ==0.1.*
     , zeugma >=0.10.0.1 && <0.11
