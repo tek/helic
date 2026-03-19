@@ -6,6 +6,7 @@ import qualified Data.Set as Set
 import Polysemy.Test (UnitTest, assertEq, assertJust)
 import qualified Queue
 import Zeugma (runTestFrozen, testTime)
+import Time (Seconds (Seconds))
 
 import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.ContentType (contentSummary)
@@ -50,6 +51,6 @@ test_listen =
         pub n =
           Conc.publish =<< Event.nowText (AgentId "nvim") (show n)
       traverse_ pub ([1..10] :: [Int])
-      traverse resultToMaybe <$> replicateM 10 Queue.read
+      traverse resultToMaybe <$> replicateM 10 (Queue.readTimeout (Seconds 5))
     assertEq Nothing . resultToMaybe =<< Queue.tryRead
     assertJust (Set.map show ([1..10] :: Set Int)) (Set.fromList <$> result)
