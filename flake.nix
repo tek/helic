@@ -325,12 +325,16 @@
           polysemy-http = jailbreak unbreak;
         };
 
+        min.package-set.extends = "ghc912";
+
         ghc910.overrides = {jailbreak, unbreak, notest, ...}: {
           crypton-box = unbreak notest;
           polysemy-http = jailbreak unbreak;
         };
 
         ghc912.package-set.extends = "ghc912";
+
+        profiled.package-set.extends = "ghc912";
 
         x11 = {
           package-set.extends = "ghc912";

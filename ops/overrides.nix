@@ -3594,9 +3594,171 @@ mkDerivation {
 }
 ;
 };
-min = {
+min-extends-ghc912 = {
+  polysemy-chronos = {
+  meta = {
+    sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+    ver = "0.7.0.1";
+  };
+  drv = { mkDerivation, base, chronos, incipit-core, lib, polysemy-test
+, polysemy-time, tasty
+}:
+mkDerivation {
+  pname = "polysemy-chronos";
+  version = "0.7.0.1";
+  src = /nix/store/9ak6ggpj2yvh253phy9vdy62gylf8xci-source;
+  libraryHaskellDepends = [
+    base chronos incipit-core polysemy-time
+  ];
+  testHaskellDepends = [
+    base chronos incipit-core polysemy-test polysemy-time tasty
+  ];
+  homepage = "https://github.com/tek/polysemy-time#readme";
+  description = "A Polysemy effect for Chronos";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  polysemy-http = {
+  meta = {
+    sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+    ver = "0.13.1.0";
+  };
+  drv = { mkDerivation, aeson, base, case-insensitive, exon, hedgehog
+, http-client, http-client-tls, http-types, lib, network, polysemy
+, polysemy-plugin, prelate, servant, servant-client, servant-server
+, tasty, tasty-hedgehog, time, warp
+}:
+mkDerivation {
+  pname = "polysemy-http";
+  version = "0.13.1.0";
+  src = /nix/store/7bb0n2i5c8cgf3xyjvki147vw3kcmz4h-source;
+  libraryHaskellDepends = [
+    aeson base case-insensitive exon http-client http-client-tls
+    http-types polysemy polysemy-plugin prelate time
+  ];
+  testHaskellDepends = [
+    aeson base exon hedgehog http-client network polysemy
+    polysemy-plugin prelate servant servant-client servant-server tasty
+    tasty-hedgehog warp
+  ];
+  homepage = "https://github.com/tek/polysemy-http#readme";
+  description = "Polysemy effects for HTTP clients";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
 };
-profiled = {
+profiled-extends-ghc912 = {
+  polysemy-chronos = {
+  meta = {
+    sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
+    ver = "0.7.0.1";
+  };
+  drv = { mkDerivation, base, chronos, incipit-core, lib, polysemy-test
+, polysemy-time, tasty
+}:
+mkDerivation {
+  pname = "polysemy-chronos";
+  version = "0.7.0.1";
+  src = /nix/store/9ak6ggpj2yvh253phy9vdy62gylf8xci-source;
+  libraryHaskellDepends = [
+    base chronos incipit-core polysemy-time
+  ];
+  testHaskellDepends = [
+    base chronos incipit-core polysemy-test polysemy-time tasty
+  ];
+  homepage = "https://github.com/tek/polysemy-time#readme";
+  description = "A Polysemy effect for Chronos";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  polysemy-http = {
+  meta = {
+    sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
+    ver = "0.13.1.0";
+  };
+  drv = { mkDerivation, aeson, base, case-insensitive, exon, hedgehog
+, http-client, http-client-tls, http-types, lib, network, polysemy
+, polysemy-plugin, prelate, servant, servant-client, servant-server
+, tasty, tasty-hedgehog, time, warp
+}:
+mkDerivation {
+  pname = "polysemy-http";
+  version = "0.13.1.0";
+  src = /nix/store/7bb0n2i5c8cgf3xyjvki147vw3kcmz4h-source;
+  libraryHaskellDepends = [
+    aeson base case-insensitive exon http-client http-client-tls
+    http-types polysemy polysemy-plugin prelate time
+  ];
+  testHaskellDepends = [
+    aeson base exon hedgehog http-client network polysemy
+    polysemy-plugin prelate servant servant-client servant-server tasty
+    tasty-hedgehog warp
+  ];
+  homepage = "https://github.com/tek/polysemy-http#readme";
+  description = "Polysemy effects for HTTP clients";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+  prelate = {
+  meta = {
+    sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
+    ver = "0.8.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.8.0.0";
+  src = /nix/store/lcscd0phqsi00p0x86vhkpd8krkwf5bz-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
 };
 wayland-test-extends-ghc912 = {
   polysemy-chronos = {
