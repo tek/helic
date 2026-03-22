@@ -4,15 +4,15 @@ import Conc (interpretQueueTBM, interpretSync, withAsync_)
 import qualified Crypto.PubKey.Curve25519 as X25519
 import Polysemy.Conc.Queue (QueueResult (Success))
 import Polysemy.Test (assertEq)
+import Polysemy.Test.Data.TestError (TestError (..))
 import qualified Queue
 import qualified Sync
 import Time (Seconds (Seconds))
 
 import Helic.Data.ClientError (ClientError)
-import Helic.Data.Fatal (Fatal (..))
-import Polysemy.Test.Data.TestError (TestError (..))
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
+import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
@@ -43,7 +43,7 @@ test_stream = do
     pure KeyPair {secretKey = sk, publicKey = X25519.toPublic sk}
   runHttpTest serverKp $ interpretPeersNull do
     port <- freePort
-    runReader (NetConfig (Just True) (Just port) Nothing Nothing Nothing) $ withAsync_ serve do
+    runReader (NetConfig (Just True) (Just port) Nothing Nothing Nothing Nothing) $ withAsync_ serve do
       Sync.takeWait (Seconds 5) >>= \case
         Just ServerReady ->
           mapError (TestError . (.text)) $ interpretClientNet $ interpretQueueTBM 4 $ interpretSync $ withAsync_ stream do

@@ -68,7 +68,7 @@ listenApp Config {..} = do
     $ interpretPeersPersistFile path
     $ interpretPeers configAllowed authEnabled configHosts
     $ interpretKeyPairs
-    $ runDiscoveryIfEnabled discoveryConf netConf
+    $ runDiscoveryIfEnabled netConf
     $ interpretDisplay
     $ interpretAgentNetIfEnabled
     $ interpretAgentTmuxIfEnabled
@@ -78,7 +78,6 @@ listenApp Config {..} = do
     $ Conc.subscribeLoop History.receive
   where
     netConf = fromMaybe def net
-    discoveryConf = fromMaybe def discovery
     configHosts = resolvePeerSpec defaultPort <$> fold netConf.hosts
 
 resumeClientFatal ::

@@ -199,22 +199,22 @@ networks.
 
 # Peer Discovery
 
-With `discovery.enable` set to `true`, *Helic* broadcasts UDP beacons on the local network to automatically discover
+With `net.discovery.enable` set to `true`, *Helic* broadcasts UDP beacons on the local network to automatically discover
 other instances, eliminating the need to configure `net.hosts` manually.
 
 Discovered peers are subject to the same authorization rules as manually configured hosts when auth is enabled—unknown
 peers are added to the pending list and must be accepted before events are synced to them.
 
-All instances that should discover each other must use the same `discovery.port`.
+All instances that should discover each other must use the same `net.discovery.port`.
 
 Discovery options:
 
 |Key|Default|Description|
 |---|---|---|
-|`discovery.enable`|`false`|Enable UDP broadcast peer discovery.|
-|`discovery.port`|`9501`|UDP port for beacon broadcast and listening.|
-|`discovery.interval`|`5`|Seconds between beacon broadcasts.|
-|`discovery.ttl`|`15`|Seconds after which a peer is considered stale.|
+|`net.discovery.enable`|`false`|Enable UDP broadcast peer discovery.|
+|`net.discovery.port`|`9501`|UDP port for beacon broadcast and listening.|
+|`net.discovery.interval`|`5`|Seconds between beacon broadcasts.|
+|`net.discovery.ttl`|`15`|Seconds after which a peer is considered stale.|
 
 # Configuring Helic
 
@@ -242,6 +242,11 @@ net:
     enable: true
     allowedKeys:
       - "base64-encoded-public-key-of-remote1"
+  discovery:
+    enable: true
+    port: 9501
+    interval: 5
+    ttl: 15
 tmux:
   enable: true
   exe: /bin/tmux
@@ -249,11 +254,6 @@ x11:
   enable: true
 wayland:
   enable: false
-discovery:
-  enable: true
-  port: 9501
-  interval: 5
-  ttl: 15
 ```
 
 For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
@@ -276,6 +276,12 @@ For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
         enable = true;
         allowedKeys = ["base64-encoded-public-key-of-remote1"];
       };
+      discovery = {
+        enable = true;
+        port = 9501;
+        interval = 5;
+        ttl = 15;
+      };
     };
     tmux = {
       enable = true;
@@ -287,12 +293,6 @@ For *NixOS*, the file `/etc/helic.yaml` is generated from module options:
     };
     wayland = {
       enable = false;
-    };
-    discovery = {
-      enable = true;
-      port = 9501;
-      interval = 5;
-      ttl = 15;
     };
   };
 }
@@ -316,16 +316,16 @@ The meaning of these options is:
 |`net.auth.publicKey`|derived|Base64-encoded X25519 public key. Derived from the private key if not set.|
 |`net.auth.allowedKeys`|`[]`|Base64-encoded public keys of trusted peers. Unknown peers are added to the pending list.|
 |`net.auth.peersFile`|`~/.local/state/helic/peers.yaml`|Path to the peers state file.|
+|`net.discovery.enable`|`false`|Enable UDP broadcast peer discovery on the local network.|
+|`net.discovery.port`|`9501`|UDP port for beacon broadcast and listening.|
+|`net.discovery.interval`|`5`|Seconds between beacon broadcasts.|
+|`net.discovery.ttl`|`15`|Seconds after which a peer is considered stale.|
 |`tmux.enable`|`true`|Whether to send events to *tmux*.|
 |`tmux.package`|`pkgs.tmux`|Only for *NixOS*: The `nixpkgs` package used for the *tmux* executable.|
 |`tmux.exe`|`tmux`|Only for YAML file: The path to the *tmux* executable.|
 |`x11.enable`|auto|Whether to synchronize the X11 clipboard. Defaults to `true` when an X server is enabled.|
 |`x11.subscribedSelections`|`["Clipboard" "Primary"]`|Which X11 selections to listen to.|
 |`wayland.enable`|auto|Whether to synchronize the Wayland clipboard. Defaults to `true` when Sway or Hyprland is enabled.|
-|`discovery.enable`|`false`|Enable UDP broadcast peer discovery on the local network.|
-|`discovery.port`|`9501`|UDP port for beacon broadcast and listening.|
-|`discovery.interval`|`5`|Seconds between beacon broadcasts.|
-|`discovery.ttl`|`15`|Seconds after which a peer is considered stale.|
 
 # Neovim
 
@@ -350,4 +350,3 @@ Since *Helic* updates the system clipboard, a custom `paste` command is not stri
 [Nix]: https://nixos.org/learn.html
 [flake]: https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html
 [Cabal]: https://cabal.readthedocs.io
-

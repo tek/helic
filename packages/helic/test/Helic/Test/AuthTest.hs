@@ -9,21 +9,20 @@ import qualified Servant.Client.Streaming as Servant
 import qualified Sync
 import Time (Seconds (Seconds))
 
+import Helic.Data.AuthConfig (AuthConfig (..))
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
-
-import Helic.Data.AuthConfig (AuthConfig (..))
 import Helic.Data.Host (Host (..), PeerAddress (..))
 import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Interpreter.Peers (interpretPeersPure)
 import Helic.Net.Api (serve)
 import Helic.Net.Client (listPending, sendEventEither)
-import Helic.Test.SpoofedClient (sendEventSpoofed)
 import Helic.Net.Server (ServerReady (ServerReady))
 import Helic.Net.Sign (KeyPair (..), encodePublicKey)
 import Helic.Test.HttpTest (UnitTest, runHttpTest)
 import Helic.Test.Port (freePort)
+import Helic.Test.SpoofedClient (sendEventSpoofed)
 
 -- | Generate an X25519 key pair for testing.
 testKeyPair :: IO KeyPair
@@ -38,7 +37,7 @@ makeHost port = PeerAddress {host = Host "localhost", port}
 -- The server generates its own key pair internally via 'serve'.
 serverConf :: Int -> NetConfig
 serverConf port =
-  NetConfig (Just True) (Just port) Nothing Nothing (Just AuthConfig {enable = Just True, privateKey = Nothing, publicKey = Nothing, allowedKeys = Nothing, peersFile = Nothing})
+  NetConfig (Just True) (Just port) Nothing Nothing (Just AuthConfig {enable = Just True, privateKey = Nothing, publicKey = Nothing, allowedKeys = Nothing, peersFile = Nothing}) Nothing
 
 assertSendFails ::
   Members [Fail, Manager, Log, Race, Embed IO] r =>

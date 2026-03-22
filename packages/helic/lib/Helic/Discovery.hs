@@ -21,6 +21,7 @@ import Time (Seconds (..), diff)
 import Helic.Data.Beacon (Beacon (..))
 import Helic.Data.DiscoveredPeer (DiscoveredPeer (..))
 import Helic.Data.DiscoveryConfig (DiscoveryConfig (..))
+import Helic.Data.Host (defaultPort)
 import Helic.Data.InstanceName (InstanceName (..))
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Data.NetConfig as NetConfig
@@ -31,7 +32,6 @@ import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
-import Helic.Data.Host (defaultPort)
 import Helic.Net.Beacon (defaultDiscoveryPort, mkRecvSocket, mkSendSocket, peerHost, receiveBeacon, sendBeacon)
 import Helic.Net.Sign (KeyPair (..), encodePublicKey)
 
@@ -154,11 +154,10 @@ runDiscovery conf keyPair apiPort sem = do
 runDiscoveryIfEnabled ::
   Members [Peers !! PeersError, Reader InstanceName, KeyPairs !! KeyPairsError, Reader NetConfig] r =>
   Members [ChronosTime, Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
-  DiscoveryConfig ->
   NetConfig ->
   Sem r a ->
   Sem r a
-runDiscoveryIfEnabled conf netConf sem
+runDiscoveryIfEnabled netConf sem
   | not discoveryEnabled
   = sem
   | NetConfig.authEnabled netConf
@@ -175,3 +174,5 @@ runDiscoveryIfEnabled conf netConf sem
       sem
 
     discoveryEnabled = fromMaybe False conf.enable
+
+    conf = fromMaybe def netConf.discovery

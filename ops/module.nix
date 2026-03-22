@@ -117,6 +117,30 @@ in {
 
       };
 
+      discovery = {
+
+        enable = mkEnableOption "UDP broadcast peer discovery";
+
+        port = mkOption {
+          type = types.port;
+          default = 9501;
+          description = "UDP port for broadcast beacons.";
+        };
+
+        interval = mkOption {
+          type = types.ints.positive;
+          default = 5;
+          description = "Seconds between beacon broadcasts.";
+        };
+
+        ttl = mkOption {
+          type = types.ints.positive;
+          default = 15;
+          description = "Seconds after which a peer is considered stale if no beacon is received.";
+        };
+
+      };
+
     };
 
     tmux = {
@@ -150,30 +174,6 @@ in {
 
     };
 
-    discovery = {
-
-      enable = mkEnableOption "UDP broadcast peer discovery";
-
-      port = mkOption {
-        type = types.port;
-        default = 9501;
-        description = "UDP port for broadcast beacons.";
-      };
-
-      interval = mkOption {
-        type = types.ints.positive;
-        default = 5;
-        description = "Seconds between beacon broadcasts.";
-      };
-
-      ttl = mkOption {
-        type = types.ints.positive;
-        default = 15;
-        description = "Seconds after which a peer is considered stale if no beacon is received.";
-      };
-
-    };
-
   };
 
   config = mkIf cfg.enable {
@@ -198,18 +198,18 @@ in {
         ${if cfg.net.auth.publicKey == null then "" else "publicKey: ${cfg.net.auth.publicKey}"}
         ${if cfg.net.auth.allowedKeys == [] then "" else "allowedKeys: ${nixStringListToJsonArray cfg.net.auth.allowedKeys}"}
         ${if cfg.net.auth.peersFile == null then "" else "peersFile: ${cfg.net.auth.peersFile}"}
+      ${if cfg.net.discovery.enable then ''
+      discovery:
+        enable: true
+        port: ${toString cfg.net.discovery.port}
+        interval: ${toString cfg.net.discovery.interval}
+        ttl: ${toString cfg.net.discovery.ttl}
+      '' else ""}
     x11:
       enable: ${if cfg.x11.enable then "true" else "false"}
       subscribedSelections: ${nixStringListToJsonArray cfg.x11.subscribedSelections}
     wayland:
       enable: ${if cfg.wayland.enable then "true" else "false"}
-    ${if cfg.discovery.enable then ''
-    discovery:
-      enable: true
-      port: ${toString cfg.discovery.port}
-      interval: ${toString cfg.discovery.interval}
-      ttl: ${toString cfg.discovery.ttl}
-    '' else ""}
     '';
 
     systemd.user.services.helic = {

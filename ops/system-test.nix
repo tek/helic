@@ -99,17 +99,17 @@ self: {util, ...}: let
         privateKey: CFUmbCKzYtmnvy7duaq4BPA8bp4U5MDUd9TGdEOuWEM=
         publicKey: eDsSQYyE3555i3dDAiSiMeoOyo7EL2oGeFW1M2YeKHQ=
         peersFile: /tmp/helic-a/peers.yaml
+      discovery:
+        enable: true
+        port: 9501
+        interval: 2
+        ttl: 10
     tmux:
       enable: false
     x11:
       enable: false
     wayland:
       enable: false
-    discovery:
-      enable: true
-      port: 9501
-      interval: 2
-      ttl: 10
     '';
     environment.etc."helic-b.yaml".text = ''
     name: instance-b
@@ -123,17 +123,17 @@ self: {util, ...}: let
         privateKey: IOVMnyBg34PN52t0Rt85XJd++hNCik89/T0gKxBTtF8=
         publicKey: FplCPBqA4D7PRhmDjL2e9QqXF7JZIQziBuO74fqMt3c=
         peersFile: /tmp/helic-b/peers.yaml
+      discovery:
+        enable: true
+        port: 9501
+        interval: 2
+        ttl: 10
     tmux:
       enable: false
     x11:
       enable: false
     wayland:
       enable: false
-    discovery:
-      enable: true
-      port: 9501
-      interval: 2
-      ttl: 10
     '';
   };
 
