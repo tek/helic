@@ -3,8 +3,6 @@ with lib;
 let
   cfg = config.services.helic;
 
-  nixStringListToJsonArray = xs: "[${concatMapStringsSep ", " (h: "'${h}'") xs}]";
-
   packages = self.packages.${pkgs.system};
 
   defaultPackage =
@@ -17,9 +15,31 @@ let
 
   waylandEnabled =
     (config.programs.sway.enable or false)
-    || (config.programs.hyprland.enable or false);
+    ||
+    (config.programs.hyprland.enable or false);
 
   x11Enabled = config.services.xserver.enable or false;
+
+  # Remove null values and empty lists/attrsets from a nested attrset.
+  clean = attrs:
+    let
+      cleaned = filterAttrs (_: v: v != null) attrs;
+    in
+      mapAttrs (_: v: if builtins.isAttrs v then clean v else v) cleaned;
+
+  configData = clean ({
+    inherit (cfg) name maxHistory debounceMillis x11 wayland;
+    verbose = if cfg.verbose then true else null;
+    tmux = {
+      inherit (cfg.tmux) enable;
+      exe = if cfg.tmux.enable then "${cfg.tmux.package}/bin/tmux" else null;
+    };
+    net = cfg.net // {
+      auth = cfg.net.auth // {
+        allowedKeys = if cfg.net.auth.allowedKeys == [] then null else cfg.net.auth.allowedKeys;
+      };
+    };
+  });
 
 in {
 
@@ -78,7 +98,7 @@ in {
         type = types.listOf types.str;
         default = [];
         description = "The network addresses of other helic instances that should be shared with.";
-        example = literalExpression ["otherhost:9501"];
+        example = literalExpression ["otherhost:9500"];
       };
 
       timeout = mkOption {
@@ -180,37 +200,7 @@ in {
 
     environment.systemPackages = [cfg.package];
 
-    environment.etc."helic.yaml".text = ''
-    ${if cfg.name == null then "" else "name: ${cfg.name}"}
-    maxHistory: ${toString cfg.maxHistory}
-    ${if cfg.verbose == null then "" else "verbose: ${if cfg.verbose then "true" else "false"}"}
-    tmux:
-      enable: ${if cfg.tmux.enable then "true" else "false"}
-      ${if cfg.tmux.enable then "exe: ${cfg.tmux.package}/bin/tmux" else ""}
-    net:
-      enable: ${if cfg.net.enable then "true" else "false"}
-      port: ${toString cfg.net.port}
-      hosts: ${nixStringListToJsonArray cfg.net.hosts}
-      ${if cfg.net.timeout == null then "" else "timeout: ${toString cfg.net.timeout}"}
-      auth:
-        enable: ${if cfg.net.auth.enable then "true" else "false"}
-        ${if cfg.net.auth.privateKey == null then "" else "privateKey: ${cfg.net.auth.privateKey}"}
-        ${if cfg.net.auth.publicKey == null then "" else "publicKey: ${cfg.net.auth.publicKey}"}
-        ${if cfg.net.auth.allowedKeys == [] then "" else "allowedKeys: ${nixStringListToJsonArray cfg.net.auth.allowedKeys}"}
-        ${if cfg.net.auth.peersFile == null then "" else "peersFile: ${cfg.net.auth.peersFile}"}
-      ${if cfg.net.discovery.enable then ''
-      discovery:
-        enable: true
-        port: ${toString cfg.net.discovery.port}
-        interval: ${toString cfg.net.discovery.interval}
-        ttl: ${toString cfg.net.discovery.ttl}
-      '' else ""}
-    x11:
-      enable: ${if cfg.x11.enable then "true" else "false"}
-      subscribedSelections: ${nixStringListToJsonArray cfg.x11.subscribedSelections}
-    wayland:
-      enable: ${if cfg.wayland.enable then "true" else "false"}
-    '';
+    environment.etc."helic.yaml".text = builtins.toJSON configData;
 
     systemd.user.services.helic = {
       description = "Clipboard Manager";
