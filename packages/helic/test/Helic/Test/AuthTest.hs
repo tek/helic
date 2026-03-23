@@ -10,6 +10,7 @@ import qualified Sync
 import Time (Seconds (Seconds))
 
 import Helic.Data.AuthConfig (AuthConfig (..))
+import Helic.Data.ClientError (ClientError (..))
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
 import Helic.Data.Host (Host (..), PeerAddress (..))
@@ -17,7 +18,8 @@ import Helic.Data.NetConfig (NetConfig (NetConfig))
 import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Interpreter.Peers (interpretPeersPure)
 import Helic.Net.Api (serve)
-import Helic.Net.Client (listPending, sendEventEither)
+import Helic.Net.Client (encryptRequest, fetchServerPublicKey, listPending, sendEventEither)
+import qualified Helic.Net.Client as Client
 import Helic.Net.Server (ServerReady (ServerReady))
 import Helic.Net.Sign (KeyPair (..), encodePublicKey)
 import Helic.Test.HttpTest (UnitTest, runHttpTest)
@@ -65,18 +67,23 @@ assertSendSpoofed spoofedKp actualKp port event =
     Right () -> fail "Expected spoofed request to be rejected"
 
 assertPendingEmpty ::
-  Members [Fail, Manager, Embed IO] r =>
+  Members [Fail, Manager, Log, Embed IO] r =>
+  KeyPair ->
   Int ->
   Sem r ()
-assertPendingEmpty port = do
+assertPendingEmpty serverKp port = do
   url <- maybe (fail "Invalid url") pure (Servant.parseBaseUrl ("localhost:" <> show port))
   mgr <- Manager.get
-  let env = Servant.mkClientEnv mgr url
-  embed (Servant.withClientM listPending env pure) >>= \case
-    Left err -> fail [exon|Failed to list pending: #{show err}|]
-    Right ps
-      | null ps -> pure ()
-      | otherwise -> fail [exon|Expected empty pending list, got #{show ps}|]
+  let baseEnv = Servant.mkClientEnv mgr url
+  runStop (fetchServerPublicKey baseEnv) >>= \case
+    Left (ClientError err) -> fail [exon|Failed to fetch server key: #{toString err}|]
+    Right serverPk -> do
+      let env = baseEnv {Servant.makeClientRequest = encryptRequest serverKp serverPk}
+      embed (Servant.withClientM listPending env pure) >>= \case
+        Left err -> fail [exon|Failed to list pending: #{show err}|]
+        Right ps
+          | null ps -> pure ()
+          | otherwise -> fail [exon|Expected empty pending list, got #{show ps}|]
 
 -- | Server with an allow list, client sends without any key pair -> rejected (no X-Helic-Public-Key header).
 test_authServerRejectsUnsigned :: UnitTest
@@ -134,7 +141,32 @@ test_authSpoofedKeyNotAddedToPending = do
             -- Send encrypted with actualKp but header claims spoofedKp
             assertSendSpoofed spoofedKp actualKp port event
             -- Check that the pending list is empty (no state mutation from spoofed request)
-            assertPendingEmpty port
+            assertPendingEmpty serverKp port
+          Nothing -> fail "Server did not start within 5 seconds"
+
+-- | Unauthenticated GET requests must be rejected when auth is enabled.
+-- Only GET /key is allowed through without authentication.
+test_authGetRejectsUnauthenticated :: UnitTest
+test_authGetRejectsUnauthenticated = do
+  serverKp <- liftIO testKeyPair
+  runHttpTest serverKp do
+    port <- freePort
+    let conf = serverConf port
+    interpretPeersPure [] True $
+      runReader conf $ withAsync_ serve do
+        Sync.takeWait (Seconds 5) >>= \ case
+          Just ServerReady -> do
+            url <- maybe (fail "Invalid url") pure (Servant.parseBaseUrl ("localhost:" <> show port))
+            mgr <- Manager.get
+            let env = Servant.mkClientEnv mgr url
+            -- GET /auth/pending without auth header -> 403
+            embed (Servant.withClientM listPending env pure) >>= \case
+              Left _ -> pure ()
+              Right _ -> fail "Expected unauthenticated GET /auth/pending to be rejected"
+            -- GET /event without auth header -> 403
+            embed (Servant.withClientM Client.get env pure) >>= \case
+              Left _ -> pure ()
+              Right _ -> fail "Expected unauthenticated GET /event to be rejected"
           Nothing -> fail "Server did not start within 5 seconds"
 
 -- | Server allows 'clientKp', client sends encrypted with 'clientKp' -> accepted.

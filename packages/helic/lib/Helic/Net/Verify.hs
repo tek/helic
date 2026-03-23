@@ -11,6 +11,7 @@ import Data.CaseInsensitive (CI)
 import Data.IORef (atomicModifyIORef', newIORef)
 import qualified Data.List as List
 import Exon (exon)
+import qualified Log
 import qualified Network.HTTP.Types as Http
 import Network.Socket (SockAddr (..))
 import qualified Network.Wai as Wai
@@ -24,7 +25,6 @@ import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Data.VerifyError (VerifyError (..))
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
-import qualified Log
 import Helic.Net.Address (peerAddressFromSockAddr)
 import Helic.Net.Sign (KeyPair (..), decodePublicKey, encodePublicKey, unseal)
 
@@ -204,6 +204,8 @@ verifyRequest serverKey vl app req respond
       authenticateHeader serverKey req) \case
       AuthSuccess -> app req respond
       AuthFailure err -> respond (Wai.responseLBS Http.status403 [] (encodeUtf8 err))
+  | isGetRequest, not isPublicPath
+  = respond (Wai.responseLBS Http.status403 [] "Authentication required")
   | isGetRequest
   = app req respond
   | otherwise
@@ -217,3 +219,4 @@ verifyRequest serverKey vl app req respond
   where
     isGetRequest = Wai.requestMethod req == Http.methodGet
     hasAuthHeader = isJust (List.lookup authHeader (Wai.requestHeaders req))
+    isPublicPath = Wai.rawPathInfo req == "/key"

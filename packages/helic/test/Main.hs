@@ -1,9 +1,11 @@
 module Main where
 
 import Helic.Test.AuthTest (
+  test_authGetRejectsUnauthenticated,
   test_authServerAcceptsCorrectKey,
   test_authServerRejectsUnsigned,
   test_authServerRejectsWrongKey,
+  test_authSpoofedKeyNotAddedToPending,
   )
 import Helic.Test.CliOptionsTest (
   test_authAcceptAllSubcommand,
@@ -123,7 +125,9 @@ tests =
       unitTest "stream events over http" test_stream,
       unitTest "auth: server rejects unsigned request" test_authServerRejectsUnsigned,
       unitTest "auth: server rejects wrong key" test_authServerRejectsWrongKey,
-      unitTest "auth: server accepts correct key" test_authServerAcceptsCorrectKey
+      unitTest "auth: server accepts correct key" test_authServerAcceptsCorrectKey,
+      unitTest "auth: unauthenticated GET rejected" test_authGetRejectsUnauthenticated,
+      unitTest "auth: spoofed key not added to pending" test_authSpoofedKeyNotAddedToPending
     ]
   ] ++ platformTests
 
