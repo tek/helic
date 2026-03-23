@@ -1,5 +1,19 @@
 module Main where
 
+import Helic.Test.AuthTest (
+  test_authServerAcceptsCorrectKey,
+  test_authServerRejectsUnsigned,
+  test_authServerRejectsWrongKey,
+  )
+import Helic.Test.CliOptionsTest (
+  test_authAcceptAllSubcommand,
+  test_authAcceptSubcommand,
+  test_authDefaultIsInteractive,
+  test_authListSubcommand,
+  test_authRejectSubcommand,
+  test_authSubcommandInteractive,
+  test_authSubcommandList,
+  )
 import Helic.Test.ConfigFileTest (test_readConfigFile)
 import Helic.Test.ContentTest (
   test_contentJsonBinary,
@@ -9,8 +23,9 @@ import Helic.Test.ContentTest (
   test_contentText,
   test_insertImageEvent,
   )
+import Helic.Test.DiscoveryTest (test_beaconJsonRoundtrip, test_peerExpiry)
 import Helic.Test.InsertEventTest (test_insertEvent)
-import Helic.Test.KeyFileTest (test_literalKey, test_fileKey, test_nonexistentFileKey, test_resolveAuthConfig)
+import Helic.Test.KeyFileTest (test_fileKey, test_literalKey, test_nonexistentFileKey, test_resolveAuthConfig)
 import Helic.Test.ListTest (test_list)
 import Helic.Test.ListenTest (test_listen)
 import Helic.Test.LoadTest (test_load)
@@ -41,8 +56,6 @@ import Helic.Test.PeerStateTest (
   test_rejectPeer,
   )
 import Helic.Test.PlatformTests (platformTests)
-import Helic.Test.AuthTest (test_authServerAcceptsCorrectKey, test_authServerRejectsUnsigned, test_authServerRejectsWrongKey)
-import Helic.Test.DiscoveryTest (test_beaconJsonRoundtrip, test_peerExpiry)
 import Helic.Test.SignTest (test_sealUnsealRoundTrip, test_sealUnsealTamperedBody, test_sealUnsealWrongKey)
 import Helic.Test.StreamTest (test_stream)
 import Polysemy.Test (unitTest)
@@ -91,6 +104,13 @@ tests =
     unitTest "peer state: auth enabled config allowed" test_authEnabledConfigAllowed,
     unitTest "peer state: is allowed key" test_isAllowedKey,
     unitTest "peer state: find key by spec host only" test_findKeyBySpecHostOnly,
+    unitTest "cli options: auth default is interactive" test_authDefaultIsInteractive,
+    unitTest "cli options: auth list subcommand" test_authListSubcommand,
+    unitTest "cli options: auth accept-all subcommand" test_authAcceptAllSubcommand,
+    unitTest "cli options: auth accept subcommand" test_authAcceptSubcommand,
+    unitTest "cli options: auth reject subcommand" test_authRejectSubcommand,
+    unitTest "cli options: auth subcommand interactive" test_authSubcommandInteractive,
+    unitTest "cli options: auth subcommand list" test_authSubcommandList,
     unitTest "beacon JSON roundtrip" test_beaconJsonRoundtrip,
     unitTest "peer expiry" test_peerExpiry,
     sequentialTestGroup "io" AllSucceed

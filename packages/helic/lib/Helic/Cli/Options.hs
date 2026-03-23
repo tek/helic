@@ -142,20 +142,22 @@ pasteCommand :: Mod CommandFields Command
 pasteCommand =
   command "paste" (Paste <$> info pasteParser (progDesc "Write event content to stdout or a file"))
 
+peerSpecArgument :: Parser PeerSpec
+peerSpecArgument =
+  argument (parsePeerSpec . toText <$> readerAsk) (help "Peer by host[:port]" <> metavar "HOST[:PORT]")
+
+authSubcommands :: [Mod CommandFields AuthCommand]
+authSubcommands =
+  [
+    command "list" (info (pure AuthList) (progDesc "List pending peers")),
+    command "accept" (info (AuthAccept <$> peerSpecArgument) (progDesc "Accept a pending peer")),
+    command "reject" (info (AuthReject <$> peerSpecArgument) (progDesc "Reject a pending peer")),
+    command "accept-all" (info (pure AuthAcceptAll) (progDesc "Accept all pending peers"))
+  ]
+
 authParser :: Parser AuthCommand
 authParser =
-  authList <|> authAccept <|> authReject <|> authAcceptAll <|> pure AuthInteractive
-  where
-    authList =
-      AuthList <$ switch (long "list" <> help "List pending peers without prompting")
-    authAccept =
-      AuthAccept <$> specOption (long "accept" <> help "Accept a pending peer by host[:port]" <> metavar "HOST[:PORT]")
-    authReject =
-      AuthReject <$> specOption (long "reject" <> help "Reject a pending peer by host[:port]" <> metavar "HOST[:PORT]")
-    specOption mods =
-      option (parsePeerSpec . toText <$> readerAsk) mods
-    authAcceptAll =
-      AuthAcceptAll <$ switch (long "accept-all" <> help "Accept all pending peers")
+  hsubparser (mconcat authSubcommands) <|> pure AuthInteractive
 
 authCommand :: Mod CommandFields Command
 authCommand =

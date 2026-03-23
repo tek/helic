@@ -178,6 +178,7 @@
             "random"
             "tasty"
             "torsor"
+            "optparse-applicative"
             "zeugma"
           ];
           component = {
