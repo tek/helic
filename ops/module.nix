@@ -20,12 +20,33 @@ let
 
   x11Enabled = config.services.xserver.enable or false;
 
-  # Remove null values and empty lists/attrsets from a nested attrset.
+  # Remove null values from a nested attrset.
   clean = attrs:
     let
       cleaned = filterAttrs (_: v: v != null) attrs;
     in
       mapAttrs (_: v: if builtins.isAttrs v then clean v else v) cleaned;
+
+  toYAML = let
+    indent = depth: concatStrings (genList (_: "  ") depth);
+    scalar = v:
+      if builtins.isBool v then (if v then "true" else "false")
+      else if builtins.isInt v then toString v
+      else if builtins.isFloat v then toString v
+      else if builtins.isString v then v
+      else throw "toYAML: unsupported scalar type";
+    renderValue = depth: v:
+      if builtins.isAttrs v then "\n" + renderAttrs depth v
+      else if builtins.isList v then
+        if v == [] then " []"
+        else "\n" + concatMapStringsSep "\n" (item: "${indent depth}- ${scalar item}") v
+      else " ${scalar v}";
+    renderAttrs = depth: attrs:
+      concatStringsSep "\n" (mapAttrsToList (k: v:
+        "${indent depth}${k}:${renderValue (depth + 1) v}"
+      ) attrs);
+  in
+    attrs: renderAttrs 0 attrs;
 
   configData = clean ({
     inherit (cfg) name maxHistory debounceMillis x11 wayland;
@@ -200,7 +221,7 @@ in {
 
     environment.systemPackages = [cfg.package];
 
-    environment.etc."helic.yaml".text = builtins.toJSON configData;
+    environment.etc."helic.yaml".text = toYAML configData;
 
     systemd.user.services.helic = {
       description = "Clipboard Manager";
