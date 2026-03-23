@@ -12,6 +12,7 @@ import Options.Applicative (
   argument,
   auto,
   command,
+  flag,
   help,
   hsubparser,
   info,
@@ -22,7 +23,6 @@ import Options.Applicative (
   readerError,
   short,
   strOption,
-  switch,
   )
 import Options.Applicative.Types (readerAsk)
 import Path (Abs, File, Path, parseAbsFile)
@@ -76,7 +76,7 @@ filePathOption = do
 
 confParser :: Parser Conf
 confParser = do
-  verbose <- optional (switch (long "verbose"))
+  verbose <- flag Nothing (Just True) (long "verbose")
   configFile <- optional (option filePathOption (long "config-file"))
   pure (Conf verbose configFile)
 

@@ -3,12 +3,18 @@ module Helic.Test.CliOptionsTest where
 import Hedgehog (TestT, (===))
 import Options.Applicative (ParserResult (..), defaultPrefs, execParserPure, info)
 
-import Helic.Cli.Options (AuthCommand (..), Command (..), authParser, parser)
+import Helic.Cli.Options (AuthCommand (..), Command (..), Conf (..), authParser, parser)
 
 parseAuth :: [String] -> Maybe AuthCommand
 parseAuth args =
   case execParserPure defaultPrefs (info authParser mempty) args of
     Success cmd -> Just cmd
+    _ -> Nothing
+
+parseConf :: [String] -> Maybe Conf
+parseConf args =
+  case execParserPure defaultPrefs (info (fst <$> parser) mempty) args of
+    Success conf -> Just conf
     _ -> Nothing
 
 parseCommand :: [String] -> Maybe Command
@@ -57,3 +63,13 @@ test_authSubcommandInteractive =
 test_authSubcommandList :: TestT IO ()
 test_authSubcommandList =
   Just (Auth AuthList) === parseCommand ["auth", "list"]
+
+-- | Without @--verbose@, @verbose@ should be @Nothing@ so config file can take effect.
+test_verboseAbsentIsNothing :: TestT IO ()
+test_verboseAbsentIsNothing =
+  Just Nothing === ((.verbose) <$> parseConf [])
+
+-- | With @--verbose@, @verbose@ should be @Just True@.
+test_verbosePresentIsJustTrue :: TestT IO ()
+test_verbosePresentIsJustTrue =
+  Just (Just True) === ((.verbose) <$> parseConf ["--verbose"])

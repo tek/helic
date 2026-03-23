@@ -13,6 +13,8 @@ import Helic.Test.CliOptionsTest (
   test_authRejectSubcommand,
   test_authSubcommandInteractive,
   test_authSubcommandList,
+  test_verboseAbsentIsNothing,
+  test_verbosePresentIsJustTrue,
   )
 import Helic.Test.ConfigFileTest (test_readConfigFile)
 import Helic.Test.ContentTest (
@@ -111,6 +113,8 @@ tests =
     unitTest "cli options: auth reject subcommand" test_authRejectSubcommand,
     unitTest "cli options: auth subcommand interactive" test_authSubcommandInteractive,
     unitTest "cli options: auth subcommand list" test_authSubcommandList,
+    unitTest "cli options: verbose absent is Nothing" test_verboseAbsentIsNothing,
+    unitTest "cli options: verbose present is Just True" test_verbosePresentIsJustTrue,
     unitTest "beacon JSON roundtrip" test_beaconJsonRoundtrip,
     unitTest "peer expiry" test_peerExpiry,
     sequentialTestGroup "io" AllSucceed
