@@ -35,8 +35,9 @@ withKeyPair NetConfig {timeout} keyPair =
       resumeOr Peers.broadcastTargets (sendToTargets e) noTargets
   where
     sendToTargets :: Event -> [PeerAddress] -> Sem r ()
-    sendToTargets e =
-      traverse_ \ host ->
+    sendToTargets e targets = do
+      Log.debug [exon|AgentNet: broadcasting to #{show (length targets)} targets: #{show targets}|]
+      for_ targets \ host ->
         sendEventLog keyPair timeout host e {source = agentIdNet}
 
     noTargets (PeersError err) = Log.error [exon|Failed to get broadcast targets: #{err}|]
@@ -53,6 +54,7 @@ interpretAgentNet sem =
   resumeOr KeyPairs.obtainKeyPair useKeys noKeys
   where
     useKeys serverKey = do
+      Log.debug "AgentNet: key pair obtained, network sync enabled"
       conf <- ask
       withKeyPair conf (Just serverKey) sem
 

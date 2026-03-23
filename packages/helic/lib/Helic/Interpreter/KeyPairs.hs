@@ -3,6 +3,9 @@
 -- | X25519 key pair interpreters
 module Helic.Interpreter.KeyPairs where
 
+import Exon (exon)
+import qualified Log
+
 import Helic.Config.Key (resolveKeyValue)
 import Helic.Data.AuthConfig (AuthConfig (..))
 import Helic.Data.KeyPairsError (KeyPairsError (..))
@@ -15,13 +18,14 @@ import Helic.Net.Sign (KeyPair, obtainKeyPair)
 
 -- | Interpret 'KeyPairs' by reading from config or generating on the file system.
 interpretKeyPairs ::
-  Members [Reader NetConfig, Embed IO] r =>
+  Members [Reader NetConfig, Log, Embed IO] r =>
   InterpreterFor (KeyPairs !! KeyPairsError) r
 interpretKeyPairs =
   interpretResumable \case
     KeyPairs.ObtainKeyPair -> do
       conf <- ask
       let authConf = fromMaybe def conf.auth
+      Log.debug [exon|KeyPairs: obtaining key pair, hasPrivateKey=#{show (isJust authConf.privateKey)}, hasPublicKey=#{show (isJust authConf.publicKey)}|]
       mapStop KeyPairsError do
         privateKey <- traverse (tryStop . resolveKeyValue) authConf.privateKey
         publicKey <- traverse (tryStop . resolveKeyValue) authConf.publicKey

@@ -22,7 +22,7 @@ import Helic.Net.Verify (authHeader, publicKeyHeader)
 -- Encrypts the body using @actualSender@ but places @spoofedSender@'s public key in the header.
 -- This simulates an attacker claiming to be a different peer.
 sendEventSpoofed ::
-  Members [Manager, Stop ClientError, Embed IO] r =>
+  Members [Manager, Stop ClientError, Log, Embed IO] r =>
   KeyPair ->
   KeyPair ->
   PeerAddress ->

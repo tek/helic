@@ -5,6 +5,7 @@ module Helic.Listen where
 
 import qualified Conc
 import Conc (interpretSync, withAsync_)
+import qualified Log
 import Prelude hiding (listen)
 import qualified Sync
 
@@ -19,17 +20,21 @@ data Listening =
 
 -- | Listen for 'Event' via 'Polysemy.Conc.Events', broadcasting them to agents.
 listen ::
-  Members [EventConsumer Event, History, Sync Listening] r =>
+  Members [EventConsumer Event, History, Sync Listening, Log] r =>
   Sem r ()
 listen =
   Conc.subscribe do
+    Log.debug "listen: event subscriber started"
     Sync.putBlock Listening
-    forever (History.receive =<< Conc.consume)
+    forever do
+      event <- Conc.consume
+      Log.debug "listen: consumed event, forwarding to History.receive"
+      History.receive event
 
 -- | Run an action with 'listen' in a thread, waiting for the event subscriber to be up and running before executing the
 -- action.
 withListen ::
-  Members [EventConsumer Event, History, Resource, Race, Async, Embed IO] r =>
+  Members [EventConsumer Event, History, Log, Resource, Race, Async, Embed IO] r =>
   Sem r a ->
   Sem r a
 withListen ma =

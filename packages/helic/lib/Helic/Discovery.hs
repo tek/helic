@@ -102,6 +102,7 @@ discoveryUpdater ttl interval =
     now <- Time.now
     atomicModify' (expirePeers ttl now)
     peers <- Map.elems <$> atomicGet
+    Log.debug [exon|discoveryUpdater: #{show (length peers)} active peers|]
     resume_ (Peers.updateDiscovered peers)
 
 -- | Run discovery beacon threads as background workers that update 'Peers'.
@@ -121,6 +122,7 @@ runDiscovery conf keyPair apiPort sem = do
       Log.warn [exon|Discovery socket creation failed: #{e}|]
       sem
     Right (sendSock, recvSock) -> do
+      Log.debug [exon|runDiscovery: sockets created, starting beacon threads on port #{show port}, interval=#{show interval}s, ttl=#{show ttl}s|]
       let beacon = Beacon {
             port = apiPort,
             publicKey,
@@ -159,11 +161,15 @@ runDiscoveryIfEnabled ::
   Sem r a
 runDiscoveryIfEnabled netConf sem
   | not discoveryEnabled
-  = sem
+  = do
+    Log.debug "runDiscoveryIfEnabled: discovery disabled"
+    sem
   | NetConfig.authEnabled netConf
   = resumeOr KeyPairs.obtainKeyPair (withKey . Just) noKeys
   | otherwise
-  = withKey Nothing
+  = do
+    Log.debug "runDiscoveryIfEnabled: discovery enabled without auth"
+    withKey Nothing
   where
     withKey serverKey = runDiscovery conf serverKey apiPort sem
 

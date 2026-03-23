@@ -4,6 +4,7 @@
 module Helic.Net.Verify where
 
 import qualified Crypto.PubKey.Curve25519 as X25519
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base64 as Base64
 import qualified Data.ByteString.Lazy as LBS
 import Data.CaseInsensitive (CI)
@@ -23,6 +24,7 @@ import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Data.VerifyError (VerifyError (..))
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
+import qualified Log
 import Helic.Net.Address (peerAddressFromSockAddr)
 import Helic.Net.Sign (KeyPair (..), decodePublicKey, encodePublicKey, unseal)
 
@@ -36,18 +38,28 @@ authHeader = "X-Helic-Auth"
 -- Called after successful cryptographic verification to ensure state mutations
 -- only occur for peers that have proven possession of their private key.
 authorizeKey ::
-  Members [Peers, Error VerifyError] r =>
+  Members [Peers, Error VerifyError, Log] r =>
   SockAddr ->
   PublicKey ->
   Sem r ()
 authorizeKey addr senderPublicKey = do
   host <- maybe (throw (VerifyError "Unsupported address type")) pure (peerAddressFromSockAddr addr)
+  Log.debug [exon|authorizeKey: checking key #{senderPublicKey.unPublicKey} from #{show addr}|]
   Peers.checkKey senderPublicKey >>= \case
-    Just ConfigAllowed -> Peers.updateHost senderPublicKey host
-    Just Allowed -> Peers.updateHost senderPublicKey host
-    Just Rejected -> throw (VerifyError "Rejected public key")
-    Just Pending -> throw (VerifyError "Key is pending authorization")
+    Just ConfigAllowed -> do
+      Log.debug [exon|authorizeKey: config-allowed key, updating host to #{show host}|]
+      Peers.updateHost senderPublicKey host
+    Just Allowed -> do
+      Log.debug [exon|authorizeKey: allowed key, updating host to #{show host}|]
+      Peers.updateHost senderPublicKey host
+    Just Rejected -> do
+      Log.debug [exon|authorizeKey: rejecting key #{senderPublicKey.unPublicKey}|]
+      throw (VerifyError "Rejected public key")
+    Just Pending -> do
+      Log.debug [exon|authorizeKey: key is pending authorization|]
+      throw (VerifyError "Key is pending authorization")
     Nothing -> do
+      Log.debug [exon|authorizeKey: unknown key, adding to pending|]
       Peers.addPending (Peer {host, publicKey = senderPublicKey})
       throw (VerifyError "Unknown peer added to pending list")
 
@@ -76,11 +88,12 @@ resolveSender req = do
 -- Performs cryptographic verification first, then authorizes the key and updates peer state.
 -- Returns 'AuthSuccess' if the decrypted path matches, or 'AuthFailure' with a reason.
 authenticateHeader ::
-  Members [Peers, Error VerifyError] r =>
+  Members [Peers, Error VerifyError, Log] r =>
   KeyPair ->
   Wai.Request ->
   Sem r AuthResult
 authenticateHeader serverKey req = do
+  Log.debug [exon|authenticateHeader: verifying auth header for #{decodeUtf8 (Wai.rawPathInfo req)}|]
   senderPublicKey <- resolveSender req
   authBytes <- lookupHeader authHeader req
   ciphertext <- fromEither (first (VerifyError . toText) (Base64.decode authBytes))
@@ -90,10 +103,13 @@ authenticateHeader serverKey req = do
       | headerMatchesRequestPath decryptedPath -> do
         -- If the sender's public key is the server key, we don't need to authorize.
         -- This is safe because we already successfully decrypted the proof.
-        unless (isSelfSigned senderPublicKey) do
-          authorizeKey (Wai.remoteHost req) (encodedSenderKey senderPublicKey)
+        if isSelfSigned senderPublicKey
+        then Log.debug "authenticateHeader: self-signed request (local client)"
+        else authorizeKey (Wai.remoteHost req) (encodedSenderKey senderPublicKey)
         pure AuthSuccess
-      | otherwise -> pure (AuthFailure [exon|Path mismatch: expected #{decodeUtf8 requestPath}|])
+      | otherwise -> do
+        Log.debug [exon|authenticateHeader: path mismatch, expected #{decodeUtf8 requestPath}|]
+        pure (AuthFailure [exon|Path mismatch: expected #{decodeUtf8 requestPath}|])
   where
     requestPath = Wai.rawPathInfo req
 
@@ -106,17 +122,20 @@ authenticateHeader serverKey req = do
 -- | Authenticate and decrypt a request body.
 -- Performs cryptographic verification first, then authorizes the key and updates peer state.
 authenticate ::
-  Members [Peers, Error VerifyError] r =>
+  Members [Peers, Error VerifyError, Log] r =>
   KeyPair ->
   Wai.Request ->
   ByteString ->
   Sem r ByteString
 authenticate serverKey req body = do
+  Log.debug [exon|authenticate: decrypting body for #{decodeUtf8 (Wai.rawPathInfo req)} (#{show (BS.length body)} bytes)|]
   senderPublicKey <- resolveSender req
   ciphertext <- fromEither (first (VerifyError . toText) (Base64.decode body))
   plaintext <- fromEither (first VerifyError (unseal serverKey senderPublicKey ciphertext))
-  unless (isSelfSigned senderPublicKey) do
-    authorizeKey (Wai.remoteHost req) (encodedSenderKey senderPublicKey)
+  Log.debug [exon|authenticate: decryption successful, #{show (BS.length plaintext)} bytes plaintext|]
+  if isSelfSigned senderPublicKey
+  then Log.debug "authenticate: self-signed request (local client)"
+  else authorizeKey (Wai.remoteHost req) (encodedSenderKey senderPublicKey)
   pure plaintext
   where
     isSelfSigned key = key == serverKey.publicKey
@@ -135,7 +154,7 @@ newtype VerifyLower r =
 -- | Run an auth action through the Sem stack and produce a WAI response.
 -- Handles 'VerifyError' as 403, 'PeersError' as 500, and interpreter failure as 500.
 withAuth ::
-  Members [Peers !! PeersError, Embed IO] r =>
+  Members [Peers !! PeersError, Log, Embed IO] r =>
   VerifyLower r ->
   (Wai.Response -> IO Wai.ResponseReceived) ->
   Sem (Error VerifyError : Peers : r) a ->
@@ -174,13 +193,15 @@ withAuth (VerifyLower lower) respond action onSuccess =
 -- Authorization and peer state mutations occur only after successful
 -- cryptographic verification, preventing unauthenticated state pollution.
 verifyRequest ::
-  Members [Peers !! PeersError, Embed IO] r =>
+  Members [Peers !! PeersError, Log, Embed IO] r =>
   KeyPair ->
   VerifyLower r ->
   Wai.Middleware
 verifyRequest serverKey vl app req respond
   | isGetRequest, hasAuthHeader
-  = withAuth vl respond (authenticateHeader serverKey req) \case
+  = withAuth vl respond (do
+      Log.debug [exon|verifyRequest: authenticated GET #{decodeUtf8 (Wai.rawPathInfo req)}|]
+      authenticateHeader serverKey req) \case
       AuthSuccess -> app req respond
       AuthFailure err -> respond (Wai.responseLBS Http.status403 [] (encodeUtf8 err))
   | isGetRequest
@@ -188,7 +209,9 @@ verifyRequest serverKey vl app req respond
   | otherwise
   = do
     body <- LBS.toStrict <$> Wai.consumeRequestBodyStrict req
-    withAuth vl respond (authenticate serverKey req body) \ plaintext -> do
+    withAuth vl respond (do
+      Log.debug [exon|verifyRequest: authenticating #{decodeUtf8 (Wai.requestMethod req)} #{decodeUtf8 (Wai.rawPathInfo req)}|]
+      authenticate serverKey req body) \ plaintext -> do
       req' <- replaceBody (toLazy plaintext) req
       app req' respond
   where

@@ -75,13 +75,15 @@ encryptRequest sender recipient burl coreReq =
 
 -- | Fetch the remote server's X25519 public key from the @/key@ endpoint to encrypt yank payloads.
 fetchServerPublicKey ::
-  Members [Stop ClientError, Embed IO] r =>
+  Members [Stop ClientError, Log, Embed IO] r =>
   ClientEnv ->
   Sem r X25519.PublicKey
-fetchServerPublicKey env =
+fetchServerPublicKey env = do
+  Log.debug "fetchServerPublicKey: fetching remote server's public key"
   embed (runClientM getKey env) >>= \case
     Left err -> stop (ClientError [exon|Failed to fetch server key: #{show err}|])
-    Right keyText ->
+    Right keyText -> do
+      Log.debug [exon|fetchServerPublicKey: received key #{keyText}|]
       stopEitherWith ClientError (decodePublicKey (encodeUtf8 keyText))
 
 -- | Send an event to a remote host.
@@ -112,9 +114,12 @@ sendEvent configKeyPair configTimeout addr event = do
     baseEnv =
       mkClientEnv mgr url
   env <- case configKeyPair of
-    Nothing -> pure baseEnv
+    Nothing -> do
+      Log.debug [exon|sendEvent: sending unencrypted to #{formatted}|]
+      pure baseEnv
     Just sender -> do
       serverPk <- fetchServerPublicKey baseEnv
+      Log.debug [exon|sendEvent: encrypting for #{formatted}|]
       pure baseEnv {makeClientRequest = encryptRequest sender serverPk}
   let req = first (ClientError . show) <$> tryAny (runClientM (yank event) env)
   result <- Conc.timeoutAs_ (Left (ClientError "timed out")) timeout req

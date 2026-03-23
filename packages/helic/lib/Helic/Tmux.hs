@@ -3,6 +3,8 @@
 -- | Tmux interaction helpers
 module Helic.Tmux where
 
+import qualified Data.Text as Text
+import Exon (exon)
 import qualified Polysemy.Log as Log
 import qualified Polysemy.Process as Process
 import Polysemy.Process (Process, withProcess_)
@@ -17,7 +19,8 @@ sendToTmux ::
   Sem r ()
 sendToTmux (Event _ _ _ content) =
   case content of
-    TextContent text ->
+    TextContent text -> do
+      Log.debug [exon|Tmux: sending #{show (Text.length text)} chars|]
       withProcess_ do
         Process.send (encodeUtf8 text)
     BinaryContent _ _ ->

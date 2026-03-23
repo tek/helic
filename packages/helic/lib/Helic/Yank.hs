@@ -4,7 +4,10 @@
 module Helic.Yank where
 
 import qualified Data.ByteString as BS
+import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
+import Exon (exon)
+import qualified Log
 import qualified Network.Mime as Mime
 import Polysemy.Chronos (ChronosTime)
 import System.IO (stdin)
@@ -39,10 +42,15 @@ resolveSource = \case
 
 -- | Send an event to the server.
 yank ::
-  Members [Reader InstanceName, Client, ChronosTime, Error Fatal, Embed IO] r =>
+  Members [Reader InstanceName, Client, ChronosTime, Log, Error Fatal, Embed IO] r =>
   YankConfig ->
   Sem r ()
 yank conf = do
   content <- tryFatal (resolveSource conf.source)
+  Log.debug [exon|yank: content type #{contentTag content}, agent=#{fromMaybe "cli" conf.agent}|]
   event <- Event.now (AgentId (fromMaybe "cli" conf.agent)) content
   Client.yank event
+  where
+    contentTag = \case
+      TextContent t -> [exon|text (#{show (Text.length t)} chars)|]
+      BinaryContent m bs -> [exon|binary #{show m} (#{show (BS.length bs)} bytes)|]

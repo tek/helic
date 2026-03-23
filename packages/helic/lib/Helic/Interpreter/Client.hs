@@ -115,7 +115,8 @@ interpretClientNet sem =
   runStop ((,) <$> localhostUrl <*> clientKeyPair) >>= \case
     Left (ClientError err) ->
       throw (Fatal [exon|Client initialization failed: #{err}|])
-    Right (url, keyPair) ->
+    Right (url, keyPair) -> do
+      Log.debug [exon|interpretClientNet: initialized, url=#{show url}, hasKey=#{show (isJust keyPair)}|]
       interpretClientWith url keyPair sem
 
 -- | Interpret 'Client' with a constant list of 'Event's and no capability to yank.

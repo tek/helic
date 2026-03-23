@@ -53,7 +53,7 @@ assertSendFails clientKey port event =
 -- | Send a request with a spoofed public key header.
 -- The header claims the sender is @spoofedKp@, but the body is encrypted with @actualKp@.
 assertSendSpoofed ::
-  Members [Fail, Manager, Embed IO] r =>
+  Members [Fail, Manager, Log, Embed IO] r =>
   KeyPair ->
   KeyPair ->
   Int ->

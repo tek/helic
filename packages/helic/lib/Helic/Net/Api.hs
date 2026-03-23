@@ -35,10 +35,10 @@ import Time (Seconds (Seconds))
 import Helic.Data.Event (Event)
 import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.HistoryUpdate (HistoryUpdate (HistoryUpdate))
+import Helic.Data.Host (PeerSpec, defaultPort)
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import qualified Helic.Data.NetConfig as NetConfig
 import Helic.Data.NetConfig (NetConfig)
-import Helic.Data.Host (PeerSpec, defaultPort)
 import Helic.Data.Peer (Peer)
 import Helic.Data.PeersError (PeersError (..))
 import qualified Helic.Effect.History as History
@@ -170,14 +170,20 @@ serve ::
   Sem r ()
 serve = do
   conf <- ask @NetConfig
+  Log.debug [exon|serve: net.enable=#{show conf.enable}, auth=#{show (NetConfig.authEnabled conf)}|]
   when (fromMaybe False conf.enable) do
-    (key, verify) <- if NetConfig.authEnabled conf then authResources else pure (Nothing, const id)
+    (key, verify) <- if NetConfig.authEnabled conf then authResources else do
+      Log.debug "serve: auth disabled, running without verification middleware"
+      pure (Nothing, const id)
+    Log.debug [exon|serve: starting server on port #{show (fromMaybe defaultPort conf.port)}|]
     runReader key $ runServerWithContext @Api server EmptyContext verify (fromMaybe defaultPort conf.port)
   where
     -- Key pair is required for the server to verify incoming requests and encrypt responses.
     -- Without it, the server cannot start, so the app terminates.
     authResources = do
+      Log.debug "serve: auth enabled, obtaining key pair for verification middleware"
       key <- resumeHoistError noKeys KeyPairs.obtainKeyPair
+      Log.debug "serve: key pair obtained, verification middleware active"
       pure (Just key, verifyRequest key)
 
     noKeys (KeyPairsError err) =

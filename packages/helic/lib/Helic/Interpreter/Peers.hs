@@ -8,6 +8,8 @@ module Helic.Interpreter.Peers where
 
 import Conc (interpretAtomic)
 import qualified Data.Map.Strict as Map
+import Exon (exon)
+import qualified Log
 
 import Helic.Data.AuthEnabled (AuthEnabled (..))
 import Helic.Data.AuthState (AuthState (..))
@@ -115,26 +117,38 @@ interpretPeersState =
     Peers.UpdateDiscovered discovered -> do
       AuthEnabled authEnabled <- ask
       new <- atomicGets \ PeersState {peers} -> newPendingFromDiscovered peers discovered
+      Log.debug [exon|Peers.UpdateDiscovered: #{show (length discovered)} peers, #{show (length new)} new pending|]
       let update = updateDiscovered new authEnabled discovered
       if authEnabled && not (null new)
       then modifyAndRecompute update
       else modifyAndRecomputeTargets update
-    Peers.AddPending peer ->
+    Peers.AddPending peer -> do
+      Log.debug [exon|Peers.AddPending: #{peer.publicKey.unPublicKey} at #{show peer.host}|]
       modifyAndPersist (overPeers (PeerState.addPending peer))
-    Peers.UpdateHost key host ->
+    Peers.UpdateHost key host -> do
+      Log.debug [exon|Peers.UpdateHost: #{key.unPublicKey} -> #{show host}|]
       modifyAndRecompute (overPeers (PeerState.setHost key host))
     Peers.CheckKey senderKey -> do
       AuthEnabled authEnabled <- ask
-      atomicGets \ s -> checkKeyStatus authEnabled s.peers senderKey
-    Peers.ListPending ->
-      atomicGets \ s -> PeerState.pendingPeers s.peers
-    Peers.AcceptPeer spec ->
-      atomicGets (\ s -> PeerState.findKeyBySpec spec s.peers) >>= traverse_ \ key ->
+      result <- atomicGets \ s -> checkKeyStatus authEnabled s.peers senderKey
+      Log.debug [exon|Peers.CheckKey: #{senderKey.unPublicKey} -> #{show result}|]
+      pure result
+    Peers.ListPending -> do
+      pending <- atomicGets \ s -> PeerState.pendingPeers s.peers
+      Log.debug [exon|Peers.ListPending: #{show (length pending)} peers|]
+      pure pending
+    Peers.AcceptPeer spec -> do
+      Log.debug [exon|Peers.AcceptPeer: #{show spec}|]
+      atomicGets (\ s -> PeerState.findKeyBySpec spec s.peers) >>= traverse_ \ key -> do
+        Log.debug [exon|Peers.AcceptPeer: found key #{key.unPublicKey}|]
         modifyAndRecompute (overPeers (PeerState.acceptPeer key))
-    Peers.RejectPeer spec ->
-      atomicGets (\ s -> PeerState.findKeyBySpec spec s.peers) >>= traverse_ \ key ->
+    Peers.RejectPeer spec -> do
+      Log.debug [exon|Peers.RejectPeer: #{show spec}|]
+      atomicGets (\ s -> PeerState.findKeyBySpec spec s.peers) >>= traverse_ \ key -> do
+        Log.debug [exon|Peers.RejectPeer: found key #{key.unPublicKey}|]
         modifyAndPersist (overPeers (PeerState.rejectPeer key))
-    Peers.AcceptAll ->
+    Peers.AcceptAll -> do
+      Log.debug "Peers.AcceptAll"
       modifyAndRecompute (overPeers PeerState.acceptAllPending)
   where
     updateDiscovered new authEnabled discovered s =
@@ -173,6 +187,7 @@ interpretPeers configAllowed authEnabled configHosts sem = do
   let peers = initializePeers configAllowed persisted
       targets = computeTargets authEnabled configHosts [] peers
       initial = PeersState {peers, discovered = [], configHosts, targets}
+  Log.debug [exon|interpretPeers: initialized with #{show (length configAllowed)} config keys, #{show (length targets)} initial targets, auth=#{show authEnabled}|]
   interpretAtomic initial $ runReader (AuthEnabled authEnabled) $ interpretPeersState $ raiseUnder2 sem
 
 -- | No-op interpreter for testing.

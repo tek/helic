@@ -42,7 +42,7 @@ formatPeerTable peers =
 
 -- | Run a Servant client request, encrypting the body when a key pair is available.
 apiRequest ::
-  Members [Manager, Reader NetConfig, Reader (Maybe KeyPair), Error Fatal, Embed IO] r =>
+  Members [Manager, Reader NetConfig, Reader (Maybe KeyPair), Log, Error Fatal, Embed IO] r =>
   ClientM a ->
   Sem r a
 apiRequest action = do

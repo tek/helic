@@ -8,6 +8,9 @@ import Conc (interpretAtomic, interpretEventsChan, interpretSync, withAsync_)
 import Polysemy.Http (Manager)
 import Polysemy.Http.Interpreter.Manager (interpretManager)
 
+import Exon (exon)
+import qualified Log
+
 import Helic.Compat.Display (interpretDisplay)
 import Helic.Config.Key (resolveAuthConfig)
 import Helic.Data.AuthConfig (AuthConfig (..))
@@ -55,6 +58,7 @@ listenApp Config {..} = do
   path <- resolvePeersPath authConf.peersFile
   let configAllowed = PublicKey <$> fold authConf.allowedKeys
       authEnabled = authConf.enable == Just True
+  Log.debug [exon|listenApp: net.enable=#{show netConf.enable}, auth=#{show authEnabled}, #{show (length configAllowed)} allowed keys, #{show (length configHosts)} config hosts, peers file=#{show path}|]
   runReader netConf
     $ runReader (fromMaybe def x11)
     $ runReader (fromMaybe def wayland)

@@ -173,6 +173,7 @@ loadEvent ::
   Int ->
   Sem r (Maybe Event)
 loadEvent index = do
+  Log.debug [exon|loadEvent: loading event at index #{show index}|]
   now <- Time.now
   atomicState' \ s -> do
     let rindex = length s - index - 1

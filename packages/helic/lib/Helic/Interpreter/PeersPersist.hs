@@ -7,6 +7,7 @@ import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as Map
 import qualified Data.Yaml as Yaml
 import Exon (exon)
+import qualified Log
 import Path (Abs, File, Path, parent, parseAbsFile, reldir, relfile, toFilePath, (</>))
 import Path.IO (XdgDirectory (XdgState), createDirIfMissing, doesFileExist, getXdgDir)
 
@@ -56,14 +57,16 @@ resolvePeersPath = \case
 
 -- | Interpret 'PeersPersist' with YAML file storage.
 interpretPeersPersistFile ::
-  Member (Embed IO) r =>
+  Members [Log, Embed IO] r =>
   Path Abs File ->
   InterpreterFor (PeersPersist !! PeersError) r
 interpretPeersPersistFile path =
   interpretResumable \case
-    PeersPersist.Load ->
+    PeersPersist.Load -> do
+      Log.debug [exon|PeersPersist.Load: reading from #{show path}|]
       stopEitherWith PeersError =<< stopTryIOError PeersError (readAuthState path)
-    PeersPersist.Save ps ->
+    PeersPersist.Save ps -> do
+      Log.debug [exon|PeersPersist.Save: writing to #{show path}|]
       stopTryIOError PeersError (writeAuthState path ps)
 
 -- | No-op interpreter that never persists.
