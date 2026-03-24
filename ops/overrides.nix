@@ -1734,6 +1734,38 @@ mkDerivation {
 ;
 }
 ;
+  base16 = {
+  meta = {
+    sha256 = "0rhjm2b4mpp6lr2cgppsls2z1ipfx6rc681cpj88pvf5p6jf5fd4";
+    url = "https://hackage.haskell.org";
+    ver = "1.0";
+  };
+  drv = { mkDerivation, base, base16-bytestring, bytestring, criterion
+, deepseq, lib, primitive, QuickCheck, random-bytestring, tasty
+, tasty-hunit, tasty-quickcheck, text, text-short
+}:
+mkDerivation {
+  pname = "base16";
+  version = "1.0";
+  src = /nix/store/4panfmmj73f12h99422ni2v4lhq58jg4-source;
+  libraryHaskellDepends = [
+    base bytestring deepseq primitive text text-short
+  ];
+  testHaskellDepends = [
+    base base16-bytestring bytestring QuickCheck random-bytestring
+    tasty tasty-hunit tasty-quickcheck text text-short
+  ];
+  benchmarkHaskellDepends = [
+    base base16-bytestring bytestring criterion deepseq
+    random-bytestring text
+  ];
+  homepage = "https://github.com/emilypi/base16";
+  description = "Fast RFC 4648-compliant Base16 encoding";
+  license = lib.licenses.bsd3;
+}
+;
+}
+;
   cabal-doctest = {
   meta = {
     sha256 = "094mvqgh9bhx5v9xanzkhcm8pcxzmkaa68lr3bqpjzkdxydx81nk";
@@ -1850,6 +1882,32 @@ mkDerivation {
   ];
   description = "Ungarble output from several threads or commands";
   license = lib.licenses.bsd2;
+}
+;
+}
+;
+  cryptohash-md5 = {
+  meta = {
+    sha256 = "0y38ybbd67864nw9p326a7bi7ss8b9y1vi88702y8h07zvyi2d84";
+    url = "https://hackage.haskell.org";
+    ver = "0.11.101.0";
+  };
+  drv = { mkDerivation, base, base16-bytestring, bytestring, criterion, lib
+, pureMD5, tasty, tasty-hunit, tasty-quickcheck
+}:
+mkDerivation {
+  pname = "cryptohash-md5";
+  version = "0.11.101.0";
+  src = /nix/store/qgch6ialx803dja8d6hkvf87yjvc14j3-source;
+  libraryHaskellDepends = [ base bytestring ];
+  testHaskellDepends = [
+    base base16-bytestring bytestring pureMD5 tasty tasty-hunit
+    tasty-quickcheck
+  ];
+  benchmarkHaskellDepends = [ base bytestring criterion ];
+  homepage = "https://github.com/hvr/cryptohash-md5";
+  description = "Fast, pure and practical MD5 implementation";
+  license = lib.licenses.bsd3;
 }
 ;
 }
@@ -2285,26 +2343,27 @@ mkDerivation {
 ;
   http-client-tls = {
   meta = {
-    sha256 = "1f8br94l5kywpsfvpmw54b1v6nx1yapslzrwiswsf6vf8kwfjjzg";
+    sha256 = "1qgwh3zip36pbjn7c5pn1l6zv044d6l77mnariz66bdhwy9hrx1s";
     url = "https://hackage.haskell.org";
-    ver = "0.3.6.4";
+    ver = "0.4.0";
   };
-  drv = { mkDerivation, base, bytestring, case-insensitive, containers
-, crypton, crypton-connection, data-default, exceptions, gauge
-, hspec, http-client, http-types, lib, memory, network, network-uri
-, text, tls, transformers
+  drv = { mkDerivation, base, base16, bytestring, case-insensitive
+, containers, cryptohash-md5, crypton-connection, data-default
+, exceptions, gauge, hspec, http-client, http-types, lib, network
+, network-uri, text, tls, transformers
 }:
 mkDerivation {
   pname = "http-client-tls";
-  version = "0.3.6.4";
-  src = /nix/store/8r1b74si7yr0bxiw2wp65ypxzrdsmsxk-source;
+  version = "0.4.0";
+  src = /nix/store/y51lsazp5pgmm5nbz1m0gah9y8daz9dw-source;
   libraryHaskellDepends = [
-    base bytestring case-insensitive containers crypton
+    base base16 bytestring case-insensitive containers cryptohash-md5
     crypton-connection data-default exceptions http-client http-types
-    memory network network-uri text tls transformers
+    network network-uri text tls transformers
   ];
   testHaskellDepends = [
-    base crypton-connection hspec http-client http-types
+    base crypton-connection data-default hspec http-client http-types
+    tls
   ];
   benchmarkHaskellDepends = [ base gauge http-client ];
   doCheck = false;
@@ -3398,29 +3457,29 @@ mkDerivation {
 ;
   wai-app-static = {
   meta = {
-    sha256 = "1kwvzy9w4v76q5bk4xwq7kz9q9l8867my6zvsv731x6xkhy7wr2c";
+    sha256 = "1irlknakxl7dcwxxdw0iliql7xrbyssz4bdk18amr2xl2d0fcwzc";
     url = "https://hackage.haskell.org";
-    ver = "3.1.9";
+    ver = "3.1.9.1";
   };
-  drv = { mkDerivation, base, blaze-html, blaze-markup, bytestring
-, containers, crypton, directory, file-embed, filepath, hspec
-, http-date, http-types, lib, memory, mime-types, mockery
+  drv = { mkDerivation, base, base64-bytestring, blaze-html, blaze-markup
+, bytestring, containers, cryptohash-md5, directory, file-embed
+, filepath, hspec, http-date, http-types, lib, mime-types, mockery
 , old-locale, optparse-applicative, template-haskell, temporary
 , text, time, transformers, unix-compat, unordered-containers, wai
 , wai-extra, warp, zlib
 }:
 mkDerivation {
   pname = "wai-app-static";
-  version = "3.1.9";
-  src = /nix/store/k3rzn1agy7w5d6qw9254ymn7caq4b8l4-source;
+  version = "3.1.9.1";
+  src = /nix/store/10cbcwxdd8c8jml5qn3770h1gp82zmnz-source;
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    base blaze-html blaze-markup bytestring containers crypton
-    directory file-embed filepath http-date http-types memory
-    mime-types old-locale optparse-applicative template-haskell text
-    time transformers unix-compat unordered-containers wai wai-extra
-    warp zlib
+    base base64-bytestring blaze-html blaze-markup bytestring
+    containers cryptohash-md5 directory file-embed filepath http-date
+    http-types mime-types old-locale optparse-applicative
+    template-haskell text time transformers unix-compat
+    unordered-containers wai wai-extra warp zlib
   ];
   executableHaskellDepends = [ base ];
   testHaskellDepends = [

@@ -85,6 +85,10 @@
         lower = "0.12.4";
         upper = "0.13";
       };
+      incipit = {
+        lower = "0.10.0.1";
+        upper = null;
+      };
       memory = {
         lower = "0.18.0";
         upper = "0.19";
@@ -329,6 +333,7 @@
       hostname = "1.0";
       http-client = "0.7.14";
       http-types = "0.12.4";
+      incipit = "0.10.0.1";
       incipit-base = "0.6.1.0";
       memory = "0.18.0";
       mime-types = "0.1.0.0";
@@ -388,6 +393,7 @@
       hostname = "1.0";
       http-client = "0.7.14";
       http-types = "0.12.4";
+      incipit = "0.10.0.1";
       incipit-base = "0.6.1.0";
       memory = "0.18.0";
       mime-types = "0.1.0.0";
@@ -674,6 +680,11 @@
         hash = "1fp45qcivbkk97n03dq5n233wvyd39ldajs7apdqg70pd76178sa";
         repo = "hackage.haskell.org";
       };
+      base16 = {
+        version = "1.0";
+        hash = "0rhjm2b4mpp6lr2cgppsls2z1ipfx6rc681cpj88pvf5p6jf5fd4";
+        repo = "hackage.haskell.org";
+      };
       cabal-doctest = {
         version = "1.0.12";
         hash = "094mvqgh9bhx5v9xanzkhcm8pcxzmkaa68lr3bqpjzkdxydx81nk";
@@ -697,6 +708,11 @@
       concurrent-output = {
         version = "1.10.21";
         hash = "1w87rrf337s8wc4z3dkh2mk990003jsk18ry5yawv4465k4yvamw";
+        repo = "hackage.haskell.org";
+      };
+      cryptohash-md5 = {
+        version = "0.11.101.0";
+        hash = "0y38ybbd67864nw9p326a7bi7ss8b9y1vi88702y8h07zvyi2d84";
         repo = "hackage.haskell.org";
       };
       crypton = {
@@ -775,8 +791,8 @@
         repo = "hackage.haskell.org";
       };
       http-client-tls = {
-        version = "0.3.6.4";
-        hash = "1f8br94l5kywpsfvpmw54b1v6nx1yapslzrwiswsf6vf8kwfjjzg";
+        version = "0.4.0";
+        hash = "1qgwh3zip36pbjn7c5pn1l6zv044d6l77mnariz66bdhwy9hrx1s";
         repo = "hackage.haskell.org";
       };
       http-media = {
@@ -970,8 +986,8 @@
         repo = "hackage.haskell.org";
       };
       wai-app-static = {
-        version = "3.1.9";
-        hash = "1kwvzy9w4v76q5bk4xwq7kz9q9l8867my6zvsv731x6xkhy7wr2c";
+        version = "3.1.9.1";
+        hash = "1irlknakxl7dcwxxdw0iliql7xrbyssz4bdk18amr2xl2d0fcwzc";
         repo = "hackage.haskell.org";
       };
       wai-extra = {
