@@ -50,7 +50,6 @@ let
 
   configData = clean ({
     inherit (cfg) name maxHistory debounceMillis x11 wayland;
-    verbose = if cfg.verbose then true else null;
     tmux = {
       inherit (cfg.tmux) enable;
       exe = if cfg.tmux.enable then "${cfg.tmux.package}/bin/tmux" else null;
@@ -230,7 +229,7 @@ in {
       unitConfig.ConditionUser = mkIf (cfg.user != null) cfg.user;
       serviceConfig = {
         Restart = "always";
-        ExecStart = "${cfg.package}/bin/hel listen";
+        ExecStart = "${cfg.package}/bin/hel listen ${lib.optionalString cfg.verbose "--verbose"}";
       };
 
     };

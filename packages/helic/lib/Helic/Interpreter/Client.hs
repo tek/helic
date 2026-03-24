@@ -88,17 +88,22 @@ interpretClientWith url keyPair =
       mgr <- Manager.get
       let env = mkClientEnv mgr url
       withWeavingToFinal \ s lower _ -> do
+        connectedGate <- newEmptyMVar
         let
           lower' ma = void (lower (ma <$ s))
           err e = lower' (Log.error [exon|Error in streaming response: #{toText e}|])
+          onConnected = do
+            firstTime <- tryPutMVar connectedGate ()
+            when firstTime do
+              lower' (void (runTSimple connected))
           frame = \case
-            ListenConnected -> connected
-            ListenEvent e -> f e
+            ListenConnected -> onConnected
+            ListenEvent e -> lower' (void (runTSimple (f e)))
         withClientM Api.listen env \case
           Left e ->
             err (show e)
           Right source ->
-            foreach err (\ e -> lower' (void (runTSimple (frame e)))) source
+            foreach err frame source
         pure (() <$ s)
       unitT
   where

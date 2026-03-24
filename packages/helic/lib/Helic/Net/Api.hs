@@ -8,6 +8,7 @@ import Conc (interpretQueueTB)
 import qualified Control.Concurrent.Async as Async
 import qualified Control.Exception as Base
 import Exon (exon)
+import Gate (Gates, gate, withGate)
 import qualified Log
 import Polysemy.Final (withWeavingToFinal)
 import Process (Interrupt)
@@ -16,7 +17,7 @@ import Servant (
   Get,
   JSON,
   NewlineFraming,
-  NoContent (NoContent),
+  NoContent (..),
   PostCreated,
   PostNoContent,
   PutAccepted,
@@ -70,15 +71,21 @@ data ListenFrame =
 -- Note: 'interpretQueueTB' completes before the queue is actually used — the operations are captured in closures
 -- inside the 'SourceT'. This works because 'TBQueue' is just a 'TVar' that persists as long as it's referenced, but
 -- it means the effect scope doesn't accurately reflect the resource lifetime.
+--
+-- The producer signals a gate after subscribing to ensure events published after the client receives 'ListenConnected'
+-- are not lost.
 listenStream ::
-  Members [EventConsumer HistoryUpdate, Race, Embed IO, Final IO] r =>
+  Members [EventConsumer HistoryUpdate, Gates, Race, Embed IO, Final IO] r =>
   Sem r (SourceIO ListenFrame)
 listenStream =
   interpretQueueTB @HistoryUpdate 100 $
+  withGate $
   withWeavingToFinal \ s wv ins -> do
     let
       producer =
-        wv ((Conc.subscribeLoop Queue.write) <$ s)
+        wv (Conc.subscribeLoopGated @HistoryUpdate Queue.write <$ s)
+      waitSubscribed =
+        wv (gate <$ s)
       reader =
         ins <$> wv (Queue.readTimeout (Seconds 10) <$ s)
       readStep = Effect do
@@ -87,7 +94,8 @@ listenStream =
           Just Queue.NotAvailable -> pure (Yield ListenConnected readStep)
           _ -> pure SourceT.Stop
       source = SourceT \ k ->
-        Async.withAsync producer \ _ ->
+        Async.withAsync producer \ _ -> do
+          void waitSubscribed
           k (Yield ListenConnected readStep)
     pure (source <$ s)
 
@@ -135,7 +143,7 @@ peersError (PeersError err) = do
 
 -- | The server implementation.
 server ::
-  Members [EventConsumer HistoryUpdate, History, Peers !! PeersError, Reader (Maybe KeyPair), Log, Race, Embed IO, Final IO] r =>
+  Members [EventConsumer HistoryUpdate, History, Peers !! PeersError, Reader (Maybe KeyPair), Log, Gate.Gates, Race, Embed IO, Final IO] r =>
   ServerT Api (Sem r)
 server =
   (
@@ -166,7 +174,7 @@ server =
 serve ::
   Members [History, EventConsumer HistoryUpdate, Peers !! PeersError, KeyPairs !! KeyPairsError, Reader NetConfig] r =>
   Members [Sync ServerReady, Error Fatal] r =>
-  Members [Log, Interrupt, Race, Embed IO, Final IO] r =>
+  Members [Log, Interrupt, Gate.Gates, Race, Embed IO, Final IO] r =>
   Sem r ()
 serve = do
   conf <- ask @NetConfig

@@ -58,6 +58,7 @@
             "fast-logger"
             "http-client"
             "http-types"
+            "incipit"
             "memory"
             "network"
             "gi-gdk"

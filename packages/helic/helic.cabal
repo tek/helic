@@ -167,6 +167,7 @@ library
     , hostname ==1.0.*
     , http-client >=0.7.14 && <0.8
     , http-types >=0.12.4 && <0.13
+    , incipit
     , memory >=0.18.0 && <0.19
     , mime-types >=0.1.0.0 && <0.2
     , network >=3.2.8.0 && <3.3
