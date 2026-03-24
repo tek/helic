@@ -33,8 +33,8 @@ formatPeerTable peers =
   where
     header = formatRow "Host" "Public Key"
     separator = toText (replicate (hostWidth + keyWidth + 5) '-')
-    rows = [formatRow (formatAddress host) key | Peer {host, publicKey = PublicKey key} <- peers]
-    hostWidth = max 4 (foldl' (\acc p -> max acc (Text.length (formatAddress p.host))) 0 peers)
+    rows = [formatRow (maybe "<unknown>" formatAddress host) key | Peer {host, publicKey = PublicKey key} <- peers]
+    hostWidth = max 4 (foldl' (\acc p -> max acc (Text.length (maybe "<unknown>" formatAddress p.host))) 0 peers)
     keyWidth = max 10 (foldl' (\acc p -> max acc (Text.length p.publicKey.unPublicKey)) 0 peers)
     formatRow h k =
       let padding = toText (replicate (hostWidth - Text.length h + 3) ' ')
@@ -53,7 +53,7 @@ apiRequest action = do
     Nothing -> pure baseEnv
     Just sender -> do
       serverPublicKey <- stopToErrorWith coerce (Client.fetchServerPublicKey baseEnv)
-      pure baseEnv {makeClientRequest = Client.encryptRequest sender serverPublicKey}
+      pure baseEnv {makeClientRequest = Client.encryptRequest sender serverPublicKey Nothing}
   embed (withClientM action env pure) >>= leftA \ err -> throw (Fatal [exon|Failed to connect to daemon: #{show err}|])
 
 -- | Prompt the user for a yes/no answer, retrying on invalid input.
@@ -116,11 +116,14 @@ authApp = do
       tryIOError_ (hSetBuffering stdout NoBuffering)
       (accept, reject) <- partition snd <$> tryFatal (traverse promptPeer peers)
       for_ accept \ (peer, _) ->
-        apiRequest (Client.acceptPeer (addressToSpec peer.host))
+        for_ peer.host \ addr ->
+          apiRequest (Client.acceptPeer (addressToSpec addr))
       for_ reject \ (peer, _) ->
-        apiRequest (Client.rejectPeer (addressToSpec peer.host))
+        for_ peer.host \ addr ->
+          apiRequest (Client.rejectPeer (addressToSpec addr))
       Log.info ([exon|Done. Accepted: #{show (length accept)}, Rejected: #{show (length reject)}|] :: Text)
   where
     promptPeer peer = do
-      decision <- promptYesNo [exon|Accept #{formatAddress peer.host} (#{peer.publicKey.unPublicKey})?|]
+      let hostLabel = maybe "<unknown>" formatAddress peer.host
+      decision <- promptYesNo [exon|Accept #{hostLabel} (#{peer.publicKey.unPublicKey})?|]
       pure (peer, decision)

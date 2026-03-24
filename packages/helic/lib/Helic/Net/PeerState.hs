@@ -53,7 +53,7 @@ isKnownKey key ps =
 -- Since 'Pending' has the lowest priority, this only inserts if the key is absent.
 addPending :: Peer -> AuthState -> AuthState
 addPending Peer {host, publicKey} ps =
-  insertPeer ps publicKey PeerAuth {peerHost = PeerHostKnown host, status = Pending}
+  insertPeer ps publicKey PeerAuth {peerHost = maybe PeerHostUnknown PeerHostKnown host, status = Pending}
 
 -- | Set a peer's authorization status.
 setStatus :: AuthStatus -> PublicKey -> AuthState -> AuthState
@@ -97,11 +97,14 @@ pendingPeers (AuthState ps) =
   where
     select publicKey = \case
       PeerAuth {peerHost = PeerHostKnown host, status = Pending} ->
-        Just Peer {host, publicKey}
+        Just Peer {host = Just host, publicKey}
+      PeerAuth {peerHost = PeerHostUnknown, status = Pending} ->
+        Just Peer {host = Nothing, publicKey}
       _ -> Nothing
 
--- | Unconditionally set the host of an existing peer entry.
--- Used after successful cryptographic authentication to record the peer's current address.
+-- | Unconditionally set the host address of an existing peer entry.
+-- Used after successful cryptographic authentication when the sender provides their listening port in the
+-- @X-Helic-Port@ header.
 setHost :: PublicKey -> PeerAddress -> AuthState -> AuthState
 setHost key addr (AuthState ps) =
   AuthState (Map.adjust (#peerHost .~ PeerHostKnown addr) key ps)

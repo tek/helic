@@ -13,19 +13,19 @@ import qualified Data.List as List
 import Exon (exon)
 import qualified Log
 import qualified Network.HTTP.Types as Http
-import Network.Socket (SockAddr (..))
 import qualified Network.Wai as Wai
 import Network.Wai (setRequestBodyChunks)
 
 import Helic.Data.AuthResult (AuthResult (..))
 import Helic.Data.AuthStatus (AuthStatus (..))
+import Helic.Data.Host (PeerAddress (..))
 import Helic.Data.Peer (Peer (..))
 import Helic.Data.PeersError (PeersError (..))
 import Helic.Data.PublicKey (PublicKey (..))
 import Helic.Data.VerifyError (VerifyError (..))
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
-import Helic.Net.Address (peerAddressFromSockAddr)
+import Helic.Net.Address (hostFromSockAddr)
 import Helic.Net.Sign (KeyPair (..), decodePublicKey, encodePublicKey, unseal)
 
 publicKeyHeader :: CI ByteString
@@ -34,24 +34,37 @@ publicKeyHeader = "X-Helic-Public-Key"
 authHeader :: CI ByteString
 authHeader = "X-Helic-Auth"
 
+-- | Header carrying the sender's own listening port.
+-- The host IP is taken from the TCP connection; only the port needs to be self-reported
+-- because the TCP source port is ephemeral.
+portHeader :: CI ByteString
+portHeader = "X-Helic-Port"
+
+-- | Parse the @X-Helic-Port@ header and combine with the TCP source IP to get a 'PeerAddress'.
+resolveSenderAddress :: Wai.Request -> Maybe PeerAddress
+resolveSenderAddress req = do
+  portBytes <- List.lookup portHeader (Wai.requestHeaders req)
+  port <- readMaybe (decodeUtf8 @String portBytes)
+  host <- hostFromSockAddr (Wai.remoteHost req)
+  pure PeerAddress {host, port}
+
 -- | Authorize a sender's public key, aborting the request if the peer is rejected.
 -- Called after successful cryptographic verification to ensure state mutations
 -- only occur for peers that have proven possession of their private key.
 authorizeKey ::
   Members [Peers, Error VerifyError, Log] r =>
-  SockAddr ->
+  Maybe PeerAddress ->
   PublicKey ->
   Sem r ()
-authorizeKey addr senderPublicKey = do
-  host <- maybe (throw (VerifyError "Unsupported address type")) pure (peerAddressFromSockAddr addr)
-  Log.debug [exon|authorizeKey: checking key #{senderPublicKey.unPublicKey} from #{show addr}|]
+authorizeKey senderAddress senderPublicKey = do
+  Log.debug [exon|authorizeKey: checking key #{senderPublicKey.unPublicKey} from #{show senderAddress}|]
   Peers.checkKey senderPublicKey >>= \case
     Just ConfigAllowed -> do
-      Log.debug [exon|authorizeKey: config-allowed key, updating host to #{show host}|]
-      Peers.updateHost senderPublicKey host
+      Log.debug [exon|authorizeKey: config-allowed key, updating host to #{show senderAddress}|]
+      for_ senderAddress (Peers.updateHost senderPublicKey)
     Just Allowed -> do
-      Log.debug [exon|authorizeKey: allowed key, updating host to #{show host}|]
-      Peers.updateHost senderPublicKey host
+      Log.debug [exon|authorizeKey: allowed key, updating host to #{show senderAddress}|]
+      for_ senderAddress (Peers.updateHost senderPublicKey)
     Just Rejected -> do
       Log.debug [exon|authorizeKey: rejecting key #{senderPublicKey.unPublicKey}|]
       throw (VerifyError "Rejected public key")
@@ -60,7 +73,7 @@ authorizeKey addr senderPublicKey = do
       throw (VerifyError "Key is pending authorization")
     Nothing -> do
       Log.debug [exon|authorizeKey: unknown key, adding to pending|]
-      Peers.addPending (Peer {host, publicKey = senderPublicKey})
+      Peers.addPending Peer {host = senderAddress, publicKey = senderPublicKey}
       throw (VerifyError "Unknown peer added to pending list")
 
 lookupHeader ::
@@ -105,7 +118,7 @@ authenticateHeader serverKey req = do
         -- This is safe because we already successfully decrypted the proof.
         if isSelfSigned senderPublicKey
         then Log.debug "authenticateHeader: self-signed request (local client)"
-        else authorizeKey (Wai.remoteHost req) (encodedSenderKey senderPublicKey)
+        else authorizeKey (resolveSenderAddress req) (encodedSenderKey senderPublicKey)
         pure AuthSuccess
       | otherwise -> do
         Log.debug [exon|authenticateHeader: path mismatch, expected #{decodeUtf8 requestPath}|]
@@ -135,7 +148,7 @@ authenticate serverKey req body = do
   Log.debug [exon|authenticate: decryption successful, #{show (BS.length plaintext)} bytes plaintext|]
   if isSelfSigned senderPublicKey
   then Log.debug "authenticate: self-signed request (local client)"
-  else authorizeKey (Wai.remoteHost req) (encodedSenderKey senderPublicKey)
+  else authorizeKey (resolveSenderAddress req) (encodedSenderKey senderPublicKey)
   pure plaintext
   where
     isSelfSigned key = key == serverKey.publicKey

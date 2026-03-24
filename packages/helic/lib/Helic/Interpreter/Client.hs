@@ -68,7 +68,7 @@ interpretClientWith url keyPair =
       liftT do
         host <- localhost
         timeout <- asks (.timeout)
-        sendEvent keyPair timeout host event
+        sendEvent keyPair Nothing timeout host event
     Load index ->
       liftT do
         mgr <- Manager.get
@@ -77,7 +77,7 @@ interpretClientWith url keyPair =
           Nothing -> pure baseEnv
           Just clientKey -> do
             serverPk <- fetchServerPublicKey baseEnv
-            pure baseEnv {makeClientRequest = encryptRequest clientKey serverPk}
+            pure baseEnv {makeClientRequest = encryptRequest clientKey serverPk Nothing}
         result <- request env (Api.load index)
         stopNote invalidIndex =<< stopEitherWith ClientError result
     Peek index ->

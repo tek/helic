@@ -51,6 +51,9 @@ import Helic.Test.PeerStateTest (
   test_addPendingAlreadyAllowed,
   test_addPendingAlreadyRejected,
   test_addPendingDuplicate,
+  test_addPendingOverwritesHost,
+  test_addPendingWithHost,
+  test_addPendingWithoutHost,
   test_authDisabledAllowsAll,
   test_authEnabledConfigAllowed,
   test_authEnabledRejectsUnknown,
@@ -58,6 +61,8 @@ import Helic.Test.PeerStateTest (
   test_isAllowedKey,
   test_isKnownKey,
   test_rejectPeer,
+  test_setHostLeavesUnknown,
+  test_setHostPreservesPort,
   )
 import Helic.Test.PlatformTests (platformTests)
 import Helic.Test.SignTest (test_sealUnsealRoundTrip, test_sealUnsealTamperedBody, test_sealUnsealWrongKey)
@@ -108,6 +113,11 @@ tests =
     unitTest "peer state: auth enabled config allowed" test_authEnabledConfigAllowed,
     unitTest "peer state: is allowed key" test_isAllowedKey,
     unitTest "peer state: find key by spec host only" test_findKeyBySpecHostOnly,
+    unitTest "peer state: setHost preserves port" test_setHostPreservesPort,
+    unitTest "peer state: setHost leaves unknown unchanged" test_setHostLeavesUnknown,
+    unitTest "peer state: addPending without host stores PeerHostUnknown" test_addPendingWithoutHost,
+    unitTest "peer state: addPending with host stores PeerHostKnown" test_addPendingWithHost,
+    unitTest "peer state: addPending with host overwrites existing" test_addPendingOverwritesHost,
     unitTest "cli options: auth default is interactive" test_authDefaultIsInteractive,
     unitTest "cli options: auth list subcommand" test_authListSubcommand,
     unitTest "cli options: auth accept-all subcommand" test_authAcceptAllSubcommand,

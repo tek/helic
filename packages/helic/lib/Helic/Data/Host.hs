@@ -7,7 +7,6 @@ import qualified Data.Aeson as Aeson
 import qualified Data.Text as Text
 import Exon (exon)
 
-
 -- | A hostname or IP address without port.
 newtype Host =
   Host { unHost :: Text }

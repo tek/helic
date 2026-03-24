@@ -48,7 +48,7 @@ assertSendFails ::
   Event ->
   Sem r ()
 assertSendFails clientKey port event =
-    sendEventEither clientKey Nothing (makeHost port) event >>= \case
+    sendEventEither clientKey Nothing Nothing (makeHost port) event >>= \case
       Left _ -> pure ()
       Right () -> fail "Expected request to be rejected"
 
@@ -78,7 +78,7 @@ assertPendingEmpty serverKp port = do
   runStop (fetchServerPublicKey baseEnv) >>= \case
     Left (ClientError err) -> fail [exon|Failed to fetch server key: #{toString err}|]
     Right serverPk -> do
-      let env = baseEnv {Servant.makeClientRequest = encryptRequest serverKp serverPk}
+      let env = baseEnv {Servant.makeClientRequest = encryptRequest serverKp serverPk Nothing}
       embed (Servant.withClientM listPending env pure) >>= \case
         Left err -> fail [exon|Failed to list pending: #{show err}|]
         Right ps
@@ -182,7 +182,7 @@ test_authServerAcceptsCorrectKey = do
         Sync.takeWait (Seconds 5) >>= \case
           Just ServerReady -> do
             event <- Event.nowText "test" "payload"
-            sendEventEither (Just clientKp) Nothing (makeHost port) event >>= \case
+            sendEventEither (Just clientKp) Nothing Nothing (makeHost port) event >>= \case
               Left err -> fail [exon|Expected request to succeed, but got: ##{err}|]
               Right () -> pure ()
           Nothing -> fail "Server did not start within 5 seconds"

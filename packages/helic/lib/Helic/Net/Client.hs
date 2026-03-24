@@ -26,7 +26,7 @@ import Helic.Data.NetConfig (NetConfig, Timeout)
 import Helic.Data.Peer (Peer)
 import Helic.Net.Api (Api, ListenFrame)
 import Helic.Net.Sign (KeyPair (..), decodePublicKey, encodePublicKey, seal)
-import Helic.Net.Verify (authHeader, publicKeyHeader)
+import Helic.Net.Verify (authHeader, portHeader, publicKeyHeader)
 
 extractBody :: Client.RequestBody -> ByteString
 extractBody = \case
@@ -55,10 +55,12 @@ acceptAllPeers :: ClientM NoContent
 --
 -- @sender@ is the sender's key pair (used for DH key agreement).
 -- @recipient@ is the remote server's public key (used to encrypt).
+-- @localPort@ is the sender's own listening port, included in @X-Helic-Port@
+-- so the server knows how to reach us (the TCP source port is ephemeral).
 -- The sender's public key is included in the X-Helic-Public-Key header so the server can decrypt and authenticate
 -- the request using NaCl crypto_box (which requires the sender's public key and the server's own private key).
-encryptRequest :: KeyPair -> X25519.PublicKey -> BaseUrl -> Core.Request -> IO Client.Request
-encryptRequest sender recipient burl coreReq =
+encryptRequest :: KeyPair -> X25519.PublicKey -> Maybe Int -> BaseUrl -> Core.Request -> IO Client.Request
+encryptRequest sender recipient localPort burl coreReq =
   defaultMakeClientRequest burl coreReq >>= \ req -> do
     let body = extractBody (Client.requestBody req)
     ciphertext <- seal sender recipient body
@@ -68,10 +70,12 @@ encryptRequest sender recipient burl coreReq =
       Client.requestHeaders =
         (publicKeyHeader, senderPublicKey) :
         (authHeader, Base64.encode authCiphertext) :
+        portHeaders <>
         Client.requestHeaders req
     }
   where
     senderPublicKey = encodeUtf8 (encodePublicKey sender.publicKey)
+    portHeaders = foldMap (\ p -> [(portHeader, encodeUtf8 (show p :: Text))]) localPort
 
 -- | Fetch the remote server's X25519 public key from the @/key@ endpoint to encrypt yank payloads.
 fetchServerPublicKey ::
@@ -89,21 +93,24 @@ fetchServerPublicKey env = do
 -- | Send an event to a remote host.
 --
 -- @configKeyPair@ is the local instance's own key pair (the sender's identity).
+-- @localPort@ is the sender's own listening port for the @X-Helic-Port@ header.
 -- When present, the event body is encrypted with NaCl crypto_box:
 --   1. Fetch the remote server's public key via GET /key
 --   2. Encrypt the body with the server's public key + our private key
 --   3. Include our public key in the @X-Helic-Public-Key@ header
+--   4. Include our listening port in the @X-Helic-Port@ header
 --
 -- The server can then decrypt with its private key + our public key,
 -- which also authenticates us as the sender.
 sendEvent ::
   Members [Manager, Log, Race, Stop ClientError, Embed IO] r =>
   Maybe KeyPair ->
+  Maybe Int ->
   Maybe Timeout ->
   PeerAddress ->
   Event ->
   Sem r ()
-sendEvent configKeyPair configTimeout addr event = do
+sendEvent configKeyPair localPort configTimeout addr event = do
   let formatted = formatAddress addr
   Log.debug [exon|sending to #{formatted}|]
   url <- stopNote (ClientError [exon|Invalid host name: #{formatted}|]) (parseBaseUrl (toString formatted))
@@ -120,7 +127,7 @@ sendEvent configKeyPair configTimeout addr event = do
     Just sender -> do
       serverPk <- fetchServerPublicKey baseEnv
       Log.debug [exon|sendEvent: encrypting for #{formatted}|]
-      pure baseEnv {makeClientRequest = encryptRequest sender serverPk}
+      pure baseEnv {makeClientRequest = encryptRequest sender serverPk localPort}
   let req = first (ClientError . show) <$> tryAny (runClientM (yank event) env)
   result <- Conc.timeoutAs_ (Left (ClientError "timed out")) timeout req
   stopEither result >>= void . stopEither . first (ClientError . show)
@@ -129,23 +136,25 @@ sendEvent configKeyPair configTimeout addr event = do
 sendEventEither ::
   Members [Manager, Log, Race, Embed IO] r =>
   Maybe KeyPair ->
+  Maybe Int ->
   Maybe Timeout ->
   PeerAddress ->
   Event ->
   Sem r (Either ClientError ())
-sendEventEither keyPair timeout addr event =
-  runStop (sendEvent keyPair timeout addr event)
+sendEventEither keyPair localPort timeout addr event =
+  runStop (sendEvent keyPair localPort timeout addr event)
 
 -- | Send an event to a remote host, logging the error on failure.
 sendEventLog ::
   Members [Manager, Log, Race, Embed IO] r =>
   Maybe KeyPair ->
+  Maybe Int ->
   Maybe Timeout ->
   PeerAddress ->
   Event ->
   Sem r ()
-sendEventLog keyPair timeout addr event =
-  sendEventEither keyPair timeout addr event >>= leftA \ (ClientError err) -> Log.debug [exon|Failed to send event: #{err}|]
+sendEventLog keyPair localPort timeout addr event =
+  sendEventEither keyPair localPort timeout addr event >>= leftA \ (ClientError err) -> Log.debug [exon|Failed to send event: #{err}|]
 
 localhost ::
   Member (Reader NetConfig) r =>

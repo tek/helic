@@ -6,7 +6,20 @@ import qualified Network.Socket as Sock
 import Network.Socket (SockAddr (..))
 import Numeric (showHex)
 
-import Helic.Data.Host (Host (..), PeerAddress (..))
+import Helic.Data.Host (Host (..))
+
+-- | Extract only the 'Host' (IP address) from a socket address, ignoring the port.
+-- The port in a TCP 'SockAddr' is the ephemeral source port, not the peer's listening port.
+hostFromSockAddr :: SockAddr -> Maybe Host
+hostFromSockAddr = \case
+  SockAddrInet _ hostAddr ->
+    Just (Host (formatHostAddr (Sock.hostAddressToTuple hostAddr)))
+  SockAddrInet6 _ _ (0, 0, 0x0000ffff, addr4) _ ->
+    Just (Host (formatHostAddr (word32ToIPv4 addr4)))
+  SockAddrInet6 _ _ hostAddr _ ->
+    Just (Host (formatHostAddr6 (Sock.hostAddress6ToTuple hostAddr)))
+  _ ->
+    Nothing
 
 -- | Convert a host-byte-order Word32 to an IPv4 tuple.
 word32ToIPv4 :: Word32 -> (Word8, Word8, Word8, Word8)
@@ -25,16 +38,3 @@ formatHostAddr :: (Word8, Word8, Word8, Word8) -> Text
 formatHostAddr (a, b, c, d) =
   [exon|#{show a}.#{show b}.#{show c}.#{show d}|]
 
--- | Extract a 'PeerAddress' from a socket address.
--- Supports IPv4, IPv4-mapped IPv6, and native IPv6 addresses.
-peerAddressFromSockAddr :: SockAddr -> Maybe PeerAddress
-peerAddressFromSockAddr = \case
-  SockAddrInet portNum hostAddr ->
-    Just PeerAddress {host = Host (formatHostAddr (Sock.hostAddressToTuple hostAddr)), port = fromIntegral portNum}
-  -- IPv4-mapped IPv6 address (::ffff:a.b.c.d) — addr4 is in host byte order
-  SockAddrInet6 portNum _ (0, 0, 0x0000ffff, addr4) _ ->
-    Just PeerAddress {host = Host (formatHostAddr (word32ToIPv4 addr4)), port = fromIntegral portNum}
-  SockAddrInet6 portNum _ hostAddr _ ->
-    Just PeerAddress {host = Host (formatHostAddr6 (Sock.hostAddress6ToTuple hostAddr)), port = fromIntegral portNum}
-  _ ->
-    Nothing

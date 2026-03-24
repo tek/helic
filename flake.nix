@@ -26,7 +26,7 @@
               wayland = {
                 manual = true;
                 default = false;
-                description = "Enable Wayland clipboard integratoin (mutually exclusive with x11)";
+                description = "Enable Wayland clipboard integration (mutually exclusive with x11)";
               };
             };
           };

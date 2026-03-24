@@ -9,7 +9,7 @@ import qualified Polysemy.Log as Log
 import Process (Interrupt)
 
 import Helic.Data.Event (Event (source))
-import Helic.Data.Host (PeerAddress)
+import Helic.Data.Host (PeerAddress, defaultPort)
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.NetConfig (NetConfig (..))
 import Helic.Data.PeersError (PeersError (..))
@@ -28,8 +28,9 @@ withKeyPair ::
   Members [Peers !! PeersError, Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
   NetConfig ->
   Maybe KeyPair ->
+  Maybe Int ->
   InterpreterFor Agent r
-withKeyPair NetConfig {timeout} keyPair =
+withKeyPair NetConfig {timeout} keyPair localPort =
   interpret \case
     Update e ->
       resumeOr Peers.broadcastTargets (sendToTargets e) noTargets
@@ -38,7 +39,7 @@ withKeyPair NetConfig {timeout} keyPair =
     sendToTargets e targets = do
       Log.debug [exon|AgentNet: broadcasting to #{show (length targets)} targets: #{show targets}|]
       for_ targets \ host ->
-        sendEventLog keyPair timeout host e {source = agentIdNet}
+        sendEventLog keyPair localPort timeout host e {source = agentIdNet}
 
     noTargets (PeersError err) = Log.error [exon|Failed to get broadcast targets: #{err}|]
 
@@ -56,7 +57,7 @@ interpretAgentNet sem =
     useKeys serverKey = do
       Log.debug "AgentNet: key pair obtained, network sync enabled"
       conf <- ask
-      withKeyPair conf (Just serverKey) sem
+      withKeyPair conf (Just serverKey) (Just (fromMaybe defaultPort conf.port)) sem
 
     noKeys err = do
       Log.error [exon|Failed to obtain key pair: #{err.unKeyPairsError}|]

@@ -54,7 +54,7 @@ peerToAddress p =
 -- | Convert a DiscoveredPeer with a public key into a Peer for the pending list.
 discoveredToPeer :: DiscoveredPeer -> Maybe Peer
 discoveredToPeer dp =
-  dp.publicKey <&> \ key -> Peer {host = peerToAddress dp, publicKey = key}
+  dp.publicKey <&> \ key -> Peer {host = Just (peerToAddress dp), publicKey = key}
 
 -- | Filter discovered peers that should be added to pending:
 -- has a public key, and key is not already in any list or config.
@@ -125,9 +125,9 @@ interpretPeersState =
     Peers.AddPending peer -> do
       Log.debug [exon|Peers.AddPending: #{peer.publicKey.unPublicKey} at #{show peer.host}|]
       modifyAndPersist (overPeers (PeerState.addPending peer))
-    Peers.UpdateHost key host -> do
-      Log.debug [exon|Peers.UpdateHost: #{key.unPublicKey} -> #{show host}|]
-      modifyAndRecompute (overPeers (PeerState.setHost key host))
+    Peers.UpdateHost key addr -> do
+      Log.debug [exon|Peers.UpdateHost: #{key.unPublicKey} -> #{show addr}|]
+      modifyAndRecompute (overPeers (PeerState.setHost key addr))
     Peers.CheckKey senderKey -> do
       AuthEnabled authEnabled <- ask
       result <- atomicGets \ s -> checkKeyStatus authEnabled s.peers senderKey

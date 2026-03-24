@@ -2,6 +2,7 @@
 module Helic.Test.PeerStateTest where
 
 import qualified Data.Map.Strict as Map
+import Exon (exon)
 import Hedgehog (TestT, (===))
 
 import Helic.Data.AuthState (AuthState (..))
@@ -11,16 +12,16 @@ import Helic.Data.Peer (Peer (..))
 import Helic.Data.PeerAuth (PeerAuth (..), PeerHost (..))
 import Helic.Data.PublicKey (PublicKey)
 import Helic.Interpreter.Peers (checkKeyStatus)
-import Helic.Net.PeerState (acceptPeer, addPending, findKeyBySpec, isKnownKey, lookupStatus, pendingPeers, rejectPeer)
+import Helic.Net.PeerState (acceptPeer, addPending, findKeyBySpec, isKnownKey, lookupStatus, pendingPeers, rejectPeer, setHost)
 
 peer1 :: Peer
-peer1 = Peer {host = "192.168.1.10:9500", publicKey = "pk-aaa"}
+peer1 = Peer {host = Just "192.168.1.10:9500", publicKey = "pk-aaa"}
 
 peer2 :: Peer
-peer2 = Peer {host = "192.168.1.20:9500", publicKey = "pk-bbb"}
+peer2 = Peer {host = Just "192.168.1.20:9500", publicKey = "pk-bbb"}
 
 peer3 :: Peer
-peer3 = Peer {host = "10.0.0.5:9500", publicKey = "pk-ccc"}
+peer3 = Peer {host = Just "10.0.0.5:9500", publicKey = "pk-ccc"}
 
 emptyState :: AuthState
 emptyState = def
@@ -137,3 +138,52 @@ test_findKeyBySpecHostOnly = do
   findKeyBySpec PeerSpec {host = Host "192.168.1.10", port = Just 9500} ps === Just "pk-aaa"
   findKeyBySpec PeerSpec {host = Host "192.168.1.10", port = Just 8080} ps === Nothing
   findKeyBySpec PeerSpec {host = Host "10.0.0.1", port = Nothing} ps === Nothing
+
+-- | setHost unconditionally sets the peer's address.
+test_setHostPreservesPort :: TestT IO ()
+test_setHostPreservesPort = do
+  let ps = stateWith [("pk-aaa", PeerAuth {peerHost = PeerHostKnown PeerAddress {host = Host "10.0.0.4", port = 9500}, status = Allowed})]
+      newAddr = PeerAddress {host = Host "10.0.0.5", port = 9502}
+      ps' = setHost "pk-aaa" newAddr ps
+  case Map.lookup "pk-aaa" ps'.unAuthState of
+    Just PeerAuth {peerHost = PeerHostKnown addr} -> do
+      addr.host === Host "10.0.0.5"
+      addr.port === 9502
+    other -> fail [exon|Expected PeerHostKnown, got #{show other}|]
+
+-- | setHost fills in a PeerHostUnknown entry.
+test_setHostLeavesUnknown :: TestT IO ()
+test_setHostLeavesUnknown = do
+  let ps = stateWith [("pk-aaa", PeerAuth {peerHost = PeerHostUnknown, status = Pending})]
+      newAddr = PeerAddress {host = Host "10.0.0.5", port = 9500}
+      ps' = setHost "pk-aaa" newAddr ps
+  case Map.lookup "pk-aaa" ps'.unAuthState of
+    Just PeerAuth {peerHost = PeerHostKnown addr} -> addr === newAddr
+    other -> fail [exon|Expected PeerHostKnown, got #{show other}|]
+
+-- | addPending with Nothing host stores PeerHostUnknown.
+test_addPendingWithoutHost :: TestT IO ()
+test_addPendingWithoutHost = do
+  let peer = Peer {host = Nothing, publicKey = "pk-aaa"}
+      ps = addPending peer emptyState
+  assertStatus Pending "pk-aaa" ps
+  pendingPeers ps === [peer]
+
+-- | addPending with Just host stores PeerHostKnown (discovery path).
+test_addPendingWithHost :: TestT IO ()
+test_addPendingWithHost = do
+  let addr = PeerAddress {host = Host "10.0.0.4", port = 9500}
+      peer = Peer {host = Just addr, publicKey = "pk-aaa"}
+      ps = addPending peer emptyState
+  pendingPeers ps === [peer]
+
+-- | addPending with Just host overwrites an existing PeerHostKnown of equal priority.
+test_addPendingOverwritesHost :: TestT IO ()
+test_addPendingOverwritesHost = do
+  let origAddr = PeerAddress {host = Host "10.0.0.4", port = 9500}
+      newAddr = PeerAddress {host = Host "10.0.0.5", port = 9502}
+      ps = stateWith [("pk-aaa", PeerAuth {peerHost = PeerHostKnown origAddr, status = Pending})]
+      peer = Peer {host = Just newAddr, publicKey = "pk-aaa"}
+      ps' = addPending peer ps
+  -- New entry has PeerHostKnown, so it wins over existing (preserveKnownHost keeps new when new has Known)
+  pendingPeers ps' === [Peer {host = Just newAddr, publicKey = "pk-aaa"}]
