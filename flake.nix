@@ -135,6 +135,7 @@
                 cpp-options = ["-DWAYLAND_NATIVE"];
                 exposed-modules = [
                   "Helic.Interpreter.AgentWayland"
+                  "Helic.Wayland.Data.WaylandInitError"
                   "Helic.Wayland.Ffi"
                   "Helic.Wayland.Monitor"
                   "Helic.Wayland.Protocol"

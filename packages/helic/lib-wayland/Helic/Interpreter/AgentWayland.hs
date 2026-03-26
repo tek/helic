@@ -20,7 +20,7 @@ import Helic.Data.WaylandConfig (WaylandConfig (WaylandConfig))
 import Helic.Effect.Agent (Agent (Update), AgentWayland, agentIdWayland)
 import Helic.Interpreter.Agent (interpretAgentNull)
 import qualified Helic.Wayland.Ffi as Ffi
-import Helic.Wayland.Ffi (ClipboardCallback (..), MonitorHandle)
+import Helic.Wayland.Ffi (ClipboardCallback (..), MonitorHandle, WaylandInitError (..))
 
 -- | Data received from the Wayland clipboard monitor callback.
 data ClipboardUpdate =
@@ -48,36 +48,38 @@ waylandClipboardThread ::
 waylandClipboardThread = do
   chan <- embed newChan
   let cb = ClipboardCallback \ isPrimary content -> writeChan chan (ClipboardUpdate isPrimary content)
-  -- bracket: acquire runs masked (safe from async exceptions), release runs masked on exit.
-  -- The FFI call to libwayland-client can fail with an IO exception (e.g. no Wayland compositor, library not
-  -- found) or return Left (e.g. wl_display_connect returns NULL). Either way, this thread exits and the
-  -- daemon continues without Wayland clipboard monitoring.
-  bracket
-    (join <$> tryIOError (Ffi.acquireMonitor cb))
-    (embed . Ffi.releaseMonitor)
-    \case
-      Left err -> do
-        Log.error [exon|Wayland clipboard monitor failed to start: #{err}|]
-      Right handle -> do
-        Sync.putBlock handle
-        Log.info "Wayland clipboard monitor started"
-        withAsync_ (consumeUpdates chan) do
-          embed (Ffi.runMonitor handle)
+  leftA logError =<< runError (Ffi.withMonitor cb (useMonitor chan))
+  where
+    useMonitor chan handle = do
+      void $ Sync.putTry handle
+      Log.info "Wayland clipboard monitor started"
+      withAsync_ (consumeUpdates chan) do
+        Ffi.runMonitor handle
+
+    logError = \case
+      WaylandDisplayConnectFailed ->
+        Log.error "Wayland clipboard monitor failed to start: could not connect to display"
+      WaylandProtocolBindFailed msg ->
+        Log.error [exon|Wayland clipboard monitor failed to start: #{msg}|]
+      WaylandIOError msg ->
+        Log.error [exon|Wayland clipboard monitor failed to start: #{msg}|]
 
 -- | Interpret 'Agent' for Wayland.
 -- Clipboard writes are forwarded to the monitor via the @ext-data-control-v1@ protocol.
 interpretAgentWayland ::
   Members [Events Event, Reader InstanceName, ChronosTime, Log, Race, Resource, Async, Embed IO, Final IO] r =>
   InterpreterFor Agent r
-interpretAgentWayland sem =
-  interpretSync $
-  withAsync_ waylandClipboardThread $
+interpretAgentWayland =
+  interpretSync .
+  withAsync_ waylandClipboardThread .
   interpret (\case
     Update ev ->
       Sync.try >>= traverse_ \ h -> do
         Log.debug [exon|Wayland agent: setting clipboard to #{contentSummary ev.content}|]
-        embed (Ffi.setClipboard h ev.content)
-  ) (raiseUnder sem)
+        Ffi.setClipboard h ev.content
+  )
+  .
+  raiseUnder
 
 -- | Interpret 'Agent' for Wayland if enabled by configuration.
 interpretWayland ::

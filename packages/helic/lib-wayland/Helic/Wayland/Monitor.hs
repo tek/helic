@@ -3,25 +3,39 @@
 -- | Native Wayland clipboard monitor interface.
 -- Internal.
 module Helic.Wayland.Monitor (
-  MonitorHandle,
+  Monitor,
   ClipboardCallback,
   isTextMime,
-  acquireMonitor,
-  releaseMonitor,
+  connectDisplay,
+  disconnectDisplay,
+  createMonitor,
+  setupMonitor,
+  destroyMonitor,
   runMonitor,
   setClipboard,
 ) where
 
 import Control.Concurrent (forkIO, killThread, threadWaitRead)
-import qualified Control.Exception
+import Control.Exception (
+  AsyncException (ThreadKilled),
+  bracket,
+  catch,
+  finally,
+  fromException,
+  mask_,
+  onException,
+  throwIO,
+  try,
+  )
 import qualified Data.ByteString as BS
-import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import Data.IORef (IORef, modifyIORef', newIORef, readIORef)
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.C.Types (CInt (..))
 import Foreign.Marshal.Alloc (alloca, free, mallocBytes)
 import Foreign.Marshal.Array (pokeArray)
 import Foreign.Ptr (FunPtr, Ptr, castFunPtr, castPtr, freeHaskellFunPtr, nullFunPtr, nullPtr)
 import Foreign.Storable (Storable (..))
+import Prelude hiding (bracket, catch, finally, fromException, onException, try)
 import System.IO (hClose)
 import System.IO.Error (IOError)
 import System.Posix.IO (FdOption (..), closeFd, createPipe, fdReadBuf, fdToHandle, fdWriteBuf, setFdOption)
@@ -29,6 +43,26 @@ import System.Posix.Types (Fd (..))
 import System.Timeout (timeout)
 
 import Helic.Wayland.Protocol
+
+-- ---------------------------------------------------------------------------
+-- Null-guarded cleanup helpers
+-- ---------------------------------------------------------------------------
+
+-- | Execute an action on a 'Ptr' only if it is not 'nullPtr'.
+unlessNull :: Ptr a -> (Ptr a -> IO ()) -> IO ()
+unlessNull ptr act
+  | ptr == nullPtr = pure ()
+  | otherwise = act ptr
+
+-- | Execute an action on a 'FunPtr' only if it is not 'nullFunPtr'.
+unlessNullFun :: FunPtr a -> (FunPtr a -> IO ()) -> IO ()
+unlessNullFun fp act
+  | fp == nullFunPtr = pure ()
+  | otherwise = act fp
+
+-- | Free a list of 'FunPtr's, skipping null ones.
+freeFunPtrs :: [FunPtr a] -> IO ()
+freeFunPtrs = traverse_ \ fp -> unlessNullFun fp freeHaskellFunPtr
 
 -- ---------------------------------------------------------------------------
 -- MIME priority
@@ -103,48 +137,62 @@ data ActiveSource = ActiveSource {
 -- Parameters: whether the selection is primary, the MIME type, and the raw data.
 type ClipboardCallback = Bool -> String -> ByteString -> IO ()
 
--- | Internal state for the Wayland clipboard monitor, holding display connection handles,
--- protocol objects, listener buffers, and callback function pointers.
-data Monitor = Monitor {
+-- | Immutable environment for the Wayland clipboard monitor, established once during initialization.
+data MonitorEnv = MonitorEnv {
   -- | Connection to the Wayland compositor (the display server).
   display :: Ptr WlDisplay,
   -- | The global object registry, used to discover compositor interfaces like seats and clipboard managers.
   registry :: Ptr WlRegistry,
-  -- | A seat represents a group of input devices (keyboard, pointer). Clipboard data is associated with a seat.
-  seat :: IORef (Ptr WlSeat),
-  -- | The clipboard manager provided by the @ext-data-control-v1@ protocol extension, used to access clipboard
-  -- contents from background applications.
-  manager :: IORef (Ptr ExtDataControlManagerV1),
-  -- | A data device bound to a seat, which emits events when the clipboard or primary selection changes.
-  device :: IORef (Ptr ExtDataControlDeviceV1),
-  -- | The currently pending data offer, tracking the best MIME type seen so far.
-  currentOffer :: IORef OfferInfo,
   -- | User-supplied callback invoked when clipboard content has been read.
   callback :: ClipboardCallback,
-  -- | The currently active data source set by 'setClipboard', or 'Nothing' if no source is active.
-  activeSource :: IORef (Maybe ActiveSource),
-  -- | True when we just set the clipboard; used to skip echoed selection events.
-  isClipboardOwner :: IORef Bool,
   -- | Pending clipboard write request, consumed by the dispatch loop.
   writeRequest :: MVar (String, ByteString),
   -- | Wake-up pipe: writing a byte to the write end wakes the dispatch loop.
   wakeWriteFd :: Fd,
   -- | Wake-up pipe: the read end, polled by the dispatch loop.
-  wakeReadFd :: Fd,
-  -- | Heap-allocated C listener struct for registry events. Stored to prevent GC and to free on shutdown.
-  registryListenerBuf :: IORef (Ptr ()),
-  -- | Heap-allocated C listener struct for data device events. Stored to prevent GC and to free on shutdown.
-  deviceListenerBuf :: IORef (Ptr ()),
-  -- | Function pointers for the registry listener callbacks, preventing GC until shutdown.
-  registryCallbackRefs :: IORef (FunPtr RegistryGlobalFn, FunPtr RegistryGlobalRemoveFn),
-  -- | Function pointers for the data device listener callbacks, preventing GC until shutdown.
-  deviceCallbackRefs :: IORef (FunPtr DeviceDataOfferFn, FunPtr DeviceSelectionFn, FunPtr DeviceFinishedFn, FunPtr DevicePrimarySelectionFn),
-  -- | Guard against double-destroy. Set to 'True' by 'destroyMonitor'.
-  destroyed :: IORef Bool
+  wakeReadFd :: Fd
 }
 
--- | Opaque handle to an initialized monitor, hiding internal state.
-data MonitorHandle = MonitorHandle Monitor
+-- | Mutable state for the Wayland clipboard monitor, modified by callbacks and the dispatch loop.
+data MonitorState = MonitorState {
+  -- | A seat represents a group of input devices (keyboard, pointer). Clipboard data is associated with a seat.
+  seat :: Ptr WlSeat,
+  -- | The clipboard manager provided by the @ext-data-control-v1@ protocol extension, used to access clipboard
+  -- contents from background applications.
+  manager :: Ptr ExtDataControlManagerV1,
+  -- | A data device bound to a seat, which emits events when the clipboard or primary selection changes.
+  device :: Ptr ExtDataControlDeviceV1,
+  -- | The currently pending data offer, tracking the best MIME type seen so far.
+  currentOffer :: OfferInfo,
+  -- | The currently active data source set by 'setClipboard', or 'Nothing' if no source is active.
+  activeSource :: Maybe ActiveSource,
+  -- | True when we just set the clipboard; used to skip echoed selection events.
+  isClipboardOwner :: Bool,
+  -- | Heap-allocated C listener struct for registry events. Stored to prevent GC and to free on shutdown.
+  registryListenerBuf :: Ptr (),
+  -- | Heap-allocated C listener struct for data device events. Stored to prevent GC and to free on shutdown.
+  deviceListenerBuf :: Ptr (),
+  -- | Function pointers for the registry listener callbacks, preventing GC until shutdown.
+  registryCallbackRefs :: (FunPtr RegistryGlobalFn, FunPtr RegistryGlobalRemoveFn),
+  -- | Function pointers for the data device listener callbacks, preventing GC until shutdown.
+  deviceCallbackRefs :: (FunPtr DeviceDataOfferFn, FunPtr DeviceSelectionFn, FunPtr DeviceFinishedFn, FunPtr DevicePrimarySelectionFn),
+  -- | Guard against double-destroy. Set to 'True' by 'destroyMonitor'.
+  destroyed :: Bool
+}
+
+-- | Full monitor handle: immutable environment plus mutable state cell.
+data Monitor = Monitor {
+  env :: MonitorEnv,
+  stateRef :: IORef MonitorState
+}
+
+-- | Read the current mutable state.
+readState :: Monitor -> IO MonitorState
+readState mon = readIORef mon.stateRef
+
+-- | Modify the mutable state strictly.
+modifyState :: Monitor -> (MonitorState -> MonitorState) -> IO ()
+modifyState mon = modifyIORef' mon.stateRef
 
 -- ---------------------------------------------------------------------------
 -- Read data from a data offer via pipe
@@ -163,14 +211,14 @@ offerReadTimeoutSeconds = 5
 readOfferData :: Ptr WlDisplay -> Ptr ExtDataControlOfferV1 -> String -> IO (Maybe ByteString)
 readOfferData dpy offer mime = do
   (readFd, writeFd) <- createPipe
-  Control.Exception.onException
+  onException
     (do
       withCString mime \ cmime ->
         offerReceive offer cmime (fromIntegral (fromEnum writeFd))
       closeFd writeFd
       void (wl_display_flush dpy)
       h <- fdToHandle readFd
-      Control.Exception.finally
+      finally
         (do
           result <- timeout (offerReadTimeoutSeconds * 1_000_000) (BS.hGetContents h)
           pure case result of
@@ -178,8 +226,8 @@ readOfferData dpy offer mime = do
             _ -> Nothing)
         (hClose h))
     (do
-      Control.Exception.catch (closeFd readFd) (\ (_ :: IOError) -> pure ())
-      Control.Exception.catch (closeFd writeFd) (\ (_ :: IOError) -> pure ()))
+      catch (closeFd readFd) (\ (_ :: IOError) -> pure ())
+      catch (closeFd writeFd) (\ (_ :: IOError) -> pure ()))
 
 -- ---------------------------------------------------------------------------
 -- Handle a selection event
@@ -194,18 +242,18 @@ readOfferData dpy offer mime = do
 -- could in principle arrive between those steps in a multi-threaded context.
 handleSelection :: Monitor -> Bool -> Ptr ExtDataControlOfferV1 -> IO ()
 handleSelection mon isPrimary offer =
-  readIORef mon.isClipboardOwner >>= \case
+  (.isClipboardOwner) <$> readState mon >>= \case
     True -> do
-      writeIORef mon.isClipboardOwner False
+      modifyState mon \ s -> s { isClipboardOwner = False }
       when (offer /= nullPtr) (offerDestroy offer)
       cleanupCurrentOffer mon
     False -> do
-      info <- readIORef mon.currentOffer
+      info <- (.currentOffer) <$> readState mon
       when (offer /= nullPtr && info.priority > MimeNone && offer == info.offerPtr) do
         let requestMime = if info.priority == MimeText then "text/plain;charset=utf-8" else info.mimeType
-        mData <- readOfferData mon.display offer requestMime
+        mData <- readOfferData mon.env.display offer requestMime
         for_ mData \ dat ->
-          mon.callback isPrimary info.mimeType dat
+          mon.env.callback isPrimary info.mimeType dat
       when (offer /= nullPtr) do
         offerDestroy offer
       -- Only clean up the current offer's listener resources if this selection event corresponds
@@ -217,10 +265,10 @@ handleSelection mon isPrimary offer =
 -- | Free the current offer's listener resources and reset to 'emptyOffer'.
 cleanupCurrentOffer :: Monitor -> IO ()
 cleanupCurrentOffer mon = do
-  info <- readIORef mon.currentOffer
-  when (info.offerListenerBuf /= nullPtr) (free info.offerListenerBuf)
-  when (info.offerListenerFp /= nullFunPtr) (freeHaskellFunPtr info.offerListenerFp)
-  writeIORef mon.currentOffer emptyOffer
+  info <- (.currentOffer) <$> readState mon
+  unlessNull info.offerListenerBuf free
+  unlessNullFun info.offerListenerFp freeHaskellFunPtr
+  modifyState mon \ s -> s { currentOffer = emptyOffer }
 
 -- ---------------------------------------------------------------------------
 -- Listener callback types and implementations
@@ -232,14 +280,14 @@ type OfferListenerFn = Ptr () -> Ptr ExtDataControlOfferV1 -> CString -> IO ()
 foreign import ccall "wrapper"
   mkOfferListener :: OfferListenerFn -> IO (FunPtr OfferListenerFn)
 
-offerHandleOffer :: IORef OfferInfo -> OfferListenerFn
-offerHandleOffer ref _data offer cmime = do
+offerHandleOffer :: Monitor -> OfferListenerFn
+offerHandleOffer mon _data offer cmime = do
   mime <- peekCString cmime
   let prio = mimeTypePriority mime
   when (prio > MimeNone) do
-    info <- readIORef ref
+    info <- (.currentOffer) <$> readState mon
     when (offer == info.offerPtr && prio > info.priority) do
-      writeIORef ref info { priority = prio, mimeType = mime }
+      modifyState mon \ s -> s { currentOffer = info { priority = prio, mimeType = mime } }
 
 -- Device listener callbacks
 type DeviceDataOfferFn = Ptr () -> Ptr ExtDataControlDeviceV1 -> Ptr ExtDataControlOfferV1 -> IO ()
@@ -259,9 +307,9 @@ foreign import ccall "wrapper"
 deviceHandleDataOffer :: Monitor -> DeviceDataOfferFn
 deviceHandleDataOffer mon _data _device offer = do
   cleanupCurrentOffer mon
-  fp <- mkOfferListener (offerHandleOffer mon.currentOffer)
+  fp <- mkOfferListener (offerHandleOffer mon)
   listenerBuf <- makeListenerBuf [castFunPtr fp]
-  writeIORef mon.currentOffer (OfferInfo offer MimeNone "" listenerBuf fp)
+  modifyState mon \ s -> s { currentOffer = OfferInfo offer MimeNone "" listenerBuf fp }
   void (offer_add_listener offer listenerBuf nullPtr)
 
 deviceHandleSelection :: Monitor -> DeviceSelectionFn
@@ -291,12 +339,12 @@ registryHandleGlobal mon _data reg name ciface _version = do
   seatName <- peekWlInterfaceName wl_seat_interface
   when (iface == managerName) do
     ptr <- wl_registry_bind reg name ext_data_control_manager_v1_interface 1
-    writeIORef mon.manager (castPtr ptr)
+    modifyState mon \ s -> s { manager = castPtr ptr }
   when (iface == seatName) do
-    currentSeat <- readIORef mon.seat
-    when (currentSeat == nullPtr) do
+    st <- (.seat) <$> readState mon
+    when (st == nullPtr) do
       ptr <- wl_registry_bind reg name wl_seat_interface 1
-      writeIORef mon.seat (castPtr ptr)
+      modifyState mon \ s -> s { seat = castPtr ptr }
 
 -- | Read the 'name' field from a wl_interface struct.
 -- The first field of wl_interface is a const char* name.
@@ -327,25 +375,24 @@ foreign import ccall "wrapper"
 sourceHandleSend :: IORef ByteString -> SourceSendFn
 sourceHandleSend dataRef _data _source _mime cfd = do
   h <- fdToHandle (Fd cfd)
-  Control.Exception.finally
+  finally
     (readIORef dataRef >>= BS.hPut h)
     (hClose h)
 
 -- | Handle the compositor cancelling the source: clean up resources.
 sourceHandleCancelled :: Monitor -> SourceCancelledFn
 sourceHandleCancelled mon _data _source = do
-  writeIORef mon.isClipboardOwner False
+  modifyState mon \ s -> s { isClipboardOwner = False }
   cleanupActiveSource mon
 
 -- | Destroy and free resources of the current active source, if any.
 cleanupActiveSource :: Monitor -> IO ()
 cleanupActiveSource mon =
-  readIORef mon.activeSource >>= traverse_ \ active -> do
+  (.activeSource) <$> readState mon >>= traverse_ \ active -> do
     sourceDestroy active.sourcePtr
     free active.sourceListenerBuf
-    freeHaskellFunPtr active.sourceSendFp
-    freeHaskellFunPtr active.sourceCancelledFp
-    writeIORef mon.activeSource Nothing
+    freeFunPtrs [castFunPtr active.sourceSendFp, castFunPtr active.sourceCancelledFp]
+    modifyState mon \ s -> s { activeSource = Nothing }
 
 -- ---------------------------------------------------------------------------
 -- Build listener struct in memory
@@ -363,147 +410,131 @@ makeListenerBuf fps = do
 -- Public API
 -- ---------------------------------------------------------------------------
 
--- | Acquire the Wayland monitor, setting up all protocol objects and listeners.
--- Intended to be called in the acquire phase of a bracket, which masks async exceptions.
--- All resources are tracked in IORef fields of the 'Monitor' record, initialized to null/empty
--- before any fallible operations. 'releaseMonitor' is safe to call at any partial init stage.
-acquireMonitor :: ClipboardCallback -> IO (Either Text MonitorHandle)
-acquireMonitor cb = do
+-- | Connect to the Wayland display server.
+-- Returns the display pointer, or 'Nothing' if the connection failed.
+connectDisplay :: IO (Maybe (Ptr WlDisplay))
+connectDisplay = do
   dpy <- wl_display_connect nullPtr
-  if dpy == nullPtr
-    then pure (Left "Failed to connect to Wayland display")
-    else do
-      reg <- wl_display_get_registry dpy
-      seatRef <- newIORef nullPtr
-      mgrRef <- newIORef nullPtr
-      devRef <- newIORef nullPtr
-      curRef <- newIORef emptyOffer
-      activeSourceRef <- newIORef Nothing
-      ownerRef <- newIORef False
-      writeReqVar <- newEmptyMVar
-      (wakeRd, wakeWr) <- createPipe
-      setFdOption wakeRd NonBlockingRead True
-      regListenerBufRef <- newIORef nullPtr
-      devListenerBufRef <- newIORef nullPtr
-      regCallbackRef <- newIORef (nullFunPtr, nullFunPtr)
-      devCallbackRef <- newIORef (nullFunPtr, nullFunPtr, nullFunPtr, nullFunPtr)
-      destroyedRef <- newIORef False
+  pure if dpy == nullPtr then Nothing else Just dpy
 
-      let mon = Monitor {
-            display = dpy,
-            registry = reg,
-            seat = seatRef,
-            manager = mgrRef,
-            device = devRef,
-            currentOffer = curRef,
-            callback = cb,
-            activeSource = activeSourceRef,
-            isClipboardOwner = ownerRef,
-            writeRequest = writeReqVar,
-            wakeWriteFd = wakeWr,
-            wakeReadFd = wakeRd,
-            registryListenerBuf = regListenerBufRef,
-            deviceListenerBuf = devListenerBufRef,
-            registryCallbackRefs = regCallbackRef,
-            deviceCallbackRefs = devCallbackRef,
-            destroyed = destroyedRef
-          }
+-- | Disconnect from the Wayland display server.
+disconnectDisplay :: Ptr WlDisplay -> IO ()
+disconnectDisplay = wl_display_disconnect
 
-      setup mon
-  where
-    setup mon = do
-      regGlobalFp <- mkRegistryGlobal (registryHandleGlobal mon)
-      regRemoveFp <- mkRegistryGlobalRemove registryHandleGlobalRemove
-      regListenerBuf <- makeListenerBuf [castFunPtr regGlobalFp, castFunPtr regRemoveFp]
-      writeIORef mon.registryListenerBuf regListenerBuf
-      writeIORef mon.registryCallbackRefs (regGlobalFp, regRemoveFp)
-      void (registry_add_listener mon.registry regListenerBuf nullPtr)
-      void (wl_display_roundtrip mon.display)
+-- | Create the monitor state, allocating all mutable variables.
+-- This is infallible — all 'IORef's are initialized to null/empty values.
+createMonitor :: Ptr WlDisplay -> ClipboardCallback -> IO Monitor
+createMonitor dpy cb = do
+  reg <- wl_display_get_registry dpy
+  (wakeRd, wakeWr) <- createPipe
+  setFdOption wakeRd NonBlockingRead True
+  writeReqVar <- newEmptyMVar
+  let env = MonitorEnv {
+        display = dpy,
+        registry = reg,
+        callback = cb,
+        writeRequest = writeReqVar,
+        wakeWriteFd = wakeWr,
+        wakeReadFd = wakeRd
+      }
+  stRef <- newIORef MonitorState {
+    seat = nullPtr,
+    manager = nullPtr,
+    device = nullPtr,
+    currentOffer = emptyOffer,
+    activeSource = Nothing,
+    isClipboardOwner = False,
+    registryListenerBuf = nullPtr,
+    deviceListenerBuf = nullPtr,
+    registryCallbackRefs = (nullFunPtr, nullFunPtr),
+    deviceCallbackRefs = (nullFunPtr, nullFunPtr, nullFunPtr, nullFunPtr),
+    destroyed = False
+  }
+  pure Monitor {env, stateRef = stRef}
 
-      mgr <- readIORef mon.manager
-      st <- readIORef mon.seat
+-- | Set up protocol listeners and perform the initial roundtrips.
+-- Returns 'Left' if the required protocol objects were not found.
+setupMonitor :: Monitor -> IO (Either Text ())
+setupMonitor mon = do
+  regGlobalFp <- mkRegistryGlobal (registryHandleGlobal mon)
+  regRemoveFp <- mkRegistryGlobalRemove registryHandleGlobalRemove
+  regListenerBuf <- makeListenerBuf [castFunPtr regGlobalFp, castFunPtr regRemoveFp]
+  modifyState mon \ s -> s { registryListenerBuf = regListenerBuf, registryCallbackRefs = (regGlobalFp, regRemoveFp) }
+  void (registry_add_listener mon.env.registry regListenerBuf nullPtr)
+  void (wl_display_roundtrip mon.env.display)
 
-      if mgr == nullPtr || st == nullPtr
-        then do
-          destroyMonitor mon
-          pure (Left "Failed to bind ext-data-control-v1 or wl_seat")
-        else do
-          dev <- manager_get_data_device mgr st
-          writeIORef mon.device dev
+  st <- readState mon
 
-          doFp <- mkDeviceDataOffer (deviceHandleDataOffer mon)
-          selFp <- mkDeviceSelection (deviceHandleSelection mon)
-          finFp <- mkDeviceFinished deviceHandleFinished
-          psFp <- mkDevicePrimarySelection (deviceHandlePrimarySelection mon)
-          devListenerBuf <- makeListenerBuf [castFunPtr doFp, castFunPtr selFp, castFunPtr finFp, castFunPtr psFp]
-          writeIORef mon.deviceListenerBuf devListenerBuf
-          writeIORef mon.deviceCallbackRefs (doFp, selFp, finFp, psFp)
-          void (device_add_listener dev devListenerBuf nullPtr)
-          void (wl_display_roundtrip mon.display)
-
-          pure (Right (MonitorHandle mon))
-
--- | Release all Wayland resources. Safe at any partial initialization stage.
--- Intended to be called in the release phase of a bracket.
-releaseMonitor :: Either Text MonitorHandle -> IO ()
-releaseMonitor = either (\ _ -> pure ()) \ (MonitorHandle mon) -> destroyMonitor mon
-
--- | Run the Wayland event loop.
--- Blocks until the display is disconnected or an error occurs.
--- Intended to be called in the use phase of a bracket.
-runMonitor :: MonitorHandle -> IO ()
-runMonitor (MonitorHandle mon) = do
-  wlFdC <- wl_display_get_fd mon.display
-  let wlFd = Fd wlFdC
-  go wlFd
-  where
-    go wlFd = do
-      void (wl_display_flush mon.display)
-      ret <- wl_display_prepare_read mon.display
-      if ret /= 0
-        then do
-          r <- wl_display_dispatch_pending mon.display
-          when (r /= -1) (go wlFd)
-        else do
-          -- Mask async exceptions to guarantee that prepare_read is always paired with
-          -- either read_events or cancel_read. waitForEither uses bracket internally,
-          -- and takeMVar is interruptible even under mask, so blocking still works.
-          wlReady <- Control.Exception.mask_ do
-            wr <- waitForEither wlFd mon.wakeReadFd
-            if wr
-              then void (wl_display_read_events mon.display)
-              else wl_display_cancel_read mon.display
-            pure wr
-          if wlReady
-            then do
-              void (wl_display_dispatch_pending mon.display)
-              processWriteRequests mon
-              go wlFd
-            else do
-              processWriteRequests mon
-              void (wl_display_dispatch_pending mon.display)
-              go wlFd
+  if st.manager == nullPtr || st.seat == nullPtr
+  then pure (Left "Failed to bind ext-data-control-v1 or wl_seat")
+  else do
+    dev <- manager_get_data_device st.manager st.seat
+    modifyState mon \ s -> s {device = dev}
+    doFp <- mkDeviceDataOffer (deviceHandleDataOffer mon)
+    selFp <- mkDeviceSelection (deviceHandleSelection mon)
+    finFp <- mkDeviceFinished deviceHandleFinished
+    psFp <- mkDevicePrimarySelection (deviceHandlePrimarySelection mon)
+    devListenerBuf <- makeListenerBuf [castFunPtr doFp, castFunPtr selFp, castFunPtr finFp, castFunPtr psFp]
+    modifyState mon \ s -> s {deviceListenerBuf = devListenerBuf, deviceCallbackRefs = (doFp, selFp, finFp, psFp)}
+    void (device_add_listener dev devListenerBuf nullPtr)
+    void (wl_display_roundtrip mon.env.display)
+    pure (Right ())
 
 -- | Wait for data on either file descriptor using GHC's IO manager.
 -- Returns 'True' if the first fd was ready, 'False' if the second.
--- Uses 'Control.Exception.bracket' to guarantee that forked threads are killed even if
+-- Uses 'bracket' to guarantee that forked threads are killed even if
 -- an async exception arrives between 'forkIO' and 'killThread'.
 -- Propagates exceptions from child threads to the parent via the result MVar.
 waitForEither :: Fd -> Fd -> IO Bool
 waitForEither fd1 fd2 = do
   result <- newEmptyMVar
-  Control.Exception.bracket
-    (do
+  bracket
+    (acquire result)
+    (\ (t1, t2) -> killThread t1 >> killThread t2)
+    (\ _ -> takeMVar result >>= leftA throwIO)
+  where
+    acquire result = do
       t1 <- forkIO (waitAndSignal fd1 True result)
       t2 <- forkIO (waitAndSignal fd2 False result)
-      pure (t1, t2))
-    (\ (t1, t2) -> killThread t1 >> killThread t2)
-    (\ _ -> takeMVar result >>= either Control.Exception.throwIO pure)
-  where
+      pure (t1, t2)
+
     waitAndSignal fd val mvar =
-      Control.Exception.try (threadWaitRead fd) >>= \case
+      try (threadWaitRead fd) >>= \case
         Right () -> void (tryPutMVar mvar (Right val))
-        Left (e :: Control.Exception.SomeException) -> void (tryPutMVar mvar (Left e))
+        Left e
+          | Just ThreadKilled <- fromException e -> pure ()
+          | otherwise -> void (tryPutMVar mvar (Left e))
+
+-- | Run the Wayland event loop.
+-- Blocks until the display is disconnected or an error occurs.
+runMonitor :: Monitor -> IO ()
+runMonitor mon = do
+  wlFdC <- wl_display_get_fd mon.env.display
+  go (Fd wlFdC)
+  where
+    go wlFd = do
+      void (wl_display_flush mon.env.display)
+      ret <- wl_display_prepare_read mon.env.display
+      if ret /= 0
+      then do
+        r <- wl_display_dispatch_pending mon.env.display
+        when (r /= -1) (go wlFd)
+      else do
+        wlReady <- mask_ do
+          wr <- waitForEither wlFd mon.env.wakeReadFd
+          if wr
+          then void (wl_display_read_events mon.env.display)
+          else wl_display_cancel_read mon.env.display
+          pure wr
+        if wlReady
+        then do
+          void (wl_display_dispatch_pending mon.env.display)
+          processWriteRequests mon
+          go wlFd
+        else do
+          processWriteRequests mon
+          void (wl_display_dispatch_pending mon.env.display)
+          go wlFd
 
 -- | Process pending clipboard write requests from the MVar.
 -- Always drains the wake-up pipe first (unconditionally, regardless of MVar state) to prevent
@@ -511,99 +542,84 @@ waitForEither fd1 fd2 = do
 processWriteRequests :: Monitor -> IO ()
 processWriteRequests mon = do
   drainWakePipe mon
-  tryTakeMVar mon.writeRequest >>= traverse_ \ (mime, bytes) ->
+  tryTakeMVar mon.env.writeRequest >>= traverse_ \ (mime, bytes) ->
     doSetClipboard mon mime bytes
 
 -- | Drain one byte from the wake-up pipe (non-blocking, ignores errors).
 drainWakePipe :: Monitor -> IO ()
 drainWakePipe mon =
   alloca \ (drainBuf :: Ptr Word8) ->
-    Control.Exception.catch
-      (void (fdReadBuf mon.wakeReadFd (castPtr drainBuf) 1))
+    catch
+      (void (fdReadBuf mon.env.wakeReadFd (castPtr drainBuf) 1))
       (\ (_ :: IOError) -> pure ())
 
--- | Free the monitor resources. Guarded against double-destroy.
+-- | Free the monitor's protocol resources. Guarded against double-destroy.
+-- Does not disconnect the display — that is managed by the outer bracket via 'disconnectDisplay'.
 destroyMonitor :: Monitor -> IO ()
 destroyMonitor mon =
-  readIORef mon.destroyed >>= \case
-    True -> pure ()
-    False -> do
-      writeIORef mon.destroyed True
-      cleanupActiveSource mon
-      cleanupCurrentOffer mon
-      closeFd mon.wakeReadFd
-      closeFd mon.wakeWriteFd
-      dev <- readIORef mon.device
-      mgr <- readIORef mon.manager
-      st <- readIORef mon.seat
-      when (dev /= nullPtr) (deviceDestroy dev)
-      when (mgr /= nullPtr) (managerDestroy mgr)
-      when (st /= nullPtr) (seatDestroy st)
-      registryDestroy mon.registry
-      wl_display_disconnect mon.display
-      regBuf <- readIORef mon.registryListenerBuf
-      devBuf <- readIORef mon.deviceListenerBuf
-      when (regBuf /= nullPtr) (free regBuf)
-      when (devBuf /= nullPtr) (free devBuf)
-      (rgFp, rrFp) <- readIORef mon.registryCallbackRefs
-      (doFp, selFp, finFp, psFp) <- readIORef mon.deviceCallbackRefs
-      when (rgFp /= nullFunPtr) (freeHaskellFunPtr rgFp)
-      when (rrFp /= nullFunPtr) (freeHaskellFunPtr rrFp)
-      when (doFp /= nullFunPtr) (freeHaskellFunPtr doFp)
-      when (selFp /= nullFunPtr) (freeHaskellFunPtr selFp)
-      when (finFp /= nullFunPtr) (freeHaskellFunPtr finFp)
-      when (psFp /= nullFunPtr) (freeHaskellFunPtr psFp)
+  unlessM ((.destroyed) <$> readState mon) do
+    modifyState mon \ s -> s { destroyed = True }
+    cleanupActiveSource mon
+    cleanupCurrentOffer mon
+    closeFd mon.env.wakeReadFd
+    closeFd mon.env.wakeWriteFd
+    st <- readState mon
+    unlessNull st.device deviceDestroy
+    unlessNull st.manager managerDestroy
+    unlessNull st.seat seatDestroy
+    registryDestroy mon.env.registry
+    unlessNull st.registryListenerBuf free
+    unlessNull st.deviceListenerBuf free
+    let (rgFp, rrFp) = st.registryCallbackRefs
+    let (doFp, selFp, finFp, psFp) = st.deviceCallbackRefs
+    freeFunPtrs [castFunPtr rgFp, castFunPtr rrFp, castFunPtr doFp, castFunPtr selFp, castFunPtr finFp, castFunPtr psFp]
 
 -- | Set the Wayland clipboard to the given data.
 -- Posts a request to the dispatch loop, which processes it in the correct thread.
 -- Only writes a wake byte when the MVar was successfully filled, preventing pipe/MVar
 -- desynchronization that would cause the dispatch loop to busy-spin.
-setClipboard :: MonitorHandle -> String -> ByteString -> IO ()
-setClipboard (MonitorHandle mon) mime bytes =
-  tryPutMVar mon.writeRequest (mime, bytes) >>= \case
-    False -> pure ()
-    True ->
-      alloca \ (buf :: Ptr Word8) -> do
-        poke buf 1
-        void (fdWriteBuf mon.wakeWriteFd (castPtr buf) 1)
+setClipboard :: Monitor -> String -> ByteString -> IO ()
+setClipboard mon mime bytes =
+  whenM (tryPutMVar mon.env.writeRequest (mime, bytes)) do
+    alloca \ (buf :: Ptr Word8) -> do
+      poke buf 1
+      void (fdWriteBuf mon.env.wakeWriteFd (castPtr buf) 1)
 
 -- | Internal: actually set the clipboard. Must be called from the dispatch thread.
 -- Uses bracket to ensure partial resources are cleaned up if any step fails.
 doSetClipboard :: Monitor -> String -> ByteString -> IO ()
 doSetClipboard mon mime bytes = do
   cleanupActiveSource mon
-  mgr <- readIORef mon.manager
-  dev <- readIORef mon.device
-  when (mgr /= nullPtr && dev /= nullPtr) do
+  st <- readState mon
+  when (st.manager /= nullPtr && st.device /= nullPtr) do
     dataRef <- newIORef bytes
-    src <- managerCreateDataSource mgr
+    src <- managerCreateDataSource st.manager
     when (src /= nullPtr) do
-      Control.Exception.catch (setupSource dataRef src dev) \ (e :: Control.Exception.SomeException) -> do
-        sourceDestroy src
-        Control.Exception.throwIO e
+      onException (setupSource dataRef src st.device) (sourceDestroy src)
   where
     setupSource dataRef src dev = do
-      withCString mime \ cmime ->
-        sourceOffer src cmime
+      withCString mime (sourceOffer src)
       sendFp <- mkSourceSend (sourceHandleSend dataRef)
-      Control.Exception.onException (setupListener sendFp src dev) (freeHaskellFunPtr sendFp)
+      onException (setupListener sendFp src dev) (freeHaskellFunPtr sendFp)
 
     setupListener sendFp src dev = do
       cancelledFp <- mkSourceCancelled (sourceHandleCancelled mon)
-      Control.Exception.onException (attachSource sendFp cancelledFp src dev) (freeHaskellFunPtr cancelledFp)
+      onException (attachSource sendFp cancelledFp src dev) (freeHaskellFunPtr cancelledFp)
 
     attachSource sendFp cancelledFp src dev = do
       listenerBuf <- makeListenerBuf [castFunPtr sendFp, castFunPtr cancelledFp]
-      Control.Exception.onException (activateSource sendFp cancelledFp listenerBuf src dev) (free listenerBuf)
+      onException (activateSource sendFp cancelledFp listenerBuf src dev) (free listenerBuf)
 
     activateSource sendFp cancelledFp listenerBuf src dev = do
       void (source_add_listener src listenerBuf nullPtr)
-      writeIORef mon.isClipboardOwner True
+      modifyState mon \ s -> s { isClipboardOwner = True }
       deviceSetSelection dev src
-      void (wl_display_flush mon.display)
-      writeIORef mon.activeSource (Just ActiveSource {
-        sourcePtr = src,
-        sourceListenerBuf = listenerBuf,
-        sourceSendFp = sendFp,
-        sourceCancelledFp = cancelledFp
-      })
+      void (wl_display_flush mon.env.display)
+      modifyState mon \ s -> s {
+        activeSource = Just ActiveSource {
+          sourcePtr = src,
+          sourceListenerBuf = listenerBuf,
+          sourceSendFp = sendFp,
+          sourceCancelledFp = cancelledFp
+        }
+      }
