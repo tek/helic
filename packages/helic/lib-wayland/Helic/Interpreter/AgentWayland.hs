@@ -13,8 +13,8 @@ import qualified Sync
 import Helic.Data.ContentType (Content, contentSummary)
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
-import Helic.Data.InstanceName (InstanceName)
 import Helic.Data.Fatal (Fatal)
+import Helic.Data.InstanceName (InstanceName)
 import Helic.Data.Selection (Selection (Clipboard, Primary))
 import Helic.Data.WaylandConfig (WaylandConfig (WaylandConfig))
 import Helic.Effect.Agent (Agent (Update), AgentWayland, agentIdWayland)
@@ -47,22 +47,22 @@ waylandClipboardThread ::
   Sem r ()
 waylandClipboardThread = do
   chan <- embed newChan
+  let cb = ClipboardCallback \ isPrimary content -> writeChan chan (ClipboardUpdate isPrimary content)
+  -- bracket: acquire runs masked (safe from async exceptions), release runs masked on exit.
   -- The FFI call to libwayland-client can fail with an IO exception (e.g. no Wayland compositor, library not
-  -- found) or return InitFailed (e.g. wl_display_connect returns NULL). Either way, this thread exits and the
+  -- found) or return Left (e.g. wl_display_connect returns NULL). Either way, this thread exits and the
   -- daemon continues without Wayland clipboard monitoring.
-  tryIOError (Ffi.initMonitor (sendUpdate chan)) >>= \case
-    Left err ->
-      Log.error [exon|Wayland clipboard monitor failed to initialize: #{err}|]
-    Right (Ffi.InitFailed err) ->
-      Log.error [exon|Wayland clipboard monitor failed to start: #{err}|]
-    Right (Ffi.InitSuccess ptr) -> do
-      Sync.putBlock ptr
-      Log.info "Wayland clipboard monitor started"
-      withAsync_ (consumeUpdates chan) do
-        embed (Ffi.runMonitor ptr) `finally` embed (Ffi.destroyMonitor ptr)
-  where
-    sendUpdate chan =
-      ClipboardCallback \ isPrimary content -> writeChan chan (ClipboardUpdate isPrimary content)
+  bracket
+    (join <$> tryIOError (Ffi.acquireMonitor cb))
+    (embed . Ffi.releaseMonitor)
+    \case
+      Left err -> do
+        Log.error [exon|Wayland clipboard monitor failed to start: #{err}|]
+      Right handle -> do
+        Sync.putBlock handle
+        Log.info "Wayland clipboard monitor started"
+        withAsync_ (consumeUpdates chan) do
+          embed (Ffi.runMonitor handle)
 
 -- | Interpret 'Agent' for Wayland.
 -- Clipboard writes are forwarded to the monitor via the @ext-data-control-v1@ protocol.

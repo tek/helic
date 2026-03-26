@@ -6,11 +6,10 @@
 -- Internal.
 module Helic.Wayland.Ffi (
   ClipboardCallback (..),
-  InitResult (..),
   MonitorHandle,
-  initMonitor,
+  acquireMonitor,
+  releaseMonitor,
   runMonitor,
-  destroyMonitor,
   setClipboard,
 ) where
 
@@ -22,12 +21,6 @@ import Helic.Wayland.Monitor (isTextMime)
 newtype MonitorHandle =
   MonitorHandle Monitor.MonitorHandle
 
--- | Result of initializing the Wayland clipboard monitor.
-data InitResult =
-  InitSuccess MonitorHandle
-  |
-  InitFailed Text
-
 -- | Callback type: @is_primary content@
 newtype ClipboardCallback =
   ClipboardCallback { call :: Bool -> Content -> IO () }
@@ -38,25 +31,23 @@ makeContent mime bytes
   | isTextMime mime = TextContent (decodeUtf8 bytes)
   | otherwise = BinaryContent (MimeType (toText mime)) bytes
 
--- | Initialize the Wayland clipboard monitor.
--- The callback will be invoked from the Wayland event loop thread whenever the clipboard changes.
-initMonitor :: ClipboardCallback -> IO InitResult
-initMonitor callback =
-  Monitor.initMonitor call <&> \case
-    Monitor.InitSuccess h -> InitSuccess (MonitorHandle h)
-    Monitor.InitFailed err -> InitFailed err
+-- | Acquire the Wayland clipboard monitor.
+-- Intended to be called in the acquire phase of a bracket, which masks async exceptions.
+acquireMonitor :: ClipboardCallback -> IO (Either Text MonitorHandle)
+acquireMonitor callback =
+  Monitor.acquireMonitor rawCallback <&> fmap MonitorHandle
   where
-    call isPrimary mime bytes = callback.call isPrimary (makeContent mime bytes)
+    rawCallback isPrimary mime bytes = callback.call isPrimary (makeContent mime bytes)
 
--- | Run the Wayland event loop. Blocks until the display is disconnected or an error occurs.
+-- | Release all Wayland resources.
+-- Intended to be called in the release phase of a bracket.
+releaseMonitor :: Either Text MonitorHandle -> IO ()
+releaseMonitor = Monitor.releaseMonitor . coerce
+
+-- | Run the Wayland event loop.
+-- Blocks until the display is disconnected or an error occurs.
 runMonitor :: MonitorHandle -> IO ()
-runMonitor (MonitorHandle h) =
-  Monitor.runMonitor h
-
--- | Free the monitor resources.
-destroyMonitor :: MonitorHandle -> IO ()
-destroyMonitor (MonitorHandle h) =
-  Monitor.destroyMonitor h
+runMonitor (MonitorHandle h) = Monitor.runMonitor h
 
 -- | Set the Wayland clipboard to the given content.
 -- For text, uses @text/plain;charset=utf-8@; for binary, uses the content's MIME type.
