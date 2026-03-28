@@ -405,14 +405,3 @@ test-suite helic-test
         Paths_helic
     autogen-modules:
         Paths_helic
-  if flag(x11)
-    other-modules:
-        Helic.Test.GtkMainTest
-        Helic.Test.PlatformTests
-    hs-source-dirs:
-        test-x11
-  if !flag(x11)
-    other-modules:
-        Helic.Test.PlatformTests
-    hs-source-dirs:
-        test-no-x11

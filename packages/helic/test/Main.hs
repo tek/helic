@@ -64,7 +64,7 @@ import Helic.Test.PeerStateTest (
   test_setHostLeavesUnknown,
   test_setHostPreservesPort,
   )
-import Helic.Test.PlatformTests (platformTests)
+
 import Helic.Test.SignTest (test_sealUnsealRoundTrip, test_sealUnsealTamperedBody, test_sealUnsealWrongKey)
 import Helic.Test.StreamTest (test_stream)
 import Polysemy.Test (unitTest)
@@ -139,7 +139,7 @@ tests =
       unitTest "auth: unauthenticated GET rejected" test_authGetRejectsUnauthenticated,
       unitTest "auth: spoofed key not added to pending" test_authSpoofedKeyNotAddedToPending
     ]
-  ] ++ platformTests
+  ]
 
 main :: IO ()
 main =

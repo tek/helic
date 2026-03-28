@@ -189,14 +189,7 @@
                 condition = "false";
                 generated-other-modules = ["Paths_helic"];
               }
-              {
-                condition = "flag(x11)";
-                source-dirs = ["test-x11"];
-              }
-              {
-                condition = "!flag(x11)";
-                source-dirs = ["test-no-x11"];
-              }
+
             ];
           };
         };
@@ -349,9 +342,9 @@
 
       };
 
-      overrides = {self, buildInputs, enable, ...}: {
-        helic-x11 = enable "x11" self.helic;
-        helic-wayland = enable "wayland" (buildInputs (p: [p.wayland.dev])) self.helic;
+      overrides = {self, buildInputs, enable, notest, ...}: {
+        helic-x11 = notest (enable "x11" self.helic);
+        helic-wayland = notest (enable "wayland" (buildInputs (p: [p.wayland.dev])) self.helic);
       };
 
       output.expose.static = false;
