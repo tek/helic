@@ -35,15 +35,6 @@ request ::
 request env req =
   fmap join $ tryIOError $ withClientM req env (pure . first show)
 
-defaultRequest ::
-  Members [Manager, Stop ClientError, Embed IO] r =>
-  BaseUrl ->
-  ClientM a ->
-  Sem r a
-defaultRequest url req = do
-  env <- mkClientEnv <$> Manager.get <*> pure url
-  stopEitherWith ClientError =<< request env req
-
 clientKeyPair ::
   Members [KeyPairs !! KeyPairsError, Reader NetConfig, Stop ClientError] r =>
   Sem r (Maybe KeyPair)
@@ -54,16 +45,33 @@ clientKeyPair =
     False ->
       pure Nothing
 
-interpretClientWith ::
-  Members [Manager, Reader NetConfig, Log, Race, Embed IO, Final IO] r =>
+-- | Build a 'ClientEnv' that encrypts requests when a key pair is available.
+-- Fetches the server's public key from @/key@ (which is always public) and sets
+-- 'encryptRequest' as the request builder, adding auth headers to every request.
+authClientEnv ::
+  Members [Manager, Stop ClientError, Log, Embed IO] r =>
   BaseUrl ->
   Maybe KeyPair ->
+  Sem r ClientEnv
+authClientEnv url keyPair = do
+  mgr <- Manager.get
+  let baseEnv = mkClientEnv mgr url
+  case keyPair of
+    Nothing -> pure baseEnv
+    Just clientKey -> do
+      serverKey <- fetchServerPublicKey baseEnv
+      pure baseEnv {makeClientRequest = encryptRequest clientKey serverKey Nothing}
+
+interpretClientWith ::
+  Members [Manager, Reader NetConfig, Log, Race, Embed IO, Final IO] r =>
+  ClientEnv ->
+  Maybe KeyPair ->
   InterpreterFor (Client !! ClientError) r
-interpretClientWith url keyPair =
+interpretClientWith env keyPair =
   interpretResumableH \case
     Get ->
       liftT do
-        defaultRequest url Api.get
+        stopEitherWith ClientError =<< request env Api.get
     Yank event ->
       liftT do
         host <- localhost
@@ -71,22 +79,13 @@ interpretClientWith url keyPair =
         sendEvent keyPair Nothing timeout host event
     Load index ->
       liftT do
-        mgr <- Manager.get
-        let baseEnv = mkClientEnv mgr url
-        env <- case keyPair of
-          Nothing -> pure baseEnv
-          Just clientKey -> do
-            serverPk <- fetchServerPublicKey baseEnv
-            pure baseEnv {makeClientRequest = encryptRequest clientKey serverPk Nothing}
         result <- request env (Api.load index)
         stopNote invalidIndex =<< stopEitherWith ClientError result
     Peek index ->
       liftT do
-        result <- defaultRequest url (Api.peek index)
-        stopNote invalidIndex result
+        result <- request env (Api.peek index)
+        stopNote invalidIndex =<< stopEitherWith ClientError result
     Listen connected f -> do
-      mgr <- Manager.get
-      let env = mkClientEnv mgr url
       withWeavingToFinal \ s lower _ -> do
         connectedGate <- newEmptyMVar
         let
@@ -116,13 +115,18 @@ interpretClientWith url keyPair =
 interpretClientNet ::
   Members [KeyPairs !! KeyPairsError, Manager, Reader NetConfig, Error Fatal, Log, Race, Embed IO, Final IO] r =>
   InterpreterFor (Client !! ClientError) r
-interpretClientNet sem =
-  runStop ((,) <$> localhostUrl <*> clientKeyPair) >>= \case
-    Left (ClientError err) ->
-      throw (Fatal [exon|Client initialization failed: #{err}|])
-    Right (url, keyPair) -> do
-      Log.debug [exon|interpretClientNet: initialized, url=#{show url}, hasKey=#{show (isJust keyPair)}|]
-      interpretClientWith url keyPair sem
+interpretClientNet sem = do
+  (keyPair, env) <- stopToErrorWith initFailed initEnv
+  Log.debug [exon|interpretClientNet: initialized, hasKey=#{show (isJust keyPair)}|]
+  interpretClientWith env keyPair sem
+  where
+    initEnv = do
+      url <- localhostUrl
+      keyPair <- clientKeyPair
+      env <- authClientEnv url keyPair
+      pure (keyPair, env)
+
+    initFailed (ClientError err) = Fatal [exon|Client initialization failed: #{err}|]
 
 -- | Interpret 'Client' with a constant list of 'Event's and no capability to yank.
 interpretClientConst ::

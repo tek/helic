@@ -154,7 +154,8 @@ sendEventLog ::
   Event ->
   Sem r ()
 sendEventLog keyPair localPort timeout addr event =
-  sendEventEither keyPair localPort timeout addr event >>= leftA \ (ClientError err) -> Log.debug [exon|Failed to send event: #{err}|]
+  sendEventEither keyPair localPort timeout addr event >>= leftA \ (ClientError err) ->
+    Log.debug [exon|Failed to send event: #{err}|]
 
 localhost ::
   Member (Reader NetConfig) r =>

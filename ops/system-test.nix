@@ -358,11 +358,11 @@ in {
 
     # Wait for both HTTP servers to be ready
     for i in $(seq 1 30); do
-      curl -sf http://localhost:9500/event >/dev/null 2>&1 && break
+      curl -sf http://localhost:9500/key >/dev/null 2>&1 && break
       sleep 1
     done
     for i in $(seq 1 30); do
-      curl -sf http://localhost:9502/event >/dev/null 2>&1 && break
+      curl -sf http://localhost:9502/key >/dev/null 2>&1 && break
       sleep 1
     done
 
@@ -395,12 +395,12 @@ in {
     fi
 
     # Both instances should have the other in their pending list
-    hel --config-file /etc/helic-a.yaml auth --list
-    hel --config-file /etc/helic-b.yaml auth --list
+    hel --config-file /etc/helic-a.yaml auth list
+    hel --config-file /etc/helic-b.yaml auth list
 
     # Accept all pending peers on both instances
-    hel --config-file /etc/helic-a.yaml auth --accept-all
-    hel --config-file /etc/helic-b.yaml auth --accept-all
+    hel --config-file /etc/helic-a.yaml auth accept-all
+    hel --config-file /etc/helic-b.yaml auth accept-all
 
     # Now yank the real payload on A
     echo -n 'discovery-test-payload' | hel --config-file /etc/helic-a.yaml yank
