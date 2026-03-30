@@ -3,15 +3,18 @@
 -- | Agent interpreter for network sync
 module Helic.Interpreter.AgentNet where
 
+import Conc (interpretQueueTB, withAsync_)
+import qualified Data.Text as Text
 import Exon (exon)
 import Polysemy.Http (Manager)
 import qualified Polysemy.Log as Log
 import Process (Interrupt)
+import qualified Queue
 
 import Helic.Data.Event (Event (source))
-import Helic.Data.Host (PeerAddress, defaultPort)
+import Helic.Data.Host (defaultPort, formatAddress)
 import Helic.Data.KeyPairsError (KeyPairsError (..))
-import Helic.Data.NetConfig (NetConfig (..))
+import Helic.Data.NetConfig (NetConfig (..), Timeout)
 import Helic.Data.PeersError (PeersError (..))
 import Helic.Effect.Agent (Agent (Update), AgentNet, agentIdNet)
 import qualified Helic.Effect.KeyPairs as KeyPairs
@@ -22,26 +25,56 @@ import Helic.Interpreter.Agent (interpretAgentIf)
 import Helic.Net.Client (sendEventLog)
 import Helic.Net.Sign (KeyPair)
 
+-- | Send an event to all broadcast targets.
+sendToTargets ::
+  Members [Manager, Race, Embed IO] r =>
+  Members [Peers !! PeersError, Log] r =>
+  Maybe KeyPair ->
+  Maybe Int ->
+  Maybe Timeout ->
+  Event ->
+  Sem r ()
+sendToTargets keyPair localPort timeout e =
+  resumeOr Peers.broadcastTargets dispatch noTargets
+  where
+    dispatch targets = do
+      Log.debug [exon|AgentNet: broadcasting to #{show (length targets)} targets: #{prettyTargets targets}|]
+      for_ targets \ host ->
+        sendEventLog keyPair localPort timeout host e {source = agentIdNet}
+
+    prettyTargets = Text.intercalate ", " . fmap formatAddress
+
+    noTargets (PeersError err) = Log.error [exon|Failed to get broadcast targets: #{err}|]
+
+-- | Interpret 'Agent' by enqueuing events for asynchronous broadcast.
+-- A background worker thread reads from the queue and calls the send action.
+-- Requires 'Queue Event' to be interpreted in @r@.
+interpretAgentNetQueue ::
+  Members [Queue Event, Log] r =>
+  InterpreterFor Agent r
+interpretAgentNetQueue =
+  interpret \case
+    Update e ->
+      Queue.tryWrite e >>= \case
+        Queue.NotAvailable -> Log.error "Net agent queue is full"
+        Queue.Closed -> unit
+        Queue.Success _ -> unit
+
 withKeyPair ::
   ∀ r .
   Member Manager r =>
-  Members [Peers !! PeersError, Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
+  Members [Peers !! PeersError, Log, Race, Resource, Async, Embed IO] r =>
   NetConfig ->
   Maybe KeyPair ->
   Maybe Int ->
   InterpreterFor Agent r
 withKeyPair NetConfig {timeout} keyPair localPort =
-  interpret \case
-    Update e ->
-      resumeOr Peers.broadcastTargets (sendToTargets e) noTargets
+  interpretQueueTB @Event 64 .
+  withAsync_ broadcastWorker .
+  interpretAgentNetQueue .
+  raiseUnder
   where
-    sendToTargets :: Event -> [PeerAddress] -> Sem r ()
-    sendToTargets e targets = do
-      Log.debug [exon|AgentNet: broadcasting to #{show (length targets)} targets: #{show targets}|]
-      for_ targets \ host ->
-        sendEventLog keyPair localPort timeout host e {source = agentIdNet}
-
-    noTargets (PeersError err) = Log.error [exon|Failed to get broadcast targets: #{err}|]
+    broadcastWorker = Queue.loop (sendToTargets keyPair localPort timeout)
 
 -- | Interpret 'Agent' using remote hosts as targets.
 -- Obtains the X25519 key pair at initialization time.
@@ -70,3 +103,4 @@ interpretAgentNetIfEnabled ::
   InterpreterFor (Agent @@ AgentNet) r
 interpretAgentNetIfEnabled =
   interpretAgentIf interpretAgentNet
+

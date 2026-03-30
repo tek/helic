@@ -100,8 +100,11 @@ fetchServerPublicKey env = do
 --   3. Include our public key in the @X-Helic-Public-Key@ header
 --   4. Include our listening port in the @X-Helic-Port@ header
 --
--- The server can then decrypt with its private key + our public key,
--- which also authenticates us as the sender.
+-- The server can then decrypt with its private key and our public key, which also authenticates us as the sender.
+--
+-- The timeout (default 300ms) covers the entire sequence, including key fetch and send.
+-- AgentNet uses a queue-based worker thread ('Helic.Interpreter.AgentNet.interpretAgentNetQueue') so that the daemon's
+-- @POST /event@ handler returns immediately after enqueuing the event.
 sendEvent ::
   Members [Manager, Log, Race, Stop ClientError, Embed IO] r =>
   Maybe KeyPair ->

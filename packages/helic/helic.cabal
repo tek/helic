@@ -312,6 +312,7 @@ test-suite helic-test
   main-is: Main.hs
   other-modules:
       Helic.Dev
+      Helic.Test.AgentNetQueueTest
       Helic.Test.AuthTest
       Helic.Test.CliOptionsTest
       Helic.Test.ConfigFileTest
