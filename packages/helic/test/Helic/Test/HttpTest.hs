@@ -11,7 +11,7 @@ import Polysemy.Http.Interpreter.Manager (interpretManager)
 import Polysemy.Test (UnitTest)
 import Zeugma (TestStack, runTest)
 
-import Helic.Data.Event (Event)
+
 import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Data.InstanceName (InstanceName)
@@ -24,6 +24,8 @@ import Helic.Interpreter.History (interpretHistory)
 import Helic.Interpreter.KeyPairs (interpretKeyPairsPure)
 import Helic.Net.Server (ServerReady)
 import Helic.Net.Sign (KeyPair (..))
+
+import Helic.Data.HistoryState (HistoryState)
 
 type HttpTestStack =
   [
@@ -39,14 +41,14 @@ type HttpTestStack =
     EventConsumer HistoryUpdate,
     Manager,
     Reader InstanceName,
-    AtomicState (Seq Event)
+    AtomicState HistoryState
   ]
 
 -- | Run a test with the standard HTTP interpreter stack.
 runHttpTest :: KeyPair -> Sem (HttpTestStack ++ TestStack) a -> TestT IO a
 runHttpTest serverKp =
   runTest
-  . interpretAtomic mempty
+  . interpretAtomic def
   . runReader "test"
   . interpretManager
   . interpretEventsChan @HistoryUpdate

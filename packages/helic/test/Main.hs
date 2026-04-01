@@ -28,6 +28,21 @@ import Helic.Test.ContentTest (
   test_insertImageEvent,
   )
 import Helic.Test.DiscoveryTest (test_beaconJsonRoundtrip, test_peerExpiry)
+import Helic.Test.EventMetaTest (
+  test_filterTargetsNoHosts,
+  test_filterTargetsNoMatch,
+  test_filterTargetsWithHosts,
+  test_isExpiredNoTtl,
+  test_isExpiredPastTtl,
+  test_isExpiredWithinTtl,
+  test_metaPreservedThroughHistory,
+  test_resolveHostsCliOverridesConfig,
+  test_resolveHostsDefaultsOnly,
+  test_resolveHostsFromTags,
+  test_resolveHostsNoTagsNoDefaults,
+  test_resolveHostsTagsOverrideDefaults,
+  test_ttlEventInsertedWhileAlive,
+  )
 import Helic.Test.InsertEventTest (test_insertEvent)
 import Helic.Test.KeyFileTest (test_fileKey, test_literalKey, test_nonexistentFileKey, test_resolveAuthConfig)
 import Helic.Test.ListTest (test_list)
@@ -129,6 +144,19 @@ tests =
     unitTest "cli options: verbose present is Just True" test_verbosePresentIsJustTrue,
     unitTest "beacon JSON roundtrip" test_beaconJsonRoundtrip,
     unitTest "peer expiry" test_peerExpiry,
+    unitTest "resolveHosts: CLI overrides config" test_resolveHostsCliOverridesConfig,
+    unitTest "resolveHosts: from tags" test_resolveHostsFromTags,
+    unitTest "resolveHosts: defaults only" test_resolveHostsDefaultsOnly,
+    unitTest "resolveHosts: tags override defaults" test_resolveHostsTagsOverrideDefaults,
+    unitTest "resolveHosts: no tags no defaults" test_resolveHostsNoTagsNoDefaults,
+    unitTest "isExpired: within TTL" test_isExpiredWithinTtl,
+    unitTest "isExpired: past TTL" test_isExpiredPastTtl,
+    unitTest "isExpired: no TTL" test_isExpiredNoTtl,
+    unitTest "filterTargets: no hosts" test_filterTargetsNoHosts,
+    unitTest "filterTargets: with hosts" test_filterTargetsWithHosts,
+    unitTest "filterTargets: no match" test_filterTargetsNoMatch,
+    unitTest "TTL event inserted while alive" test_ttlEventInsertedWhileAlive,
+    unitTest "meta preserved through history" test_metaPreservedThroughHistory,
     sequentialTestGroup "io" AllSucceed
     [
       unitTest "listen for events, filter duplicates from network feedback" test_listen,

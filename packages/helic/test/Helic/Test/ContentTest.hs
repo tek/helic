@@ -64,8 +64,8 @@ test_insertImageEvent =
     now <- Time.now
     let
       imgContent = BinaryContent (MimeType "image/png") "\x89PNG"
-      imgEvent = Event "me" "test" old imgContent
-      txtEvent = Event "me" "test" old (TextContent "hello")
+      imgEvent = Event "me" "test" old imgContent def
+      txtEvent = Event "me" "test" old (TextContent "hello") def
       history = fromList [txtEvent]
     -- Inserting an image event into a text-only history should succeed.
     assertJust (history |> imgEvent) (appendIfValid now debounce imgEvent history)
@@ -73,5 +73,5 @@ test_insertImageEvent =
     let history2 = fromList [txtEvent, imgEvent]
     Nothing === appendIfValid now debounce imgEvent history2
     -- Different binary content should be accepted.
-    let imgEvent2 = Event "me" "test" old (BinaryContent (MimeType "image/jpeg") "\xff\xd8")
+    let imgEvent2 = Event "me" "test" old (BinaryContent (MimeType "image/jpeg") "\xff\xd8") def
     assertJust (history2 |> imgEvent2) (appendIfValid now debounce imgEvent2 history2)

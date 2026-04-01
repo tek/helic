@@ -9,6 +9,7 @@ import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.ContentType (contentSummary)
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
+import Helic.Data.HistoryState (fromEvents)
 import Helic.Data.InstanceName (InstanceName)
 import Helic.Effect.Agent (AgentNet, AgentTmux, AgentWayland, AgentX)
 import qualified Helic.Effect.History as History
@@ -33,7 +34,7 @@ test_load =
   interpretAgent @AgentX (const unit) $
   interpretAgent @AgentWayland (const unit) $
   interpretHistory Nothing Nothing do
-    atomicPut =<< traverse event [1..10]
+    atomicPut . fromEvents =<< traverse event [1..10]
     ev5 <- event 6
     assertJust ev5 =<< History.load 4
     assertEq Nothing =<< History.load 11

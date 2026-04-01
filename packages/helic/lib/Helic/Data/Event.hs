@@ -9,6 +9,7 @@ import qualified Polysemy.Time as Time
 
 import Helic.Data.AgentId (AgentId)
 import Helic.Data.ContentType (Content (..))
+import Helic.Data.EventMeta (EventMeta)
 import Helic.Data.InstanceName (InstanceName)
 import Exon (exon)
 
@@ -22,7 +23,9 @@ data Event =
     -- | Timestamp.
     time :: Chronos.Time,
     -- | Payload.
-    content :: Content
+    content :: Content,
+    -- | Routing and lifecycle metadata.
+    meta :: EventMeta
   }
   deriving stock (Eq, Show)
 
@@ -33,20 +36,21 @@ now ::
   Members [ChronosTime, Reader InstanceName] r =>
   AgentId ->
   Content ->
+  EventMeta ->
   Sem r Event
-now source content = do
+now source content meta = do
   sender <- ask
   time <- Time.now
   pure Event {..}
 
--- | Construct a text event for the current host and time.
+-- | Construct a text event for the current host and time with default metadata.
 nowText ::
   Members [ChronosTime, Reader InstanceName] r =>
   AgentId ->
   Text ->
   Sem r Event
-nowText source =
-  now source . TextContent
+nowText source t =
+  now source (TextContent t) def
 
 -- | Render the event source.
 describe :: Event -> Text

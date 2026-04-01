@@ -84,3 +84,18 @@ parsePeerSpec t =
       -> PeerSpec {host = Host (Text.dropEnd 1 prefix), port = Just p}
       | otherwise
       -> PeerSpec {host = Host t, port = Nothing}
+
+-- | A target specified by the user or config, stored in events.
+-- Resolved from CLI or config at yank time.
+newtype SpecifiedTarget =
+  SpecifiedTarget { unSpecifiedTarget :: PeerAddress }
+  deriving stock (Show)
+  deriving newtype (Eq, Ord)
+
+json ''SpecifiedTarget
+
+-- | A resolved broadcast target for actual network sends.
+newtype BroadcastTarget =
+  BroadcastTarget { unBroadcastTarget :: PeerAddress }
+  deriving stock (Show)
+  deriving newtype (Eq, Ord)

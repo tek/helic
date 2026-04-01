@@ -11,6 +11,7 @@ import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.ContentType (contentText)
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event (..))
+import Helic.Data.HistoryState (HistoryState)
 import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Effect.Agent (AgentTmux, AgentWayland, AgentX)
 import Helic.Interpreter.Agent (interpretAgentNull)
@@ -24,7 +25,7 @@ test_agentNetQueue =
   runTestFrozen $
   interpretEventsChan $
   interpretEventsChan @HistoryUpdate $
-  interpretAtomic @(Seq Event) mempty $
+  interpretAtomic @HistoryState def $
   runReader "test" $
   interpretQueueTB @Event 64 $
   interpretAgentNetQueue . untag $

@@ -23,7 +23,7 @@ handleNet ::
   Event ->
   Sem r ()
 handleNet Event {..} =
-  Conc.publish (Event "test" (AgentId "net") testTime content)
+  Conc.publish (Event "test" (AgentId "net") testTime content def)
 
 handleLog ::
   Member (Queue Text) r =>

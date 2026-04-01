@@ -65,7 +65,7 @@ listenApp Config {..} = do
     $ runReader (fromMaybe def tmux)
     $ interpretEventsChan @Event
     $ interpretEventsChan @HistoryUpdate
-    $ interpretAtomic mempty
+    $ interpretAtomic def
     $ interpretInstanceName name
     $ interpretManager
     $ stopToErrorWith (Fatal . (.unPeersError))

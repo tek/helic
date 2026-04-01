@@ -12,11 +12,12 @@ import Polysemy.Chronos (ChronosTime)
 import qualified Time
 import Time (MilliSeconds (MilliSeconds), diff)
 
-import Helic.Data.AgentId (AgentId (AgentId))
+import Helic.Data.AgentId (AgentId (..))
 import qualified Helic.Data.ContentType as ContentType
 import Helic.Data.ContentType (contentSummary)
 import qualified Helic.Data.Event as Event
-import Helic.Data.Event (Event (Event, content, time))
+import Helic.Data.Event (Event (Event, content, sender, source, time))
+import Helic.Data.HistoryState (HistoryState, useEvents)
 import Helic.Data.HistoryUpdate (HistoryUpdate (HistoryUpdate))
 import Helic.Data.InstanceName (InstanceName)
 import qualified Helic.Effect.Agent as Agent
@@ -42,8 +43,9 @@ runAgent ::
   Member (Agent @@ tag) r =>
   Event ->
   Sem r ()
-runAgent (Event _ (AgentId eId) _ _) | eId == agentName @tag =
-  unit
+runAgent Event {source = AgentId name}
+  | name == agentName @tag
+  = unit
 runAgent event =
   tag (Agent.update event)
 
@@ -53,8 +55,9 @@ broadcast ::
   Members [Events HistoryUpdate, Log] r =>
   Event ->
   Sem r ()
-broadcast event@(Event _ (AgentId ag) _ c) = do
-  Log.debug [exon|broadcasting from #{ag}: #{contentSummary c}|]
+broadcast event = do
+  let ag = event.source.unAgentId
+  Log.debug [exon|broadcasting from #{ag}: #{contentSummary event.content}|]
   runAgent @AgentTmux event
   runAgent @AgentNet event
   runAgent @AgentX event
@@ -68,15 +71,16 @@ inRecent ::
   Event ->
   Seq Event ->
   Bool
-inRecent now debounce (Event _ _ _ c) =
-  any ((c ==) . (.content)) . Seq.takeWhileR newer
+inRecent now debounce event =
+  any ((event.content ==) . (.content)) . Seq.takeWhileR newer
   where
-    newer (Event _ _ t _) =
-      diff now t <= debounce
+    newer e =
+      diff now e.time <= debounce
+
 
 sanitize :: Event -> Event
-sanitize event@Event {content} =
-  event { content = ContentType.sanitize content }
+sanitize event =
+  event { content = ContentType.sanitize event.content }
 
 -- | Append an event to the history unless the latest event contains the same text, or there was an event within the last
 -- @debounce@ milliseconds that contained the same text, or the new event has an earlier time stamp than the latest
@@ -87,10 +91,10 @@ appendIfValid ::
   Event ->
   Seq Event ->
   Maybe (Seq Event)
-appendIfValid now debounce (sanitize -> event@Event {content, time}) = \case
+appendIfValid now debounce (sanitize -> event) = \case
   Seq.Empty ->
     Just (Seq.singleton event)
-  _ :|> Event _ _ latestTime latest | latest == content || time < latestTime ->
+  _ :|> latest | latest.content == event.content || event.time < latest.time ->
     Nothing
   hist | inRecent now debounce event hist ->
     Nothing
@@ -189,28 +193,32 @@ isNetworkCycle ::
   Member (Reader InstanceName) r =>
   Event ->
   Sem r Bool
-isNetworkCycle Event {..} =
-  asks \ inst -> inst == sender && source == agentIdNet
+isNetworkCycle event =
+  asks \ inst -> inst == event.sender && event.source == agentIdNet
+
 
 -- | Interpret 'History' using 'AtomicState', broadcasting to agents.
 interpretHistory ::
   Members Agents r =>
-  Members [Reader InstanceName, AtomicState (Seq Event), Events HistoryUpdate, ChronosTime, Log] r =>
+  Members [Reader InstanceName, AtomicState HistoryState, Events HistoryUpdate, ChronosTime, Log] r =>
   Maybe Int ->
   Maybe Int64 ->
   InterpreterFor History r
 interpretHistory maxHistory debounceMillis =
   interpret \case
     History.Get ->
-      toList <$> atomicGet
+      useEvents do
+        toList <$> atomicGet
     History.Receive event ->
       ifM (isNetworkCycle event)
         do Log.debug [exon|Ignoring network cycle event: #{Event.describe event}|]
-        do receiveEvent maxHistory debounce event
-    History.Load index -> do
-      event <- loadEvent index
-      event <$ traverse_ broadcast event
+        do useEvents do receiveEvent maxHistory debounce event
+    History.Load index ->
+      useEvents do
+        event <- loadEvent index
+        event <$ traverse_ broadcast event
     History.Peek index ->
-      peekEvent index
+      useEvents do
+        peekEvent index
   where
     debounce = MilliSeconds (fromMaybe 3000 debounceMillis)

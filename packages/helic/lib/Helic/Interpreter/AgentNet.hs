@@ -4,6 +4,7 @@
 module Helic.Interpreter.AgentNet where
 
 import Conc (interpretQueueTB, withAsync_)
+import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Exon (exon)
 import Polysemy.Http (Manager)
@@ -11,8 +12,9 @@ import qualified Polysemy.Log as Log
 import Process (Interrupt)
 import qualified Queue
 
-import Helic.Data.Event (Event (source))
-import Helic.Data.Host (defaultPort, formatAddress)
+import Helic.Data.Event (Event (meta, source))
+import Helic.Data.EventMeta (EventMeta (..))
+import Helic.Data.Host (BroadcastTarget (..), SpecifiedTarget (..), PeerAddress (..), defaultPort, formatAddress)
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.NetConfig (NetConfig (..), Timeout)
 import Helic.Data.PeersError (PeersError (..))
@@ -24,6 +26,16 @@ import Helic.Effect.Peers (Peers)
 import Helic.Interpreter.Agent (interpretAgentIf)
 import Helic.Net.Client (sendEventLog)
 import Helic.Net.Sign (KeyPair)
+
+-- | Filter broadcast targets by event hosts metadata.
+-- If the event has no hosts specified ('Nothing'), all targets are used.
+-- Otherwise, only targets whose host matches one of the event's allowed hosts are included.
+filterTargets :: Maybe [SpecifiedTarget] -> [BroadcastTarget] -> [BroadcastTarget]
+filterTargets Nothing targets = targets
+filterTargets (Just eventHosts) targets =
+  filter (\t -> Set.member t.unBroadcastTarget.host allowedHosts) targets
+  where
+    allowedHosts = Set.fromList (fmap ((.host) . (.unSpecifiedTarget)) eventHosts)
 
 -- | Send an event to all broadcast targets.
 sendToTargets ::
@@ -38,11 +50,13 @@ sendToTargets keyPair localPort timeout e =
   resumeOr Peers.broadcastTargets dispatch noTargets
   where
     dispatch targets = do
-      Log.debug [exon|AgentNet: broadcasting to #{show (length targets)} targets: #{prettyTargets targets}|]
-      for_ targets \ host ->
-        sendEventLog keyPair localPort timeout host e {source = agentIdNet}
+      let broadcastTargets = fmap BroadcastTarget targets
+          eventTargets = filterTargets e.meta.hosts broadcastTargets
+      Log.debug [exon|AgentNet: broadcasting to #{show (length eventTargets)} targets: #{prettyTargets eventTargets}|]
+      for_ eventTargets \ target ->
+        sendEventLog keyPair localPort timeout target.unBroadcastTarget e {source = agentIdNet}
 
-    prettyTargets = Text.intercalate ", " . fmap formatAddress
+    prettyTargets = Text.intercalate ", " . fmap (formatAddress . (.unBroadcastTarget))
 
     noTargets (PeersError err) = Log.error [exon|Failed to get broadcast targets: #{err}|]
 

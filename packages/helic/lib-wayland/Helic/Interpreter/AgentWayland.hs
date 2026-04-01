@@ -38,7 +38,7 @@ consumeUpdates chan = forever do
   ClipboardUpdate {..} <- embed (readChan chan)
   let selection = if isPrimary then Primary else Clipboard
   Log.debug [exon|Wayland clipboard (#{show selection}): #{contentSummary content}|]
-  ev <- Event.now agentIdWayland content
+  ev <- Event.now agentIdWayland content def
   Conc.publish ev
 
 -- | Start the native Wayland clipboard monitor and consume updates.

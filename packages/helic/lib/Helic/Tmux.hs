@@ -10,15 +10,15 @@ import qualified Polysemy.Process as Process
 import Polysemy.Process (Process, withProcess_)
 
 import Helic.Data.ContentType (Content (..))
-import Helic.Data.Event (Event (Event))
+import Helic.Data.Event (Event (..))
 
 sendToTmux ::
   ∀ o r .
   Members [Scoped_ (Process ByteString o), Log] r =>
   Event ->
   Sem r ()
-sendToTmux (Event _ _ _ content) =
-  case content of
+sendToTmux event =
+  case event.content of
     TextContent text -> do
       Log.debug [exon|Tmux: sending #{show (Text.length text)} chars|]
       withProcess_ do

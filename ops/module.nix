@@ -55,6 +55,9 @@ let
       exe = if cfg.tmux.enable then "${cfg.tmux.package}/bin/tmux" else null;
     };
     net = cfg.net // {
+      hosts = if cfg.net.hosts == [] then null else cfg.net.hosts;
+      defaultHosts = if cfg.net.defaultHosts == [] then null else cfg.net.defaultHosts;
+      tagHosts = if cfg.net.tagHosts == [] then null else cfg.net.tagHosts;
       auth = cfg.net.auth // {
         allowedKeys = if cfg.net.auth.allowedKeys == [] then null else cfg.net.auth.allowedKeys;
       };
@@ -155,6 +158,34 @@ in {
           description = "Absolute path to the peers state file. Defaults to ~/.local/state/helic/peers.yaml.";
         };
 
+      };
+
+      defaultHosts = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "Default hosts for all events, irrespective of tags. Used when no tag-specific hosts match.";
+        example = literalExpression ["fallback-host:9500"];
+      };
+
+      tagHosts = mkOption {
+        type = types.listOf (types.submodule {
+          options = {
+            tag = mkOption {
+              type = types.str;
+              description = "The tag name.";
+            };
+            hosts = mkOption {
+              type = types.listOf types.str;
+              description = "Network addresses of hosts for events with this tag.";
+            };
+          };
+        });
+        default = [];
+        description = "Mapping from tags to hosts for event routing.";
+        example = literalExpression ''[
+          { tag = "work"; hosts = ["work-host:9500"]; }
+          { tag = "personal"; hosts = ["home-host:9500"]; }
+        ]'';
       };
 
       discovery = {

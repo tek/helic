@@ -35,6 +35,7 @@ import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
 import Helic.Data.PasteConfig (PasteConfig (PasteConfig), PasteTarget (..))
 import qualified Helic.Data.YankConfig
 import Helic.Data.YankConfig (YankConfig (YankConfig), YankSource (..))
+import Helic.Data.Tag (Tag (..))
 
 data Conf =
   Conf {
@@ -88,6 +89,9 @@ yankParser :: Parser YankConfig
 yankParser = do
   agent <- optional (strOption (long "agent" <> help "Source of the yank"))
   source <- yankSourceParser
+  tags <- many (Tag <$> strOption (long "tag" <> short 't' <> help "Tag for event routing" <> metavar "TAG"))
+  hosts <- many (parsePeerSpec . toText <$> strOption @String (long "host" <> short 'H' <> help "Target host (overrides config)" <> metavar "HOST[:PORT]"))
+  ttl <- optional (option auto (long "ttl" <> help "Time-to-live in seconds" <> metavar "SECONDS"))
   pure YankConfig {..}
 
 yankSourceParser :: Parser YankSource

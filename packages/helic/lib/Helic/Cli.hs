@@ -39,7 +39,7 @@ defaultCommand :: Sem AppStack Command
 defaultCommand =
   tryIOError (hIsTerminalDevice stdin) <&> \case
     Right True -> Listen
-    _ -> Yank (YankConfig (Just "cli") StdinText)
+    _ -> Yank (YankConfig (Just "cli") StdinText [] [] Nothing)
 
 withCliOptions :: Conf -> Maybe Command -> IO ()
 withCliOptions (Conf cliVerbose file) cmd = do

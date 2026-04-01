@@ -19,6 +19,8 @@ import Helic.Interpreter.Agent (interpretAgent)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Paste (resolveTarget)
 
+import Helic.Data.HistoryState (HistoryState)
+
 type PasteTestStack =
   [
     History,
@@ -28,7 +30,7 @@ type PasteTestStack =
     Agent @@ AgentNet,
     Events HistoryUpdate,
     EventConsumer HistoryUpdate,
-    AtomicState (Seq Event),
+    AtomicState HistoryState,
     Reader InstanceName
   ]
 

@@ -17,7 +17,7 @@ import Helic.Data.YankConfig (YankConfig (YankConfig), YankSource (..))
 
 conf :: Config
 conf =
-  Config (Just "dev") (Just def) (Just (NetConfig (Just True) (Just 11111) Nothing Nothing Nothing Nothing)) Nothing Nothing Nothing Nothing (Just True)
+  Config (Just "dev") (Just def) (Just (NetConfig (Just True) (Just 11111) Nothing Nothing Nothing Nothing Nothing Nothing)) Nothing Nothing Nothing Nothing (Just True)
 
 listen :: IO ()
 listen =
@@ -37,4 +37,4 @@ yank =
   runAppLevel Trace $ mapError (.text) do
     config <- findFileConfig Nothing
     num :: Int64 <- embed randomIO
-    yankApp config (YankConfig Nothing (DirectText [exon|yanky #{show num}|]))
+    yankApp config (YankConfig Nothing (DirectText [exon|yanky #{show num}|]) [] [] Nothing)

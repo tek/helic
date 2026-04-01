@@ -4,6 +4,8 @@
 module Helic.Data.YankConfig where
 
 import Helic.Data.ContentType (MimeType)
+import Helic.Data.Host (PeerSpec)
+import Helic.Data.Tag (Tag)
 
 -- | Specifies how the yank content should be sourced.
 data YankSource =
@@ -23,7 +25,13 @@ data YankSource =
 data YankConfig =
   YankConfig {
     agent :: Maybe Text,
-    source :: YankSource
+    source :: YankSource,
+    -- | Tags for event categorization and host routing.
+    tags :: [Tag],
+    -- | Explicit hosts to broadcast to, overriding the default hosts.
+    hosts :: [PeerSpec],
+    -- | Time-to-live in seconds.
+    ttl :: Maybe Int
   }
   deriving stock (Eq, Show, Generic)
 

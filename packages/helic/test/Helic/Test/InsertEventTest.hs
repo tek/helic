@@ -19,19 +19,19 @@ old =
 
 event1 :: Event
 event1 =
-  Event "me" "test" old (TextContent "event1")
+  Event "me" "test" old (TextContent "event1") def
 
 event2 :: Event
 event2 =
-  Event "me" "test" old (TextContent "event2")
+  Event "me" "test" old (TextContent "event2") def
 
 eventMixedNl :: Event
 eventMixedNl =
-  Event "me" "test" old (TextContent "line1\r\nline2\rline3\nline4\rline5")
+  Event "me" "test" old (TextContent "line1\r\nline2\rline3\nline4\rline5") def
 
 eventNl :: Event
 eventNl =
-  Event "me" "test" old (TextContent "line1\nline2\nline3\nline4\nline5")
+  Event "me" "test" old (TextContent "line1\nline2\nline3\nline4\nline5") def
 
 historyLatest :: Seq Event
 historyLatest =
@@ -44,10 +44,10 @@ test_insertEvent :: UnitTest
 test_insertEvent =
   runTestFrozen do
     now <- Time.now
-    assertJust [Event "me" "test" now (TextContent "string")] (appendIfValid now debounce (Event "me" "test" now (TextContent "string")) mempty)
+    assertJust [Event "me" "test" now (TextContent "string") def] (appendIfValid now debounce (Event "me" "test" now (TextContent "string") def) mempty)
     Nothing === appendIfValid now debounce event1 historyLatest
     assertJust (historyLatest |> event2) (appendIfValid now debounce event2 historyLatest)
     Nothing === appendIfValid (add (convert (MilliSeconds 100)) old) debounce event2 historyLatest
     assertJust (historyLatest |> event2) (appendIfValid (add (convert (MilliSeconds 1100)) old) debounce event2 historyLatest)
     assertJust (historyLatest |> eventNl) (appendIfValid now debounce eventMixedNl historyLatest)
-    Nothing === appendIfValid now debounce (Event "me" "test" (add (convert (Hours (-1))) old) (TextContent "event3")) historyLatest
+    Nothing === appendIfValid now debounce (Event "me" "test" (add (convert (Hours (-1))) old) (TextContent "event3") def) historyLatest

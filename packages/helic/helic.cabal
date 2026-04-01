@@ -57,7 +57,9 @@ library
       Helic.Data.DiscoveredPeer
       Helic.Data.DiscoveryConfig
       Helic.Data.Event
+      Helic.Data.EventMeta
       Helic.Data.Fatal
+      Helic.Data.HistoryState
       Helic.Data.HistoryUpdate
       Helic.Data.Host
       Helic.Data.InstanceName
@@ -72,6 +74,8 @@ library
       Helic.Data.PeersState
       Helic.Data.PublicKey
       Helic.Data.Selection
+      Helic.Data.Tag
+      Helic.Data.TagHosts
       Helic.Data.TmuxConfig
       Helic.Data.VerifyError
       Helic.Data.WaylandConfig
@@ -318,6 +322,7 @@ test-suite helic-test
       Helic.Test.ConfigFileTest
       Helic.Test.ContentTest
       Helic.Test.DiscoveryTest
+      Helic.Test.EventMetaTest
       Helic.Test.HttpTest
       Helic.Test.InsertEventTest
       Helic.Test.KeyFileTest
