@@ -141,7 +141,7 @@ sendEvent configKeyPair localPort configTimeout addr event = do
   where
     timedOut = Left (ClientError "timed out")
 
-    timeout = MilliSeconds (fromIntegral (fromMaybe 300 configTimeout))
+    timeout = MilliSeconds (fromIntegral (fromMaybe 2000 configTimeout))
 
     invalidHost = ClientError [exon|Invalid host name: #{formatted}|]
 

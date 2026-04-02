@@ -310,7 +310,7 @@ The meaning of these options is:
 |`net.enable`|`true`|Whether to send events over the network.|
 |`net.port`|`9500`|The HTTP port the daemon listens to for both remote sync and `hel yank`.|
 |`net.hosts`|`[]`|The addresses (with port) of the hosts to which this instance should broadcast yank events.|
-|`net.timeout`|`300`|The timeout in milliseconds for requests to remote hosts.|
+|`net.timeout`|`2000`|The timeout in milliseconds for requests to remote hosts.|
 |`net.auth.enable`|`false`|Enable X25519 authentication and encryption for network events.|
 |`net.auth.privateKey`|generated|Base64-encoded X25519 private key. Generated automatically if not set.|
 |`net.auth.publicKey`|derived|Base64-encoded X25519 public key. Derived from the private key if not set.|
