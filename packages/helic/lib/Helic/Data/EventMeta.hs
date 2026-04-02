@@ -7,16 +7,17 @@ import Helic.Data.Host (SpecifiedTarget)
 import Helic.Data.Tag (Tag)
 
 -- | Metadata that controls event routing and lifecycle.
---
--- * @tags@ — Categorization labels, specified on the CLI.
--- * @hosts@ — Resolved list of allowed broadcast hosts.
---   'Nothing' means broadcast to all default targets.
---   'Just []' would mean no hosts (effectively suppresses broadcast).
--- * @ttl@ — Time-to-live in seconds. 'Nothing' means the event never expires.
 data EventMeta =
   EventMeta {
+    -- | Categorization labels, specified on the CLI.
     tags :: [Tag],
-hosts :: Maybe [SpecifiedTarget],
+
+    -- | @hosts@ Resolved list of allowed broadcast hosts.
+    -- 'Nothing' means broadcast to all default targets.
+    -- @'Just' []@ effectively suppresses broadcast.
+    hosts :: Maybe [SpecifiedTarget],
+
+    -- — Time-to-live in seconds. 'Nothing' means the event never expires.
     ttl :: Maybe Int
   }
   deriving stock (Eq, Show, Generic)

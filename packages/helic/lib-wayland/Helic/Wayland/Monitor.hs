@@ -4,7 +4,8 @@
 -- Internal.
 module Helic.Wayland.Monitor (
   Monitor,
-  ClipboardCallback,
+  MonitorEvent (..),
+  MonitorEvents (..),
   isTextMime,
   connectDisplay,
   disconnectDisplay,
@@ -20,6 +21,7 @@ import Control.Exception (
   AsyncException (ThreadKilled),
   bracket,
   catch,
+  displayException,
   finally,
   fromException,
   mask_,
@@ -28,7 +30,7 @@ import Control.Exception (
   try,
   )
 import qualified Data.ByteString as BS
-import Data.IORef (IORef, modifyIORef', newIORef, readIORef)
+import Data.IORef (IORef, atomicModifyIORef', newIORef, readIORef)
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.C.Types (CInt (..))
 import Foreign.Marshal.Alloc (alloca, free, mallocBytes)
@@ -42,6 +44,7 @@ import System.Posix.IO (FdOption (..), closeFd, createPipe, fdReadBuf, fdToHandl
 import System.Posix.Types (Fd (..))
 import System.Timeout (timeout)
 
+import Helic.Data.ContentType (Content (..), MimeType (..))
 import Helic.Wayland.Protocol
 
 -- ---------------------------------------------------------------------------
@@ -98,6 +101,25 @@ mimeTypePriority mime
   | otherwise = MimeNone
 
 -- ---------------------------------------------------------------------------
+-- MIME priority
+-- ---------------------------------------------------------------------------
+
+-- | Events published by the wayland monitor.
+data MonitorEvent =
+  SelectionOffer {
+    isPrimary :: Bool,
+    content :: Content
+  }
+  |
+  MonitorError {
+    message :: Text
+  }
+
+-- | Send monitor events to the app integration.
+newtype MonitorEvents =
+  MonitorEvents { publish :: MonitorEvent -> IO () }
+
+-- ---------------------------------------------------------------------------
 -- Offer tracking
 -- ---------------------------------------------------------------------------
 
@@ -133,18 +155,14 @@ data ActiveSource = ActiveSource {
 -- Monitor state
 -- ---------------------------------------------------------------------------
 
--- | Callback invoked when clipboard content is available.
--- Parameters: whether the selection is primary, the MIME type, and the raw data.
-type ClipboardCallback = Bool -> String -> ByteString -> IO ()
-
 -- | Immutable environment for the Wayland clipboard monitor, established once during initialization.
 data MonitorEnv = MonitorEnv {
   -- | Connection to the Wayland compositor (the display server).
   display :: Ptr WlDisplay,
   -- | The global object registry, used to discover compositor interfaces like seats and clipboard managers.
   registry :: Ptr WlRegistry,
-  -- | User-supplied callback invoked when clipboard content has been read.
-  callback :: ClipboardCallback,
+  -- | Consumer-supplied callback invoked when clipboard content has been read or an error occurred.
+  events :: MonitorEvents,
   -- | Pending clipboard write request, consumed by the dispatch loop.
   writeRequest :: MVar (String, ByteString),
   -- | Wake-up pipe: writing a byte to the write end wakes the dispatch loop.
@@ -192,7 +210,7 @@ readState mon = readIORef mon.stateRef
 
 -- | Modify the mutable state strictly.
 modifyState :: Monitor -> (MonitorState -> MonitorState) -> IO ()
-modifyState mon = modifyIORef' mon.stateRef
+modifyState mon f = atomicModifyIORef' mon.stateRef \ s -> (f s, ())
 
 -- ---------------------------------------------------------------------------
 -- Read data from a data offer via pipe
@@ -233,6 +251,12 @@ readOfferData dpy offer mime = do
 -- Handle a selection event
 -- ---------------------------------------------------------------------------
 
+-- | Convert raw bytes and MIME type into a 'Content' value.
+makeContent :: String -> ByteString -> Content
+makeContent mime bytes
+  | isTextMime mime = TextContent (decodeUtf8 bytes)
+  | otherwise = BinaryContent (MimeType (toText mime)) bytes
+
 -- | Process a selection or primary-selection event.
 -- Reads data from the offer if a suitable MIME type was found, invokes the callback, and cleans up.
 -- Skips the echoed selection event when we are the clipboard owner (to prevent deadlock).
@@ -252,8 +276,8 @@ handleSelection mon isPrimary offer =
       when (offer /= nullPtr && info.priority > MimeNone && offer == info.offerPtr) do
         let requestMime = if info.priority == MimeText then "text/plain;charset=utf-8" else info.mimeType
         mData <- readOfferData mon.env.display offer requestMime
-        for_ mData \ dat ->
-          mon.env.callback isPrimary info.mimeType dat
+        for_ mData \ bytes ->
+          mon.env.events.publish SelectionOffer {isPrimary, content = makeContent info.mimeType bytes}
       when (offer /= nullPtr) do
         offerDestroy offer
       -- Only clean up the current offer's listener resources if this selection event corresponds
@@ -372,12 +396,16 @@ foreign import ccall "wrapper"
   mkSourceCancelled :: SourceCancelledFn -> IO (FunPtr SourceCancelledFn)
 
 -- | Handle the compositor requesting data: write the content bytes to the given fd.
-sourceHandleSend :: IORef ByteString -> SourceSendFn
-sourceHandleSend dataRef _data _source _mime cfd = do
-  h <- fdToHandle (Fd cfd)
-  finally
-    (readIORef dataRef >>= BS.hPut h)
-    (hClose h)
+-- 'IOError's are caught and reported via the event publisher.
+sourceHandleSend :: MonitorEvents -> IORef ByteString -> SourceSendFn
+sourceHandleSend events dataRef _data _source _mime cfd =
+  catch sendData reportError
+  where
+    sendData = do
+      h <- fdToHandle (Fd cfd)
+      finally (BS.hPut h =<< readIORef dataRef) (hClose h)
+
+    reportError (e :: IOError) = events.publish MonitorError {message = toText (displayException e)}
 
 -- | Handle the compositor cancelling the source: clean up resources.
 sourceHandleCancelled :: Monitor -> SourceCancelledFn
@@ -423,8 +451,8 @@ disconnectDisplay = wl_display_disconnect
 
 -- | Create the monitor state, allocating all mutable variables.
 -- This is infallible — all 'IORef's are initialized to null/empty values.
-createMonitor :: Ptr WlDisplay -> ClipboardCallback -> IO Monitor
-createMonitor dpy cb = do
+createMonitor :: Ptr WlDisplay -> MonitorEvents -> IO Monitor
+createMonitor dpy events = do
   reg <- wl_display_get_registry dpy
   (wakeRd, wakeWr) <- createPipe
   setFdOption wakeRd NonBlockingRead True
@@ -432,7 +460,7 @@ createMonitor dpy cb = do
   let env = MonitorEnv {
         display = dpy,
         registry = reg,
-        callback = cb,
+        events,
         writeRequest = writeReqVar,
         wakeWriteFd = wakeWr,
         wakeReadFd = wakeRd
@@ -586,7 +614,6 @@ setClipboard mon mime bytes =
       void (fdWriteBuf mon.env.wakeWriteFd (castPtr buf) 1)
 
 -- | Internal: actually set the clipboard. Must be called from the dispatch thread.
--- Uses bracket to ensure partial resources are cleaned up if any step fails.
 doSetClipboard :: Monitor -> String -> ByteString -> IO ()
 doSetClipboard mon mime bytes = do
   cleanupActiveSource mon
@@ -599,7 +626,7 @@ doSetClipboard mon mime bytes = do
   where
     setupSource dataRef src dev = do
       withCString mime (sourceOffer src)
-      sendFp <- mkSourceSend (sourceHandleSend dataRef)
+      sendFp <- mkSourceSend (sourceHandleSend mon.env.events dataRef)
       onException (setupListener sendFp src dev) (freeHaskellFunPtr sendFp)
 
     setupListener sendFp src dev = do

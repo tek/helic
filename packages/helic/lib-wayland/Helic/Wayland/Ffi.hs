@@ -3,7 +3,7 @@
 -- lifecycle management via nested 'Resource.bracket's and embedding all IO operations into 'Sem'.
 -- Internal.
 module Helic.Wayland.Ffi (
-  ClipboardCallback (..),
+  MonitorEvents (..),
   MonitorHandle,
   WaylandInitError (..),
   withMonitor,
@@ -11,31 +11,24 @@ module Helic.Wayland.Ffi (
   setClipboard,
 ) where
 
+import Exon (exon)
+import qualified Log
+
 import Helic.Data.ContentType (Content (..), MimeType (..))
 import Helic.Wayland.Data.WaylandInitError (WaylandInitError (..))
 import qualified Helic.Wayland.Monitor as Monitor
-import Helic.Wayland.Monitor (isTextMime)
+import Helic.Wayland.Monitor (MonitorEvents (..))
 
 -- | Opaque handle for the monitor state.
 newtype MonitorHandle =
   MonitorHandle Monitor.Monitor
 
--- | Callback type: @is_primary content@
-newtype ClipboardCallback =
-  ClipboardCallback { call :: Bool -> Content -> IO () }
-
--- | Convert raw bytes and MIME type into a 'Content' value.
-makeContent :: String -> ByteString -> Content
-makeContent mime bytes
-  | isTextMime mime = TextContent (decodeUtf8 bytes)
-  | otherwise = BinaryContent (MimeType (toText mime)) bytes
-
 -- | Embed an IO action, catching 'IOError' and converting to 'WaylandIOError'.
-embedIO ::
+tryWayland ::
   Members [Error WaylandInitError, Embed IO] r =>
   IO a ->
   Sem r a
-embedIO act =
+tryWayland act =
   tryIOError act >>= leftA \ exc -> throw (WaylandIOError (show exc))
 
 -- | Run an action with an initialized Wayland clipboard monitor.
@@ -46,37 +39,43 @@ embedIO act =
 -- Stops with 'WaylandInitError' if initialization fails.
 withMonitor ::
   Members [Error WaylandInitError, Resource, Embed IO] r =>
-  ClipboardCallback ->
+  MonitorEvents ->
   (MonitorHandle -> Sem r a) ->
   Sem r a
-withMonitor callback use =
+withMonitor events use =
   bracket acquireDisplay releaseDisplay \ dpy -> do
-    mon <- embedIO (Monitor.createMonitor dpy rawCallback)
-    bracket (acquireSetup mon) (releaseSetup mon) \ () ->
-      use (MonitorHandle mon)
+    monitor <- tryWayland (Monitor.createMonitor dpy events)
+    bracket (acquireSetup monitor) (releaseSetup monitor) \ () ->
+      use (MonitorHandle monitor)
   where
-    rawCallback isPrimary mime bytes = callback.call isPrimary (makeContent mime bytes)
+    acquireDisplay = fromMaybeA (throw WaylandDisplayConnectFailed) =<< tryWayland Monitor.connectDisplay
 
-    acquireDisplay = fromMaybeA (throw WaylandDisplayConnectFailed) =<< embedIO Monitor.connectDisplay
+    releaseDisplay = tryIOError_ . Monitor.disconnectDisplay
 
-    releaseDisplay = embed . Monitor.disconnectDisplay
+    acquireSetup monitor =
+      tryWayland (Monitor.setupMonitor monitor) >>= leftA \ err -> throw (WaylandProtocolBindFailed err)
 
-    acquireSetup mon =
-      embedIO (Monitor.setupMonitor mon) >>= leftA \ err -> throw (WaylandProtocolBindFailed err)
-
-    releaseSetup mon _ = embed (Monitor.destroyMonitor mon)
+    releaseSetup monitor _ = tryIOError_ (Monitor.destroyMonitor monitor)
 
 -- | Run the Wayland event loop.
 -- Blocks until the display is disconnected or an error occurs.
-runMonitor :: Member (Embed IO) r => MonitorHandle -> Sem r ()
-runMonitor (MonitorHandle mon) = embed (Monitor.runMonitor mon)
+runMonitor :: Member (Embed IO) r => MonitorHandle -> Sem r (Either Text ())
+runMonitor (MonitorHandle monitor) =
+  tryIOError (Monitor.runMonitor monitor)
 
 -- | Set the Wayland clipboard to the given content.
--- For text, uses @text/plain;charset=utf-8@; for binary, uses the content's MIME type.
-setClipboard :: Member (Embed IO) r => MonitorHandle -> Content -> Sem r ()
-setClipboard (MonitorHandle mon) = \case
-  TextContent t ->
-    embed (Monitor.setClipboard mon "text/plain;charset=utf-8" (encodeUtf8 t))
-  BinaryContent (MimeType mime) bs ->
-    embed (Monitor.setClipboard mon (toString mime) bs)
+setClipboard ::
+  Members [Log, Embed IO] r =>
+  MonitorHandle ->
+  Content ->
+  Sem r ()
+setClipboard (MonitorHandle monitor) content =
+  leftA logException =<< tryIOError (Monitor.setClipboard monitor mimeType bytes)
+  where
+    (mimeType, bytes) = case content of
+      TextContent t ->
+        ("text/plain;charset=utf-8", (encodeUtf8 t))
+      BinaryContent (MimeType mime) bs ->
+        ((toString mime), bs)
 
+    logException exc = Log.error [exon|Setting Wayland clipboard failed: #{exc}|]
