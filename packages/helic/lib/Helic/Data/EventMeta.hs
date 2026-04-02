@@ -10,10 +10,10 @@ import Helic.Data.Tag (Tag)
 data EventMeta =
   EventMeta {
     -- | Categorization labels, specified on the CLI.
-    tags :: [Tag],
+    tags :: Set Tag,
 
-    -- | @hosts@ Resolved list of allowed broadcast hosts.
-    -- 'Nothing' means broadcast to all default targets.
+    -- | Explicit target hosts specified via @--host@ on the CLI.
+    -- 'Nothing' means no explicit targets were given (routing is determined by tags and config defaults).
     -- @'Just' []@ effectively suppresses broadcast.
     hosts :: Maybe [SpecifiedTarget],
 

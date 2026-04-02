@@ -27,7 +27,7 @@ data YankConfig =
     agent :: Maybe Text,
     source :: YankSource,
     -- | Tags for event categorization and host routing.
-    tags :: [Tag],
+    tags :: Set Tag,
     -- | Explicit hosts to broadcast to, overriding the default hosts.
     hosts :: [PeerSpec],
     -- | Time-to-live in seconds.

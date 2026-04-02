@@ -4,6 +4,7 @@
 module Helic.Interpreter.AgentNet where
 
 import Conc (interpretQueueTB, withAsync_)
+import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Exon (exon)
@@ -14,10 +15,21 @@ import qualified Queue
 
 import Helic.Data.Event (Event (meta, source))
 import Helic.Data.EventMeta (EventMeta (..))
-import Helic.Data.Host (BroadcastTarget (..), PeerAddress (..), SpecifiedTarget (..), defaultPort, formatAddress)
+import Helic.Data.Host (
+  BroadcastTarget (..),
+  PeerAddress (..),
+  PeerSpec,
+  SpecifiedTarget (..),
+  defaultPort,
+  formatAddress,
+  resolvePeerSpec,
+  )
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.NetConfig (NetConfig (..), Timeout)
 import Helic.Data.PeersError (PeersError (..))
+import Helic.Data.Tag (Tag (..))
+import qualified Helic.Data.TagHosts as TagHosts
+import Helic.Data.TagHosts (TagHosts (..), TagRouting (..))
 import Helic.Effect.Agent (Agent (Update), AgentNet, agentIdNet)
 import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
@@ -27,9 +39,38 @@ import Helic.Interpreter.Agent (interpretAgentIf)
 import Helic.Net.Client (sendEventLog)
 import Helic.Net.Sign (KeyPair)
 
--- | Filter broadcast targets by event hosts metadata.
--- If the event has no hosts specified ('Nothing'), all targets are used.
--- Otherwise, only targets whose host matches one of the event's allowed hosts are included.
+-- | Resolve tag-hosts mapping for a set of tags using the pre-resolved routing table.
+-- Returns 'Nothing' if no tags match any config entry.
+-- Returns @'Just' []@ if tags match but all resolve to 'TagSuppress'.
+--
+resolveTagHosts :: TagHosts -> Set Tag -> Maybe [SpecifiedTarget]
+resolveTagHosts routing tags =
+  routingTargets matched
+  where
+    matched = mconcat (Map.elems (Map.restrictKeys routing.byTag tags))
+
+    routingTargets = \case
+      TagRoute hosts -> Just (toList (SpecifiedTarget . resolvePeerSpec defaultPort <$> hosts))
+      TagSuppress -> Just []
+      TagDefaultHosts -> Nothing
+
+-- | Resolve the target hosts for an event.
+--
+-- Strict precedence chain:
+--
+-- 1. If the event has explicit hosts (from @--host@ CLI flags), use only those.
+-- 2. Otherwise, if any tags match a tag-hosts config entry, use only those hosts (may be empty).
+-- 3. Otherwise, if default hosts are configured, use those.
+-- 4. Otherwise, return 'Nothing' (broadcast to all).
+resolveTargets :: TagHosts -> Maybe [PeerSpec] -> EventMeta -> Maybe [SpecifiedTarget]
+resolveTargets routing defaults meta =
+  meta.hosts <|> resolveTagHosts routing meta.tags <|> resolveDefaults
+  where
+    resolveDefaults = case defaults of
+      Just defs@(_ : _) -> Just (fmap (SpecifiedTarget . resolvePeerSpec defaultPort) defs)
+      _ -> Nothing
+
+-- | Filter broadcast targets to only those whose host matches one of the specified targets.
 filterTargets ::
   [SpecifiedTarget] ->
   [BroadcastTarget] ->
@@ -46,14 +87,16 @@ sendToTargets ::
   Maybe KeyPair ->
   Maybe Int ->
   Maybe Timeout ->
+  TagHosts ->
+  Maybe [PeerSpec] ->
   Event ->
   Sem r ()
-sendToTargets keyPair localPort timeout e =
+sendToTargets keyPair localPort timeout routing defaults e =
   resumeOr Peers.broadcastTargets dispatch noTargets
   where
     dispatch targets = do
       let availableTargets = fmap BroadcastTarget targets
-          allowedTargets = maybe id filterTargets e.meta.hosts availableTargets
+          allowedTargets = maybe id filterTargets (resolveTargets routing defaults e.meta) availableTargets
       Log.debug [exon|AgentNet: broadcasting to #{show (length allowedTargets)} targets: #{prettyTargets allowedTargets}|]
       for_ allowedTargets \ target ->
         sendEventLog keyPair localPort timeout target.address e {source = agentIdNet}
@@ -83,13 +126,15 @@ withKeyPair ::
   Maybe KeyPair ->
   Maybe Int ->
   InterpreterFor Agent r
-withKeyPair NetConfig {timeout} keyPair localPort =
+withKeyPair conf keyPair localPort =
   interpretQueueTB @Event 64 .
   withAsync_ broadcastWorker .
   interpretAgentNetQueue .
   raiseUnder
   where
-    broadcastWorker = Queue.loop (sendToTargets keyPair localPort timeout)
+    routing = TagHosts.fromConfig (fold conf.tagHosts)
+
+    broadcastWorker = Queue.loop (sendToTargets keyPair localPort conf.timeout routing conf.defaultHosts)
 
 -- | Interpret 'Agent' using remote hosts as targets.
 interpretAgentNet ::

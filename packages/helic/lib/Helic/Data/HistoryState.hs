@@ -38,11 +38,11 @@ fromEvents = HistoryState
 
 -- | Check whether an event has expired based on its TTL.
 isExpired :: Chronos.Time -> Event -> Bool
-isExpired now event =
-  case event.meta.ttl of
+isExpired now Event {meta = EventMeta {ttl}, time} =
+  case ttl of
     Nothing -> False
     Just ttlSec ->
-      let age :: Seconds = convert @Chronos.Timespan (diff now event.time)
+      let age :: Seconds = convert @Chronos.Timespan (diff now time)
       in age > Seconds (fromIntegral ttlSec)
 
 -- | Remove expired events from a sequence.

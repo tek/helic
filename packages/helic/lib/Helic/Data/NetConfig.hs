@@ -6,7 +6,7 @@ module Helic.Data.NetConfig where
 import Helic.Data.AuthConfig (AuthConfig (..))
 import Helic.Data.DiscoveryConfig (DiscoveryConfig)
 import Helic.Data.Host (PeerSpec)
-import Helic.Data.TagHosts (TagHosts)
+import Helic.Data.Tag (Tag)
 
 newtype Timeout =
   Timeout { milliseconds :: Int }
@@ -26,7 +26,7 @@ data NetConfig =
     -- | Default hosts for all events, irrespective of tags.
     defaultHosts :: Maybe [PeerSpec],
     -- | Mapping from tags to hosts for event routing.
-    tagHosts :: Maybe [TagHosts]
+    tagHosts :: Maybe (Map Tag [PeerSpec])
   }
   deriving stock (Eq, Show, Generic)
   deriving anyclass (Default)

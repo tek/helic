@@ -3,15 +3,41 @@
 -- | Tag-to-hosts mapping for event routing configuration
 module Helic.Data.TagHosts where
 
+import qualified Data.Map.Strict as Map
+
 import Helic.Data.Host (PeerSpec)
 import Helic.Data.Tag (Tag)
 
--- | A mapping from a tag to a list of hosts that events with that tag should be broadcast to.
-data TagHosts =
-  TagHosts {
-    tag :: Tag,
-    hosts :: [PeerSpec]
-  }
-  deriving stock (Eq, Show, Generic)
+-- | Routing decision for a single tag.
+data TagRouting =
+  TagDefaultHosts
+  |
+  -- | Suppress broadcast for events with this tag.
+  TagSuppress
+  |
+  -- | Route events with this tag to the specified hosts.
+  TagRoute (NonEmpty PeerSpec)
+  deriving stock (Eq, Show)
 
-json ''TagHosts
+instance Semigroup TagRouting where
+  TagDefaultHosts <> r = r
+  l <> TagDefaultHosts = l
+  TagSuppress <> r = r
+  l <> TagSuppress = l
+  TagRoute l <> TagRoute r = TagRoute (l <> r)
+
+instance Monoid TagRouting where
+  mempty = TagDefaultHosts
+
+-- | Pre-resolved tag routing table, constructed from the config's @Map Tag [PeerSpec]@ at interpreter startup.
+newtype TagHosts =
+  TagHosts { byTag :: Map Tag TagRouting }
+  deriving stock (Eq, Show)
+
+-- | Construct a 'TagHosts' routing table from the raw config map.
+-- Empty host lists become 'TagSuppress', non-empty lists become 'TagRoute'.
+fromConfig :: Map Tag [PeerSpec] -> TagHosts
+fromConfig =
+  TagHosts . Map.map \case
+    h : hs -> TagRoute (h :| hs)
+    [] -> TagSuppress

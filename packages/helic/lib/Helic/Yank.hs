@@ -16,15 +16,12 @@ import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.ContentType (Content (..), MimeType (..))
 import qualified Helic.Data.Event as Event
 import Helic.Data.EventMeta (EventMeta (..))
-import Helic.Data.Host (SpecifiedTarget (..), PeerSpec, defaultPort, resolvePeerSpec)
+import Helic.Data.Fatal (Fatal)
+import Helic.Data.Host (PeerSpec, SpecifiedTarget (..), defaultPort, resolvePeerSpec)
 import Helic.Data.InstanceName (InstanceName)
-import Helic.Data.NetConfig (NetConfig (..))
-import Helic.Data.Tag (Tag (..))
-import Helic.Data.TagHosts (TagHosts (..))
 import Helic.Data.YankConfig (YankConfig (..), YankSource (..))
 import qualified Helic.Effect.Client as Client
 import Helic.Effect.Client (Client)
-import Helic.Data.Fatal (Fatal)
 import Helic.Error (tryFatal)
 
 -- | Infer the MIME type from a file path's extension.
@@ -45,47 +42,26 @@ resolveSource = \case
   StdinBinary mime ->
     BinaryContent mime <$> BS.hGetContents stdin
 
--- | Resolve the target hosts for an event.
---
--- Strict precedence chain:
---
--- 1. If the CLI specifies explicit hosts, use only those.
--- 2. Otherwise, if tag-hosts mapping resolves hosts for the given tags, use only those.
--- 3. Otherwise, if default hosts are configured, use those.
--- 4. Otherwise, return 'Nothing' (broadcast to all).
-resolveHosts :: NetConfig -> [Tag] -> [PeerSpec] -> Maybe [SpecifiedTarget]
-resolveHosts conf tags = \case
-  cliHosts@(_ : _) -> Just (resolve cliHosts)
-  []
-    | tagResolved@(_ : _) <- resolveTagHosts conf tags -> Just (resolve tagResolved)
-    | Just defaults@(_ : _) <- conf.defaultHosts -> Just (resolve defaults)
-    | otherwise -> Nothing
-  where
-    resolve = fmap (SpecifiedTarget . resolvePeerSpec defaultPort)
-
--- | Resolve tag-hosts mapping for a list of tags.
-resolveTagHosts :: NetConfig -> [Tag] -> [PeerSpec]
-resolveTagHosts conf tags =
-  foldMap hostsForTag tags
-  where
-    tagMapping = fold conf.tagHosts
-
-    hostsForTag t =
-      foldMap (.hosts) (filter (\th -> th.tag == t) tagMapping)
+-- | Resolve explicit CLI host flags to 'SpecifiedTarget's.
+-- Returns 'Nothing' when no explicit hosts are given (routing is then determined server-side by tags and config).
+-- Returns @'Just' targets@ when @--host@ flags are present.
+resolveExplicitHosts :: [PeerSpec] -> Maybe [SpecifiedTarget]
+resolveExplicitHosts = \case
+  [] -> Nothing
+  cliHosts -> Just (fmap (SpecifiedTarget . resolvePeerSpec defaultPort) cliHosts)
 
 -- | Send an event to the server.
 yank ::
-  Members [Reader InstanceName, Reader NetConfig, Client, ChronosTime, Log, Error Fatal, Embed IO] r =>
+  Members [Reader InstanceName, Client, ChronosTime, Log, Error Fatal, Embed IO] r =>
   YankConfig ->
   Sem r ()
 yank conf = do
   content <- tryFatal (resolveSource conf.source)
   Log.debug [exon|yank: content type #{contentTag content}, agent=#{fromMaybe "cli" conf.agent}|]
-  netConf <- ask @NetConfig
   let
     meta = EventMeta {
       tags = conf.tags,
-      hosts = resolveHosts netConf conf.tags conf.hosts,
+      hosts = resolveExplicitHosts conf.hosts,
       ttl = conf.ttl
     }
   event <- Event.now (AgentId (fromMaybe "cli" conf.agent)) content meta

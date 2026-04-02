@@ -7,17 +7,18 @@ import Time (Days (Days), Seconds (Seconds), convert)
 import Torsor (add)
 import Zeugma (runTestFrozen, testTime)
 
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 import Helic.Data.ContentType (Content (TextContent))
 import Helic.Data.Event (Event (..))
 import Helic.Data.EventMeta (EventMeta (..))
 import Helic.Data.Host (BroadcastTarget (..), SpecifiedTarget (..), Host (..), PeerAddress (..), PeerSpec (..))
-import Helic.Data.NetConfig (NetConfig (..))
-import Helic.Data.Tag (Tag (..))
 import Helic.Data.TagHosts (TagHosts (..))
-import Helic.Interpreter.AgentNet (filterTargets)
+import qualified Helic.Data.TagHosts as TagHosts
+import Helic.Interpreter.AgentNet (filterTargets, resolveTargets)
 import Helic.Data.HistoryState (isExpired)
 import Helic.Interpreter.History (appendIfValid)
-import Helic.Yank (resolveHosts)
+import Helic.Yank (resolveExplicitHosts)
 
 -- * Test helpers
 
@@ -32,50 +33,73 @@ mkTarget h p = BroadcastTarget (PeerAddress (Host h) p)
 
 mkEvent :: Chronos.Time -> Maybe Int -> Maybe [SpecifiedTarget] -> Event
 mkEvent t ttl hosts =
-  Event "test" "cli" t (TextContent "content") EventMeta {tags = [], hosts, ttl}
+  Event "test" "cli" t (TextContent "content") EventMeta {tags = mempty, hosts, ttl}
 
--- * resolveHosts
+-- * resolveExplicitHosts (client-side: only --host flags)
 
-test_resolveHostsCliOverridesConfig :: UnitTest
-test_resolveHostsCliOverridesConfig =
+test_resolveExplicitHostsPresent :: UnitTest
+test_resolveExplicitHostsPresent =
+  runTestFrozen do
+    let cliHosts = [mkSpec "cli-host" 9500]
+    assertEq (Just [mkSpecifiedTarget "cli-host" 9500]) (resolveExplicitHosts cliHosts)
+
+test_resolveExplicitHostsEmpty :: UnitTest
+test_resolveExplicitHostsEmpty =
+  runTestFrozen do
+    assertEq @(Maybe [SpecifiedTarget]) Nothing (resolveExplicitHosts [])
+
+-- * resolveTargets (server-side: 4-level precedence)
+
+test_resolveTargetsCliOverridesConfig :: UnitTest
+test_resolveTargetsCliOverridesConfig =
   runTestFrozen do
     let
-      conf = def {defaultHosts = Just [mkSpec "default" 9500], tagHosts = Just [TagHosts "secret" [mkSpec "tagged" 9500]]}
-      cliHosts = [mkSpec "cli-host" 9500]
-    assertEq (Just [mkSpecifiedTarget "cli-host" 9500]) (resolveHosts conf ["secret"] cliHosts)
+      routing = TagHosts.fromConfig (Map.singleton "secret" [mkSpec "tagged" 9500])
+      defaults = Just [mkSpec "default" 9500]
+      meta = def {tags = Set.singleton "secret", hosts = Just [mkSpecifiedTarget "cli-host" 9500]}
+    assertEq (Just [mkSpecifiedTarget "cli-host" 9500]) (resolveTargets routing defaults meta)
 
-test_resolveHostsFromTags :: UnitTest
-test_resolveHostsFromTags =
+test_resolveTargetsFromTags :: UnitTest
+test_resolveTargetsFromTags =
   runTestFrozen do
     let
-      conf = def {tagHosts = Just [TagHosts "secret" [mkSpec "host-a" 9500, mkSpec "host-b" 9500]]}
-    assertEq (Just [mkSpecifiedTarget "host-a" 9500, mkSpecifiedTarget "host-b" 9500]) (resolveHosts conf ["secret"] [])
+      routing = TagHosts.fromConfig (Map.singleton "secret" [mkSpec "host-a" 9500, mkSpec "host-b" 9500])
+      meta = def {tags = Set.singleton "secret"}
+    assertEq (Just [mkSpecifiedTarget "host-a" 9500, mkSpecifiedTarget "host-b" 9500]) (resolveTargets routing Nothing meta)
 
-test_resolveHostsDefaultsOnly :: UnitTest
-test_resolveHostsDefaultsOnly =
+test_resolveTargetsDefaultsOnly :: UnitTest
+test_resolveTargetsDefaultsOnly =
   runTestFrozen do
     let
-      conf = def { defaultHosts = Just [mkSpec "default-host" 9500] }
+      defaults = Just [mkSpec "default-host" 9500]
     assertEq
       (Just [mkSpecifiedTarget "default-host" 9500])
-      (resolveHosts conf [] [])
+      (resolveTargets (TagHosts mempty) defaults def)
 
-test_resolveHostsTagsOverrideDefaults :: UnitTest
-test_resolveHostsTagsOverrideDefaults =
+test_resolveTargetsTagsOverrideDefaults :: UnitTest
+test_resolveTargetsTagsOverrideDefaults =
   runTestFrozen do
     let
-      conf = def
-        { defaultHosts = Just [mkSpec "default-host" 9500]
-        , tagHosts = Just [TagHosts "work" [mkSpec "work-host" 9500]]
-        }
+      routing = TagHosts.fromConfig (Map.singleton "work" [mkSpec "work-host" 9500])
+      defaults = Just [mkSpec "default-host" 9500]
+      meta = def {tags = Set.singleton "work"}
     assertEq
       (Just [mkSpecifiedTarget "work-host" 9500])
-      (resolveHosts conf ["work"] [])
+      (resolveTargets routing defaults meta)
 
-test_resolveHostsNoTagsNoDefaults :: UnitTest
-test_resolveHostsNoTagsNoDefaults =
+test_resolveTargetsNoTagsNoDefaults :: UnitTest
+test_resolveTargetsNoTagsNoDefaults =
   runTestFrozen do
-    assertEq @(Maybe [SpecifiedTarget]) Nothing (resolveHosts def [] [])
+    assertEq @(Maybe [SpecifiedTarget]) Nothing (resolveTargets (TagHosts mempty) Nothing def)
+
+test_resolveTargetsEmptyTagHostsSuppresses :: UnitTest
+test_resolveTargetsEmptyTagHostsSuppresses =
+  runTestFrozen do
+    let
+      routing = TagHosts.fromConfig (Map.singleton "local" [])
+      defaults = Just [mkSpec "default-host" 9500]
+      meta = def {tags = Set.singleton "local"}
+    assertEq (Just @[SpecifiedTarget] []) (resolveTargets routing defaults meta)
 
 -- * isExpired
 
@@ -105,28 +129,29 @@ test_isExpiredNoTtl =
 
 -- * filterTargets
 
-test_filterTargetsNoHosts :: UnitTest
-test_filterTargetsNoHosts =
+test_filterTargetsAllPass :: UnitTest
+test_filterTargetsAllPass =
   runTestFrozen do
     let
+      spec = [mkSpecifiedTarget "a" 9500, mkSpecifiedTarget "b" 9500]
       targets = [mkTarget "a" 9500, mkTarget "b" 9500]
-    assertEq targets (filterTargets Nothing targets)
+    assertEq targets (filterTargets spec targets)
 
 test_filterTargetsWithHosts :: UnitTest
 test_filterTargetsWithHosts =
   runTestFrozen do
     let
-      eventHosts = Just [mkSpecifiedTarget "b" 9500]
+      spec = [mkSpecifiedTarget "b" 9500]
       targets = [mkTarget "a" 9500, mkTarget "b" 9500, mkTarget "c" 9500]
-    assertEq [mkTarget "b" 9500] (filterTargets eventHosts targets)
+    assertEq [mkTarget "b" 9500] (filterTargets spec targets)
 
 test_filterTargetsNoMatch :: UnitTest
 test_filterTargetsNoMatch =
   runTestFrozen do
     let
-      eventHosts = Just [mkSpecifiedTarget "x" 9500]
+      spec = [mkSpecifiedTarget "x" 9500]
       targets = [mkTarget "a" 9500, mkTarget "b" 9500]
-    assertEq @[BroadcastTarget] [] (filterTargets eventHosts targets)
+    assertEq @[BroadcastTarget] [] (filterTargets spec targets)
 
 -- * TTL-based history expiry via appendIfValid
 
@@ -146,7 +171,7 @@ test_metaPreservedThroughHistory =
   runTestFrozen do
     let
       now = testTime
-      meta = EventMeta {tags = [Tag "secret"], hosts = Just [mkSpecifiedTarget "private" 9500], ttl = Just 30}
+      meta = EventMeta {tags = Set.singleton "secret", hosts = Just [mkSpecifiedTarget "private" 9500], ttl = Just 30}
       event = Event "me" "cli" now (TextContent "password") meta
       debounce = Time.MilliSeconds 3000
     case appendIfValid now debounce event mempty of
