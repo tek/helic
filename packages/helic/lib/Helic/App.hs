@@ -68,7 +68,7 @@ listenApp Config {..} = do
     $ interpretAtomic def
     $ interpretInstanceName name
     $ interpretManager
-    $ stopToErrorWith (Fatal . (.unPeersError))
+    $ stopToErrorWith (Fatal . (.text))
     $ interpretPeersPersistFile path
     $ interpretPeers configAllowed authEnabled configHosts
     $ interpretKeyPairs
@@ -108,7 +108,7 @@ acquireAuthKeyPair ::
 acquireAuthKeyPair sem = do
   enabled <- asks NetConfig.authEnabled
   kp <- if enabled
-    then Just <$> resumeHoistError (Fatal . (.unKeyPairsError)) KeyPairs.obtainKeyPair
+    then Just <$> resumeHoistError (Fatal . (.text)) KeyPairs.obtainKeyPair
     else pure Nothing
   runReader kp sem
 

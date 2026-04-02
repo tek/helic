@@ -11,7 +11,7 @@ import qualified Log
 import qualified Network.HTTP.Client as Client
 import Polysemy.Http (Manager)
 import qualified Polysemy.Http.Effect.Manager as Manager
-import Servant (NoContent, type (:<|>) ((:<|>)))
+import Servant (NoContent (..), type (:<|>) ((:<|>)))
 import Servant.Client (BaseUrl, ClientEnv (..), defaultMakeClientRequest, mkClientEnv, parseBaseUrl)
 import qualified Servant.Client.Core.Request as Core
 import Servant.Client.Streaming (ClientM, client, runClientM)
@@ -53,12 +53,10 @@ acceptAllPeers :: ClientM NoContent
 
 -- | Modify a 'ClientEnv' to encrypt the request body with NaCl crypto_box.
 --
--- @sender@ is the sender's key pair (used for DH key agreement).
--- @recipient@ is the remote server's public key (used to encrypt).
+-- @sender@ is the sender's key pair.
+-- @recipient@ is the remote server's public key.
 -- @localPort@ is the sender's own listening port, included in @X-Helic-Port@
--- so the server knows how to reach us (the TCP source port is ephemeral).
--- The sender's public key is included in the X-Helic-Public-Key header so the server can decrypt and authenticate
--- the request using NaCl crypto_box (which requires the sender's public key and the server's own private key).
+-- because the TCP source port is ephemeral.
 encryptRequest :: KeyPair -> X25519.PublicKey -> Maybe Int -> BaseUrl -> Core.Request -> IO Client.Request
 encryptRequest sender recipient localPort burl coreReq =
   defaultMakeClientRequest burl coreReq >>= \ req -> do
@@ -75,6 +73,7 @@ encryptRequest sender recipient localPort burl coreReq =
     }
   where
     senderPublicKey = encodeUtf8 (encodePublicKey sender.publicKey)
+
     portHeaders = foldMap (\ p -> [(portHeader, encodeUtf8 (show p :: Text))]) localPort
 
 -- | Fetch the remote server's X25519 public key from the @/key@ endpoint to encrypt yank payloads.
@@ -90,17 +89,34 @@ fetchServerPublicKey env = do
       Log.debug [exon|fetchServerPublicKey: received key #{keyText}|]
       stopEitherWith ClientError (decodePublicKey (encodeUtf8 keyText))
 
+addAuth ::
+  Members [Log, Stop ClientError, Embed IO] r =>
+  ClientEnv ->
+  Text ->
+  Maybe Int ->
+  Maybe KeyPair ->
+  Sem r ClientEnv
+addAuth baseEnv addr localPort = \case
+  Nothing -> do
+    Log.debug [exon|sendEvent: sending unencrypted to #{addr}|]
+    pure baseEnv
+  Just sender -> do
+    serverPk <- fetchServerPublicKey baseEnv
+    Log.debug [exon|sendEvent: encrypting for #{addr}|]
+    pure baseEnv {makeClientRequest = encryptRequest sender serverPk localPort}
+
 -- | Send an event to a remote host.
 --
--- @configKeyPair@ is the local instance's own key pair (the sender's identity).
--- @localPort@ is the sender's own listening port for the @X-Helic-Port@ header.
 -- When present, the event body is encrypted with NaCl crypto_box:
---   1. Fetch the remote server's public key via GET /key
---   2. Encrypt the body with the server's public key + our private key
+--   1. Fetch the remote peer's public key via GET /key
+--   2. Encrypt the body with the remote peer's public key + our private key
 --   3. Include our public key in the @X-Helic-Public-Key@ header
 --   4. Include our listening port in the @X-Helic-Port@ header
 --
 -- The server can then decrypt with its private key and our public key, which also authenticates us as the sender.
+--
+-- @localPort@ is the sender instance's own listening port for the @X-Helic-Port@ header, which is stored by the remote
+-- peer for its own event broadcast.
 --
 -- The timeout (default 300ms) covers the entire sequence, including key fetch and send.
 -- AgentNet uses a queue-based worker thread ('Helic.Interpreter.AgentNet.interpretAgentNetQueue') so that the daemon's
@@ -114,26 +130,22 @@ sendEvent ::
   Event ->
   Sem r ()
 sendEvent configKeyPair localPort configTimeout addr event = do
-  let formatted = formatAddress addr
   Log.debug [exon|sending to #{formatted}|]
-  url <- stopNote (ClientError [exon|Invalid host name: #{formatted}|]) (parseBaseUrl (toString formatted))
-  mgr <- Manager.get
-  let
-    timeout =
-      MilliSeconds (fromIntegral (fromMaybe 300 configTimeout))
-    baseEnv =
-      mkClientEnv mgr url
-  env <- case configKeyPair of
-    Nothing -> do
-      Log.debug [exon|sendEvent: sending unencrypted to #{formatted}|]
-      pure baseEnv
-    Just sender -> do
-      serverPk <- fetchServerPublicKey baseEnv
-      Log.debug [exon|sendEvent: encrypting for #{formatted}|]
-      pure baseEnv {makeClientRequest = encryptRequest sender serverPk localPort}
-  let req = first (ClientError . show) <$> tryAny (runClientM (yank event) env)
-  result <- Conc.timeoutAs_ (Left (ClientError "timed out")) timeout req
-  stopEither result >>= void . stopEither . first (ClientError . show)
+  url <- stopNote invalidHost (parseBaseUrl (toString formatted))
+  manager <- Manager.get
+  env <- addAuth (mkClientEnv manager url) formatted localPort configKeyPair
+  result <- Conc.timeoutAs_ timedOut timeout do
+    first (ClientError . show) <$> tryAny (runClientM (yank event) env)
+  NoContent <- stopEither . first (ClientError . show) =<< stopEither result
+  unit
+  where
+    timedOut = Left (ClientError "timed out")
+
+    timeout = MilliSeconds (fromIntegral (fromMaybe 300 configTimeout))
+
+    invalidHost = ClientError [exon|Invalid host name: #{formatted}|]
+
+    formatted = formatAddress addr
 
 -- | Send an event to a remote host, returning 'Either' on failure.
 sendEventEither ::

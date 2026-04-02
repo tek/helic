@@ -57,16 +57,12 @@ authorizeKey ::
   PublicKey ->
   Sem r ()
 authorizeKey senderAddress senderPublicKey = do
-  Log.debug [exon|authorizeKey: checking key #{senderPublicKey.unPublicKey} from #{show senderAddress}|]
+  Log.debug [exon|authorizeKey: checking key #{senderPublicKey.text} from #{show senderAddress}|]
   Peers.checkKey senderPublicKey >>= \case
-    Just ConfigAllowed -> do
-      Log.debug [exon|authorizeKey: config-allowed key, updating host to #{show senderAddress}|]
-      for_ senderAddress (Peers.updateHost senderPublicKey)
-    Just Allowed -> do
-      Log.debug [exon|authorizeKey: allowed key, updating host to #{show senderAddress}|]
-      for_ senderAddress (Peers.updateHost senderPublicKey)
+    Just ConfigAllowed -> updateHost
+    Just Allowed -> updateHost
     Just Rejected -> do
-      Log.debug [exon|authorizeKey: rejecting key #{senderPublicKey.unPublicKey}|]
+      Log.debug [exon|authorizeKey: rejecting key #{senderPublicKey.text}|]
       throw (VerifyError "Rejected public key")
     Just Pending -> do
       Log.debug [exon|authorizeKey: key is pending authorization|]
@@ -75,6 +71,10 @@ authorizeKey senderAddress senderPublicKey = do
       Log.debug [exon|authorizeKey: unknown key, adding to pending|]
       Peers.addPending Peer {host = senderAddress, publicKey = senderPublicKey}
       throw (VerifyError "Unknown peer added to pending list")
+  where
+    updateHost = do
+      Log.debug [exon|authorizeKey: allowed key, updating host to #{show senderAddress}|]
+      for_ senderAddress (Peers.updateHost senderPublicKey)
 
 lookupHeader ::
   Member (Error VerifyError) r =>
@@ -96,6 +96,17 @@ resolveSender req = do
   encodedKey <- lookupHeader publicKeyHeader req
   fromEither (first VerifyError (decodePublicKey encodedKey))
 
+-- | Authorize a sender's public key unless it's the server's own key (self-signed local client request).
+authorizeSender ::
+  Members [Peers, Error VerifyError, Log] r =>
+  KeyPair ->
+  Wai.Request ->
+  X25519.PublicKey ->
+  Sem r ()
+authorizeSender serverKey req senderPublicKey
+  | senderPublicKey == serverKey.publicKey = Log.debug "authorizeSender: self-signed request (local client)"
+  | otherwise = authorizeKey (resolveSenderAddress req) (PublicKey (encodePublicKey senderPublicKey))
+
 -- | Authenticate a GET request using the @X-Helic-Auth@ header.
 -- The header must contain the request path encrypted with the sender's private key and the server's public key.
 -- Performs cryptographic verification first, then authorizes the key and updates peer state.
@@ -114,11 +125,7 @@ authenticateHeader serverKey req = do
     Left err -> pure (AuthFailure (toText err))
     Right decryptedPath
       | headerMatchesRequestPath decryptedPath -> do
-        -- If the sender's public key is the server key, we don't need to authorize.
-        -- This is safe because we already successfully decrypted the proof.
-        if isSelfSigned senderPublicKey
-        then Log.debug "authenticateHeader: self-signed request (local client)"
-        else authorizeKey (resolveSenderAddress req) (encodedSenderKey senderPublicKey)
+        authorizeSender serverKey req senderPublicKey
         pure AuthSuccess
       | otherwise -> do
         Log.debug [exon|authenticateHeader: path mismatch, expected #{decodeUtf8 requestPath}|]
@@ -128,12 +135,7 @@ authenticateHeader serverKey req = do
 
     headerMatchesRequestPath decryptedPath = decryptedPath == requestPath
 
-    isSelfSigned key = key == serverKey.publicKey
-
-    encodedSenderKey key = PublicKey (encodePublicKey key)
-
 -- | Authenticate and decrypt a request body.
--- Performs cryptographic verification first, then authorizes the key and updates peer state.
 authenticate ::
   Members [Peers, Error VerifyError, Log] r =>
   KeyPair ->
@@ -146,14 +148,8 @@ authenticate serverKey req body = do
   ciphertext <- fromEither (first (VerifyError . toText) (Base64.decode body))
   plaintext <- fromEither (first VerifyError (unseal serverKey senderPublicKey ciphertext))
   Log.debug [exon|authenticate: decryption successful, #{show (BS.length plaintext)} bytes plaintext|]
-  if isSelfSigned senderPublicKey
-  then Log.debug "authenticate: self-signed request (local client)"
-  else authorizeKey (resolveSenderAddress req) (encodedSenderKey senderPublicKey)
+  authorizeSender serverKey req senderPublicKey
   pure plaintext
-  where
-    isSelfSigned key = key == serverKey.publicKey
-
-    encodedSenderKey key = PublicKey (encodePublicKey key)
 
 -- | Replace the request body with the decrypted event JSON.
 replaceBody :: LByteString -> Wai.Request -> IO Wai.Request
@@ -231,5 +227,7 @@ verifyRequest serverKey vl app req respond
       app req' respond
   where
     isGetRequest = Wai.requestMethod req == Http.methodGet
+
     hasAuthHeader = isJust (List.lookup authHeader (Wai.requestHeaders req))
+
     isPublicPath = Wai.rawPathInfo req == "/key"

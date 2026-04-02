@@ -1,10 +1,6 @@
 {-# options_haddock hide, prune #-}
 
 -- | UDP beacon-based peer discovery
---
--- Runs UDP broadcast beacon sender and listener threads.
--- Maintains a map of discovered peers with TTL.
--- Updates 'Peers' with discovered peers periodically.
 module Helic.Discovery where
 
 import qualified Chronos
@@ -70,7 +66,7 @@ recordPeer host Beacon {..} = do
         lastSeen = now
       }
       -- Use the public key as map key when available, otherwise fall back to host address.
-      key = maybe host (.unPublicKey) publicKey
+      key = maybe host (.text) publicKey
   atomicModify' (Map.insert key peer)
   Log.debug [exon|Discovered peer: #{instanceName} at #{host}:#{show port}|]
 
@@ -147,7 +143,7 @@ runDiscovery conf keyPair apiPort sem = do
 
     updateInterval = Seconds (fromIntegral (fromMaybe 5 conf.interval))
 
-    publicKey = PublicKey . encodePublicKey . (.publicKey) <$> keyPair
+    publicKey = keyPair <&> \ KeyPair {publicKey = pk} -> PublicKey (encodePublicKey pk)
 
 -- | Run discovery if enabled in config, otherwise no-op.
 --

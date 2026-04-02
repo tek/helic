@@ -5,7 +5,6 @@ module Helic.Effect.PeersPersist where
 
 import Helic.Data.AuthState (AuthState)
 
--- | Effect for loading and saving peer state, abstracting the storage backend.
 data PeersPersist :: Effect where
   -- | Load peer state from storage.
   Load :: PeersPersist m AuthState

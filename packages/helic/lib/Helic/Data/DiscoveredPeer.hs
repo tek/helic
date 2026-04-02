@@ -1,15 +1,12 @@
 {-# options_haddock hide, prune #-}
 
 -- | Auto-discovered peer record
---
--- A peer discovered via UDP broadcast beacon.
 module Helic.Data.DiscoveredPeer where
 
 import qualified Chronos
 
 import Helic.Data.PublicKey (PublicKey)
 
--- | A peer discovered by the beacon listener.
 data DiscoveredPeer =
   DiscoveredPeer {
     -- | IP address or hostname of the peer.

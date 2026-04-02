@@ -9,7 +9,7 @@ import Helic.Data.Host (PeerSpec)
 import Helic.Data.TagHosts (TagHosts)
 
 newtype Timeout =
-  Timeout { unTimeout :: Int }
+  Timeout { milliseconds :: Int }
   deriving stock (Eq, Show, Generic)
   deriving newtype (Num, Real, Enum, Integral, Ord)
 

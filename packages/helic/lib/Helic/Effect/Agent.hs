@@ -6,7 +6,6 @@ module Helic.Effect.Agent where
 import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.Event (Event)
 
--- | Used to disambiguate 'Agent's via 'Tagged'.
 data AgentTag =
   AgentTag Symbol
 
@@ -30,7 +29,6 @@ type AgentNet =
 type AgentWayland =
   'AgentTag "wayland"
 
--- | The default agents for the Helic CLI.
 type Agents =
   [
     Agent @@ AgentTmux,

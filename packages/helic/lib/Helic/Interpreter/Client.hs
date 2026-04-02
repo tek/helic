@@ -41,7 +41,7 @@ clientKeyPair ::
 clientKeyPair =
   asks NetConfig.authEnabled >>= \case
     True ->
-      Just <$> resumeHoist (ClientError . (.unKeyPairsError)) KeyPairs.obtainKeyPair
+      Just <$> resumeHoist (ClientError . (.text)) KeyPairs.obtainKeyPair
     False ->
       pure Nothing
 

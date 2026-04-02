@@ -50,7 +50,7 @@ test_addPending :: TestT IO ()
 test_addPending = do
   let ps = addPending peer1 emptyState
   pendingPeers ps === [peer1]
-  Map.size ps.unAuthState === 1
+  Map.size ps.peers === 1
 
 -- | Adding the same peer twice should not duplicate it.
 test_addPendingDuplicate :: TestT IO ()
@@ -145,7 +145,7 @@ test_setHostPreservesPort = do
   let ps = stateWith [("pk-aaa", PeerAuth {peerHost = PeerHostKnown PeerAddress {host = Host "10.0.0.4", port = 9500}, status = Allowed})]
       newAddr = PeerAddress {host = Host "10.0.0.5", port = 9502}
       ps' = setHost "pk-aaa" newAddr ps
-  case Map.lookup "pk-aaa" ps'.unAuthState of
+  case Map.lookup "pk-aaa" ps'.peers of
     Just PeerAuth {peerHost = PeerHostKnown addr} -> do
       addr.host === Host "10.0.0.5"
       addr.port === 9502
@@ -157,7 +157,7 @@ test_setHostLeavesUnknown = do
   let ps = stateWith [("pk-aaa", PeerAuth {peerHost = PeerHostUnknown, status = Pending})]
       newAddr = PeerAddress {host = Host "10.0.0.5", port = 9500}
       ps' = setHost "pk-aaa" newAddr ps
-  case Map.lookup "pk-aaa" ps'.unAuthState of
+  case Map.lookup "pk-aaa" ps'.peers of
     Just PeerAuth {peerHost = PeerHostKnown addr} -> addr === newAddr
     other -> fail [exon|Expected PeerHostKnown, got #{show other}|]
 

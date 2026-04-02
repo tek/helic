@@ -11,7 +11,7 @@ import qualified Data.Text as Text
 
 -- | A MIME type string, e.g. @"image/png"@.
 newtype MimeType =
-  MimeType { unMimeType :: Text }
+  MimeType { text :: Text }
   deriving stock (Eq, Show, Generic, Ord)
   deriving newtype (IsString, ToJSON, FromJSON)
 

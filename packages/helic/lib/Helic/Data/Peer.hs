@@ -6,8 +6,7 @@ module Helic.Data.Peer where
 import Helic.Data.Host (PeerAddress)
 import Helic.Data.PublicKey (PublicKey)
 
--- | A peer host and its public key.
--- 'host' is 'Nothing' when the peer was first seen via an authenticated request
+-- | 'host' is 'Nothing' when the peer was first seen via an authenticated request
 -- without an @X-Helic-Port@ header.
 data Peer =
   Peer {

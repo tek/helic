@@ -21,7 +21,7 @@ data StartGtkMain =
   deriving stock (Eq, Show)
 
 newtype GtkResource s =
-  GtkResource { unGtkResource :: s }
+  GtkResource { resource :: s }
   deriving stock (Eq, Show)
 
 -- | Interpret the GTK main loop communication bridge with 'MVar's.

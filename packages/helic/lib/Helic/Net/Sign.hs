@@ -133,7 +133,6 @@ seal KeyPair {secretKey} recipientPublicKey plaintext = do
 
 -- | Decrypt and verify a NaCl crypto_box message.
 -- Expects the nonce prepended to the ciphertext.
--- Returns the decrypted plaintext.
 unseal :: KeyPair -> X25519.PublicKey -> ByteString -> Either Text ByteString
 unseal KeyPair {secretKey} senderPublicKey packet
   | ByteString.length packet < nonceSize

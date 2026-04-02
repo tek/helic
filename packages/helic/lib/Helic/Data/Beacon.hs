@@ -1,13 +1,10 @@
 {-# options_haddock hide, prune #-}
 
 -- | UDP discovery beacon payload
---
--- Payload broadcast via UDP for peer auto-discovery on the local network.
 module Helic.Data.Beacon where
 
 import Helic.Data.PublicKey (PublicKey)
 
--- | A beacon announcement broadcast by a helic instance.
 data Beacon =
   Beacon {
     -- | The HTTP port this instance listens on.

@@ -21,10 +21,8 @@ import Time (Seconds (Seconds), convert, diff)
 import Helic.Data.Event (Event (..))
 import Helic.Data.EventMeta (EventMeta (..))
 
--- | Abstract wrapper around the event history.
--- The constructor is intentionally not exported from this module.
 newtype HistoryState =
-  HistoryState { unHistoryState :: Seq Event }
+  HistoryState { events :: Seq Event }
   deriving stock (Eq, Show)
 
 instance Default HistoryState where

@@ -5,6 +5,6 @@ module Helic.Data.KeyPairsError where
 
 -- | Error returned by the 'KeyPairs' effect interpreter when key pair retrieval fails.
 newtype KeyPairsError =
-  KeyPairsError { unKeyPairsError :: Text }
+  KeyPairsError { text :: Text }
   deriving stock (Eq, Show, Generic)
   deriving newtype (IsString, Ord)

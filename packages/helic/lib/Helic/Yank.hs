@@ -54,14 +54,14 @@ resolveSource = \case
 -- 3. Otherwise, if default hosts are configured, use those.
 -- 4. Otherwise, return 'Nothing' (broadcast to all).
 resolveHosts :: NetConfig -> [Tag] -> [PeerSpec] -> Maybe [SpecifiedTarget]
-resolveHosts _ _ cliHosts@(_ : _) = Just (resolve cliHosts)
-resolveHosts conf tags []
-  | tagResolved@(_ : _) <- resolveTagHosts conf tags = Just (resolve tagResolved)
-  | Just defaults@(_ : _) <- conf.defaultHosts = Just (resolve defaults)
-  | otherwise = Nothing
-
-resolve :: [PeerSpec] -> [SpecifiedTarget]
-resolve = fmap (SpecifiedTarget . resolvePeerSpec defaultPort)
+resolveHosts conf tags = \case
+  cliHosts@(_ : _) -> Just (resolve cliHosts)
+  []
+    | tagResolved@(_ : _) <- resolveTagHosts conf tags -> Just (resolve tagResolved)
+    | Just defaults@(_ : _) <- conf.defaultHosts -> Just (resolve defaults)
+    | otherwise -> Nothing
+  where
+    resolve = fmap (SpecifiedTarget . resolvePeerSpec defaultPort)
 
 -- | Resolve tag-hosts mapping for a list of tags.
 resolveTagHosts :: NetConfig -> [Tag] -> [PeerSpec]

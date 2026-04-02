@@ -4,7 +4,7 @@
 module Helic.Data.InstanceName where
 
 newtype InstanceName =
-  InstanceName { unInstanceName :: Text }
+  InstanceName { text :: Text }
   deriving stock (Eq, Show, Generic)
   deriving newtype (IsString)
 

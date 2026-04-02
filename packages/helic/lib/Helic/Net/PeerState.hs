@@ -1,8 +1,6 @@
 {-# options_haddock hide, prune #-}
 
 -- | Pure peer state operations
---
--- Functions for querying and modifying peer authorization state.
 module Helic.Net.PeerState where
 
 import qualified Data.Map.Strict as Map
@@ -80,27 +78,20 @@ acceptAllPending (AuthState ps) =
 -- | Collect hosts of all authorized peers (both 'Allowed' and 'ConfigAllowed').
 allowedHosts :: AuthState -> [PeerAddress]
 allowedHosts (AuthState ps) =
-  Map.foldlWithKey' acc [] ps
-  where
-    acc hosts _ = \case
-      PeerAuth {peerHost = PeerHostKnown host, status}
-        | isAuthorized status
-        -> host : hosts
-      _ -> hosts
-
-    isAuthorized status = status == Allowed || status == ConfigAllowed
+  [ host
+  | PeerAuth {peerHost = PeerHostKnown host, status} <- Map.elems ps
+  , status == Allowed || status == ConfigAllowed
+  ]
 
 -- | List all pending peers.
 pendingPeers :: AuthState -> [Peer]
 pendingPeers (AuthState ps) =
-  mapMaybe (uncurry select) (Map.toList ps)
-  where
-    select publicKey = \case
-      PeerAuth {peerHost = PeerHostKnown host, status = Pending} ->
-        Just Peer {host = Just host, publicKey}
-      PeerAuth {peerHost = PeerHostUnknown, status = Pending} ->
-        Just Peer {host = Nothing, publicKey}
-      _ -> Nothing
+  [ Peer {host, publicKey}
+  | (publicKey, PeerAuth {peerHost, status = Pending}) <- Map.toList ps
+  , let host = case peerHost of
+          PeerHostKnown addr -> Just addr
+          PeerHostUnknown -> Nothing
+  ]
 
 -- | Unconditionally set the host address of an existing peer entry.
 -- Used after successful cryptographic authentication when the sender provides their listening port in the
@@ -112,18 +103,14 @@ setHost key addr (AuthState ps) =
 -- | Find a peer's public key by host.
 findKeyByHost :: PeerAddress -> AuthState -> Maybe PublicKey
 findKeyByHost addr (AuthState ps) =
-  fst <$> find (\ (_, e) -> e.peerHost == PeerHostKnown addr) (Map.toList ps)
+  head [key | (key, PeerAuth {peerHost = PeerHostKnown h}) <- Map.toList ps, h == addr]
 
 -- | Find a peer's public key by spec.
 -- When the spec has no port, matches any peer with the same host.
 -- When the spec has a port, matches exactly.
 findKeyBySpec :: PeerSpec -> AuthState -> Maybe PublicKey
 findKeyBySpec spec (AuthState ps) =
-  fst <$> find (\ (_, e) -> matchesPeerHost e.peerHost) (Map.toList ps)
+  head [key | (key, PeerAuth {peerHost = PeerHostKnown addr}) <- Map.toList ps, matchesSpec addr]
   where
-    matchesPeerHost = \case
-      PeerHostKnown addr -> matchesSpec addr
-      PeerHostUnknown -> False
-
     matchesSpec PeerAddress {host = h, port = p} =
       spec.host == h && maybe True (== p) spec.port

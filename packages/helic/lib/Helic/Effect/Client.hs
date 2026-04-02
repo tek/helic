@@ -23,27 +23,23 @@ data Client :: Effect where
 
 makeSem_ ''Client
 
--- | Return all events currently in memory.
 get ::
   ∀ r .
   Member Client r =>
   Sem r [Event]
 
--- | Add a new event.
 yank ::
   ∀ r .
   Member Client r =>
   Event ->
   Sem r ()
 
--- | Broadcast an older event.
 load ::
   ∀ r .
   Member Client r =>
   Int ->
   Sem r Event
 
--- | Fetch an event by index without re-broadcasting.
 peek ::
   ∀ r .
   Member Client r =>

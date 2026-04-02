@@ -11,7 +11,6 @@ import Helic.Effect.XClipboard (XClipboard (Current, Set, Sync))
 import Helic.Interpreter.GtkClipboard (withGtkClipboard)
 
 -- | Interpret 'XClipboard' using a GTK backend.
--- This uses the library @gi-gtk@ to access the X11 clipboard.
 interpretXClipboardGtk ::
   Members [Scoped_ GtkClipboard !! Text, Log, Embed IO, Final IO] r =>
   InterpreterFor (XClipboard !! Text) r

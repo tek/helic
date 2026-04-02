@@ -4,7 +4,7 @@
 module Helic.Data.AgentId where
 
 newtype AgentId =
-  AgentId { unAgentId :: Text }
+  AgentId { text :: Text }
   deriving stock (Eq, Show, Generic)
   deriving newtype (IsString)
 

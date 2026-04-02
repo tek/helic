@@ -67,14 +67,19 @@ format width (toList -> events) =
   where
     lastIndex =
       length events - 1
+
     cols =
       [col 4 right, col 16 center, col 10 center, fixedCol 8 center, col contentWidth left]
+
     col w al =
       column (expandUntil w) al def def
+
     titles =
       titlesH ["#" :: Text, "Instance", "Agent", "Time", "Content"]
+
     row (i, event) =
       rowG (toString <$> eventColumns contentWidth i event)
+
     contentWidth =
       min 100 (max 20 (width - 40))
 

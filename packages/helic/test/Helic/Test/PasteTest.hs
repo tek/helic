@@ -9,6 +9,7 @@ import Helic.Data.AgentId (AgentId (AgentId))
 import Helic.Data.ContentType (Content (..), MimeType (..), contentSummary)
 import qualified Helic.Data.Event as Event
 import Helic.Data.Event (Event)
+import Helic.Data.HistoryState (HistoryState)
 import Helic.Data.HistoryUpdate (HistoryUpdate)
 import Helic.Data.InstanceName (InstanceName)
 import Helic.Data.PasteConfig (PasteTarget (..))
@@ -18,8 +19,6 @@ import Helic.Effect.History
 import Helic.Interpreter.Agent (interpretAgent)
 import Helic.Interpreter.History (interpretHistory)
 import Helic.Paste (resolveTarget)
-
-import Helic.Data.HistoryState (HistoryState)
 
 type PasteTestStack =
   [
@@ -99,10 +98,10 @@ test_resolveTargetTextStdout =
 test_resolveTargetBinaryStdout :: UnitTest
 test_resolveTargetBinaryStdout =
   runTestFrozen do
-    result <- resolveTarget PasteStdout (BinaryContent (MimeType "image/png") "data")
+    !_ <- resolveTarget PasteStdout (BinaryContent (MimeType "image/png") "data")
     -- When piped (test runner), binary is allowed; when terminal, it's rejected.
-    -- We only assert it doesn't crash; the interesting cases are force and file.
-    assertEq True (isRight result || isLeft result)
+    -- We only verify it doesn't crash; the interesting cases are force and file.
+    unit
 
 test_resolveTargetBinaryFile :: UnitTest
 test_resolveTargetBinaryFile =

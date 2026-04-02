@@ -13,7 +13,6 @@ import Helic.Data.EventMeta (EventMeta)
 import Helic.Data.InstanceName (InstanceName)
 import Exon (exon)
 
--- | The central data type representing a clipboard event.
 data Event =
   Event {
     -- | The host from which the event originated.

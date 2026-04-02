@@ -5,7 +5,7 @@ module Helic.Data.Tag where
 
 -- | A string tag attached to events for host routing and categorization.
 newtype Tag =
-  Tag { unTag :: Text }
+  Tag { text :: Text }
   deriving stock (Eq, Ord, Show)
   deriving newtype (IsString)
 

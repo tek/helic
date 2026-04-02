@@ -9,7 +9,7 @@ import Exon (exon)
 
 -- | A hostname or IP address without port.
 newtype Host =
-  Host { unHost :: Text }
+  Host { text :: Text }
   deriving stock (Eq, Show)
   deriving newtype (IsString, Ord)
 
@@ -40,7 +40,6 @@ formatAddress PeerAddress {host = Host h, port} =
   [exon|#{h}:#{show port}|]
 
 -- | A peer spec from CLI or config: a host with an optional port.
--- When the port is absent, a default port is used.
 data PeerSpec =
   PeerSpec {
     host :: Host,
@@ -88,7 +87,7 @@ parsePeerSpec t =
 -- | A target specified by the user or config, stored in events.
 -- Resolved from CLI or config at yank time.
 newtype SpecifiedTarget =
-  SpecifiedTarget { unSpecifiedTarget :: PeerAddress }
+  SpecifiedTarget { address :: PeerAddress }
   deriving stock (Show)
   deriving newtype (Eq, Ord)
 
@@ -96,6 +95,6 @@ json ''SpecifiedTarget
 
 -- | A resolved broadcast target for actual network sends.
 newtype BroadcastTarget =
-  BroadcastTarget { unBroadcastTarget :: PeerAddress }
+  BroadcastTarget { address :: PeerAddress }
   deriving stock (Show)
   deriving newtype (Eq, Ord)

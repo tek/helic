@@ -9,11 +9,6 @@ import Helic.Data.Host (PeerAddress, PeerSpec)
 import Helic.Data.Peer (Peer)
 import Helic.Data.PublicKey (PublicKey)
 
--- | Effect for peer authorization and broadcast target management.
---
--- Manages peer authorization state, discovered peers, and a cached list of broadcast targets.
--- The interpreter owns the peer state, discovery state, and config hosts, recomputing
--- targets when any source changes.
 data Peers :: Effect where
   -- | Return the cached list of broadcast targets.
   BroadcastTargets :: Peers m [PeerAddress]

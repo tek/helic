@@ -7,6 +7,6 @@ import Data.Aeson (FromJSONKey, ToJSONKey)
 
 -- | A base64-encoded X25519 public key transmitted in headers and peer state.
 newtype PublicKey =
-  PublicKey { unPublicKey :: Text }
+  PublicKey { text :: Text }
   deriving stock (Eq, Ord, Show)
   deriving newtype (IsString, ToJSON, FromJSON, ToJSONKey, FromJSONKey)

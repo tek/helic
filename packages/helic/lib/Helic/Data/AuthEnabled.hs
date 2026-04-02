@@ -5,5 +5,5 @@ module Helic.Data.AuthEnabled where
 
 -- | Newtype wrapper for the auth-enabled flag used by the peers interpreter.
 newtype AuthEnabled =
-  AuthEnabled { unAuthEnabled :: Bool }
+  AuthEnabled { enabled :: Bool }
   deriving stock (Eq, Show)

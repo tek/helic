@@ -41,7 +41,7 @@ import System.Log.FastLogger (fromLogStr)
 import Helic.Net.Verify (VerifyLower (..))
 
 newtype ApiError =
-  ApiError { unApiError :: Text }
+  ApiError { text :: Text }
   deriving stock (Eq, Show)
   deriving newtype (IsString)
 

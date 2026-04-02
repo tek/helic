@@ -5,6 +5,6 @@ module Helic.Data.VerifyError where
 
 -- | Error from the NaCl verification middleware.
 newtype VerifyError =
-  VerifyError { unVerifyError :: Text }
+  VerifyError { text :: Text }
   deriving stock (Eq, Show, Generic)
   deriving newtype (IsString, Ord)

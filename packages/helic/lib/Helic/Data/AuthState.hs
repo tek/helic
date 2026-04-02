@@ -7,9 +7,8 @@ import Helic.Data.PeerAuth (PeerAuth)
 import Helic.Data.PublicKey (PublicKey)
 
 -- | Persistent state for peer authorization decisions.
--- Maps public keys to their entry (host + authorization status).
 newtype AuthState =
-  AuthState { unAuthState :: Map PublicKey PeerAuth }
+  AuthState { peers :: Map PublicKey PeerAuth }
   deriving stock (Eq, Show, Generic)
   deriving newtype (Default)
 

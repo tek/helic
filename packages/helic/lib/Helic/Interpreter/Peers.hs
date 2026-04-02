@@ -1,9 +1,6 @@
 {-# options_haddock hide, prune #-}
 
 -- | Peer authorization with cached broadcast targets
---
--- Interprets Peers with in-memory state, persistence via PeersPersist on mutation,
--- and a cached list of broadcast targets recomputed when any source changes.
 module Helic.Interpreter.Peers where
 
 import Conc (interpretAtomic)
@@ -56,8 +53,7 @@ discoveredToPeer :: DiscoveredPeer -> Maybe Peer
 discoveredToPeer dp =
   dp.publicKey <&> \ key -> Peer {host = Just (peerToAddress dp), publicKey = key}
 
--- | Filter discovered peers that should be added to pending:
--- has a public key, and key is not already in any list or config.
+-- | Filter discovered peers that should be added to pending.
 newPendingFromDiscovered :: AuthState -> [DiscoveredPeer] -> [Peer]
 newPendingFromDiscovered peers =
   mapMaybe \ dp -> do
@@ -67,7 +63,7 @@ newPendingFromDiscovered peers =
 
 -- | Update the 'peers' field of a 'PeersState'.
 overPeers :: (AuthState -> AuthState) -> PeersState -> PeersState
-overPeers f s = s {peers = f s.peers}
+overPeers f s = s & #peers %~ f
 
 -- | Persist the peer state via the 'PeersPersist' effect.
 persistPeers ::
@@ -123,15 +119,15 @@ interpretPeersState =
       then modifyAndRecompute update
       else modifyAndRecomputeTargets update
     Peers.AddPending peer -> do
-      Log.debug [exon|Peers.AddPending: #{peer.publicKey.unPublicKey} at #{show peer.host}|]
+      Log.debug [exon|Peers.AddPending: #{peer.publicKey.text} at #{show peer.host}|]
       modifyAndPersist (overPeers (PeerState.addPending peer))
     Peers.UpdateHost key addr -> do
-      Log.debug [exon|Peers.UpdateHost: #{key.unPublicKey} -> #{show addr}|]
+      Log.debug [exon|Peers.UpdateHost: #{key.text} -> #{show addr}|]
       modifyAndRecompute (overPeers (PeerState.setHost key addr))
     Peers.CheckKey senderKey -> do
       AuthEnabled authEnabled <- ask
       result <- atomicGets \ s -> checkKeyStatus authEnabled s.peers senderKey
-      Log.debug [exon|Peers.CheckKey: #{senderKey.unPublicKey} -> #{show result}|]
+      Log.debug [exon|Peers.CheckKey: #{senderKey.text} -> #{show result}|]
       pure result
     Peers.ListPending -> do
       pending <- atomicGets \ s -> PeerState.pendingPeers s.peers
@@ -140,12 +136,12 @@ interpretPeersState =
     Peers.AcceptPeer spec -> do
       Log.debug [exon|Peers.AcceptPeer: #{show spec}|]
       atomicGets (\ s -> PeerState.findKeyBySpec spec s.peers) >>= traverse_ \ key -> do
-        Log.debug [exon|Peers.AcceptPeer: found key #{key.unPublicKey}|]
+        Log.debug [exon|Peers.AcceptPeer: found key #{key.text}|]
         modifyAndRecompute (overPeers (PeerState.acceptPeer key))
     Peers.RejectPeer spec -> do
       Log.debug [exon|Peers.RejectPeer: #{show spec}|]
       atomicGets (\ s -> PeerState.findKeyBySpec spec s.peers) >>= traverse_ \ key -> do
-        Log.debug [exon|Peers.RejectPeer: found key #{key.unPublicKey}|]
+        Log.debug [exon|Peers.RejectPeer: found key #{key.text}|]
         modifyAndPersist (overPeers (PeerState.rejectPeer key))
     Peers.AcceptAll -> do
       Log.debug "Peers.AcceptAll"
@@ -174,8 +170,6 @@ initializePeers configAllowed persisted =
   mergePersistedPeers persisted (prepopulateConfigKeys configAllowed)
 
 -- | Interpret 'Peers' with a 'PeersPersist' backend.
--- Loads persisted state on startup, initializes with config keys,
--- and delegates persistence to the 'PeersPersist' effect.
 interpretPeers ::
   Members [PeersPersist !! PeersError, Stop PeersError, Log, Embed IO] r =>
   [PublicKey] ->

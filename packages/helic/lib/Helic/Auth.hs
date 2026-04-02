@@ -32,10 +32,15 @@ formatPeerTable peers =
   Text.unlines (header : separator : rows)
   where
     header = formatRow "Host" "Public Key"
+
     separator = toText (replicate (hostWidth + keyWidth + 5) '-')
+
     rows = [formatRow (maybe "<unknown>" formatAddress host) key | Peer {host, publicKey = PublicKey key} <- peers]
+
     hostWidth = max 4 (foldl' (\acc p -> max acc (Text.length (maybe "<unknown>" formatAddress p.host))) 0 peers)
-    keyWidth = max 10 (foldl' (\acc p -> max acc (Text.length p.publicKey.unPublicKey)) 0 peers)
+
+    keyWidth = max 10 (foldl' (\acc p -> max acc (Text.length p.publicKey.text)) 0 peers)
+
     formatRow h k =
       let padding = toText (replicate (hostWidth - Text.length h + 3) ' ')
       in [exon|#{h}#{padding}#{k}|]
@@ -125,5 +130,5 @@ authApp = do
   where
     promptPeer peer = do
       let hostLabel = maybe "<unknown>" formatAddress peer.host
-      decision <- promptYesNo [exon|Accept #{hostLabel} (#{peer.publicKey.unPublicKey})?|]
+      decision <- promptYesNo [exon|Accept #{hostLabel} (#{peer.publicKey.text})?|]
       pure (peer, decision)

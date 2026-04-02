@@ -14,7 +14,7 @@ import qualified Queue
 
 import Helic.Data.Event (Event (meta, source))
 import Helic.Data.EventMeta (EventMeta (..))
-import Helic.Data.Host (BroadcastTarget (..), SpecifiedTarget (..), PeerAddress (..), defaultPort, formatAddress)
+import Helic.Data.Host (BroadcastTarget (..), PeerAddress (..), SpecifiedTarget (..), defaultPort, formatAddress)
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.NetConfig (NetConfig (..), Timeout)
 import Helic.Data.PeersError (PeersError (..))
@@ -30,12 +30,14 @@ import Helic.Net.Sign (KeyPair)
 -- | Filter broadcast targets by event hosts metadata.
 -- If the event has no hosts specified ('Nothing'), all targets are used.
 -- Otherwise, only targets whose host matches one of the event's allowed hosts are included.
-filterTargets :: Maybe [SpecifiedTarget] -> [BroadcastTarget] -> [BroadcastTarget]
-filterTargets Nothing targets = targets
-filterTargets (Just eventHosts) targets =
-  filter (\t -> Set.member t.unBroadcastTarget.host allowedHosts) targets
+filterTargets ::
+  [SpecifiedTarget] ->
+  [BroadcastTarget] ->
+  [BroadcastTarget]
+filterTargets spec =
+  filter \ t -> Set.member t.address.host specAddresses
   where
-    allowedHosts = Set.fromList (fmap ((.host) . (.unSpecifiedTarget)) eventHosts)
+    specAddresses = Set.fromList [t.address.host | t <- spec]
 
 -- | Send an event to all broadcast targets.
 sendToTargets ::
@@ -50,19 +52,18 @@ sendToTargets keyPair localPort timeout e =
   resumeOr Peers.broadcastTargets dispatch noTargets
   where
     dispatch targets = do
-      let broadcastTargets = fmap BroadcastTarget targets
-          eventTargets = filterTargets e.meta.hosts broadcastTargets
-      Log.debug [exon|AgentNet: broadcasting to #{show (length eventTargets)} targets: #{prettyTargets eventTargets}|]
-      for_ eventTargets \ target ->
-        sendEventLog keyPair localPort timeout target.unBroadcastTarget e {source = agentIdNet}
+      let availableTargets = fmap BroadcastTarget targets
+          allowedTargets = maybe id filterTargets e.meta.hosts availableTargets
+      Log.debug [exon|AgentNet: broadcasting to #{show (length allowedTargets)} targets: #{prettyTargets allowedTargets}|]
+      for_ allowedTargets \ target ->
+        sendEventLog keyPair localPort timeout target.address e {source = agentIdNet}
 
-    prettyTargets = Text.intercalate ", " . fmap (formatAddress . (.unBroadcastTarget))
+    prettyTargets targets = Text.intercalate ", " [formatAddress t.address | t <- targets]
 
     noTargets (PeersError err) = Log.error [exon|Failed to get broadcast targets: #{err}|]
 
 -- | Interpret 'Agent' by enqueuing events for asynchronous broadcast.
 -- A background worker thread reads from the queue and calls the send action.
--- Requires 'Queue Event' to be interpreted in @r@.
 interpretAgentNetQueue ::
   Members [Queue Event, Log] r =>
   InterpreterFor Agent r
@@ -91,7 +92,6 @@ withKeyPair NetConfig {timeout} keyPair localPort =
     broadcastWorker = Queue.loop (sendToTargets keyPair localPort timeout)
 
 -- | Interpret 'Agent' using remote hosts as targets.
--- Obtains the X25519 key pair at initialization time.
 interpretAgentNet ::
   Members [Manager, Peers !! PeersError, KeyPairs !! KeyPairsError, Reader NetConfig] r =>
   Members [Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
@@ -107,7 +107,7 @@ interpretAgentNet sem =
       withKeyPair conf (Just serverKey) (Just (fromMaybe defaultPort conf.port)) sem
 
     noKeys err = do
-      Log.error [exon|Failed to obtain key pair: #{err.unKeyPairsError}|]
+      Log.error [exon|Failed to obtain key pair: #{err.text}|]
       interpret (\ (Update _) -> unit) sem
 
 -- | Interpret 'Agent' for remote hosts if it is enabled by the configuration.

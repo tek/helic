@@ -56,7 +56,7 @@ broadcast ::
   Event ->
   Sem r ()
 broadcast event = do
-  let ag = event.source.unAgentId
+  let ag = event.source.text
   Log.debug [exon|broadcasting from #{ag}: #{contentSummary event.content}|]
   runAgent @AgentTmux event
   runAgent @AgentNet event
@@ -116,7 +116,6 @@ insertEvent debounce event = do
       Nothing -> (s, False)
 
 -- | Remove excess entries from the front of the 'Seq', given a maximum number of entries.
--- Return the number of dropped entries.
 truncateLog ::
   Member (AtomicState (Seq Event)) r =>
   Int ->
@@ -187,8 +186,8 @@ loadEvent index = do
       Nothing ->
         (s, Nothing)
 
--- | In the unlikely case of a remote host sending an event back to this instance and not updating the sender, this will
--- be 'True'.
+-- | In the unlikely case of a remote host sending an event back to this instance and not updating the sender, this
+-- will be detected as a network cycle.
 isNetworkCycle ::
   Member (Reader InstanceName) r =>
   Event ->
