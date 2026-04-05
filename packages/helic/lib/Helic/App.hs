@@ -35,6 +35,10 @@ import Helic.Effect.Client (Client)
 import qualified Helic.Effect.History as History
 import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
+import Chiasma.Interpreter.Codec (interpretCodecNative)
+import Chiasma.Interpreter.TmuxClient (interpretTmuxNativeEnvGraceful)
+import qualified Helic.Data.TmuxBufferCommand as TmuxBufferCommand
+import Helic.Data.TmuxConfig (TmuxConfig (..))
 import Helic.Interpreter.AgentNet (interpretAgentNetIfEnabled)
 import Helic.Interpreter.AgentTmux (interpretAgentTmuxIfEnabled)
 import Helic.Interpreter.Client (interpretClientNet)
@@ -75,6 +79,8 @@ listenApp Config {..} = do
     $ runDiscoveryIfEnabled netConf
     $ interpretDisplay
     $ interpretAgentNetIfEnabled
+    $ interpretCodecNative TmuxBufferCommand.encode TmuxBufferCommand.decode
+    $ interpretTmuxNativeEnvGraceful (tmux >>= \TmuxConfig {exe} -> exe)
     $ interpretAgentTmuxIfEnabled
     $ interpretHistory maxHistory debounceMillis
     $ interpretSync

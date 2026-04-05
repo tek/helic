@@ -137,6 +137,28 @@ self: {util, ...}: let
     '';
   };
 
+  tmuxModule = { pkgs, ... }: {
+    environment.systemPackages = [
+      self.packages.${pkgs.system}.helic
+      pkgs.tmux
+      pkgs.curl
+    ];
+
+    environment.etc."helic-tmux.yaml".text = ''
+    name: tmux-test
+    verbose: true
+    net:
+      enable: true
+      port: 9500
+    tmux:
+      enable: true
+    x11:
+      enable: false
+    wayland:
+      enable: false
+    '';
+  };
+
   leakModule = { pkgs, ... }: {
     environment.systemPackages = [
       self.packages.${pkgs.system}.helic
@@ -166,6 +188,15 @@ self: {util, ...}: let
     '';
   };
 
+  tmuxSession = {
+    ports.helic-tmux = { guest = 9500; host = 50; };
+
+    nixos-base = [
+      userModule
+      tmuxModule
+    ];
+  };
+
   leakSession = {
     ports.helic-leak = { guest = 9500; host = 50; };
 
@@ -193,6 +224,8 @@ in {
 
   services.discovery-session = discoverySession;
 
+  services.tmux-session = tmuxSession;
+
   services.leak-session = leakSession;
 
   envs.x11-test = {
@@ -206,6 +239,13 @@ in {
     package-set.extends = "ghc912";
     basePort = 11000;
     services.wayland-session.enable = true;
+    expose.shell = true;
+  };
+
+  envs.tmux-test = {
+    package-set.extends = "ghc912";
+    basePort = 14000;
+    services.tmux-session.enable = true;
     expose.shell = true;
   };
 
@@ -336,6 +376,54 @@ in {
     env = "leak-test";
     command = ''
     sshpass -p test ssh -p 13022 test@localhost ${check}
+    '';
+    expose = true;
+    buildInputs = pkgs: [pkgs.sshpass];
+  };
+
+  commands.tmux-test = let
+
+    check = util.zscript "check" ''
+    # Start a tmux server session for helic to connect to
+    tmux new-session -d -s main
+
+    # Start helic daemon
+    hel --config-file /etc/helic-tmux.yaml listen &
+    pid=$!
+    cleanup() { kill $pid 2>/dev/null; tmux kill-server 2>/dev/null; }
+    trap cleanup EXIT
+
+    # Wait for HTTP server to be ready
+    for i in $(seq 1 30); do
+      curl -sf http://localhost:9500/event >/dev/null 2>&1 && break
+      sleep 1
+    done
+
+    # Give the tmux listener time to connect in control mode
+    sleep 5
+
+    # Test 1: tmux set-buffer -> hel list (tmux listener detects clipboard change)
+    tmux set-buffer 'helic-tmux-read-test'
+    for i in $(seq 1 10); do
+      hel --config-file /etc/helic-tmux.yaml list 2>/dev/null | grep -q 'helic-tmux-read-test' && break
+      sleep 1
+    done
+    hel --config-file /etc/helic-tmux.yaml list | grep -q 'helic-tmux-read-test'
+
+    # Test 2: hel yank -> tmux show-buffer (agent writes to tmux buffer)
+    echo -n 'helic-tmux-write-test' | hel --config-file /etc/helic-tmux.yaml yank
+    for i in $(seq 1 10); do
+      result=$(tmux show-buffer 2>/dev/null) || true
+      [[ $result == 'helic-tmux-write-test' ]] && break
+      sleep 1
+    done
+    [[ $(tmux show-buffer) == 'helic-tmux-write-test' ]]
+    '';
+
+  in {
+    env = "tmux-test";
+    command = ''
+    sshpass -p test ssh -p 14022 test@localhost ${check}
     '';
     expose = true;
     buildInputs = pkgs: [pkgs.sshpass];

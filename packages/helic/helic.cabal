@@ -76,7 +76,9 @@ library
       Helic.Data.Selection
       Helic.Data.Tag
       Helic.Data.TagHosts
+      Helic.Data.TmuxBufferCommand
       Helic.Data.TmuxConfig
+      Helic.Data.TmuxListenerWake
       Helic.Data.VerifyError
       Helic.Data.WaylandConfig
       Helic.Data.X11Config
@@ -110,7 +112,6 @@ library
       Helic.Net.Sign
       Helic.Net.Verify
       Helic.Paste
-      Helic.Tmux
       Helic.Yank
   hs-source-dirs:
       lib
@@ -158,6 +159,7 @@ library
     , base-compat >=0.14.1 && <0.16
     , base64-bytestring >=1.2.1.0 && <1.3
     , case-insensitive >=1.2.0.11 && <1.3
+    , chiasma
     , chronos >=1.1.6.2 && <1.2
     , crypton >=1.0.0 && <1.1
     , crypton-box >=1.1.0 && <1.2
@@ -378,6 +380,8 @@ test-suite helic-test
       aeson >=2.2.3.0 && <2.3
     , base >=4.19.2.0 && <4.22
     , base64-bytestring >=1.2.1.0 && <1.3
+    , chiasma
+    , chiasma-test
     , chronos >=1.1.6.2 && <1.2
     , containers >=0.6.8 && <0.8
     , crypton >=1.0.0 && <1.1

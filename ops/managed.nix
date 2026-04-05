@@ -411,7 +411,7 @@
       polysemy-process = "0.14.1.0";
       polysemy-test = "0.10.0.1";
       polysemy-time = "0.7.0.0";
-      prelate = "0.8.0.0";
+      prelate = "0.9.0.0";
       random = "1.2.1.3";
       servant = "0.20.2";
       servant-client = "0.20";

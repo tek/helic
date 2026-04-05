@@ -320,7 +320,7 @@ The meaning of these options is:
 |`net.discovery.port`|`9501`|UDP port for beacon broadcast and listening.|
 |`net.discovery.interval`|`5`|Seconds between beacon broadcasts.|
 |`net.discovery.ttl`|`15`|Seconds after which a peer is considered stale.|
-|`tmux.enable`|`true`|Whether to send events to *tmux*.|
+|`tmux.enable`|`true`|Whether to send/receive events to/from *tmux*.|
 |`tmux.package`|`pkgs.tmux`|Only for *NixOS*: The `nixpkgs` package used for the *tmux* executable.|
 |`tmux.exe`|`tmux`|Only for YAML file: The path to the *tmux* executable.|
 |`x11.enable`|auto|Whether to synchronize the X11 clipboard. Defaults to `true` when an X server is enabled.|

@@ -51,6 +51,7 @@
             "base-compat"
             "base64-bytestring"
             "case-insensitive"
+            "chiasma"
             "chronos"
             "crypton"
             "crypton-box"
@@ -163,6 +164,8 @@
           dependencies = [
             "aeson"
             "base64-bytestring"
+            "chiasma"
+            "chiasma-test"
             "chronos"
             "containers"
             "crypton"
@@ -271,7 +274,6 @@
           polysemy-resume = jailbreak;
           polysemy-test = jailbreak unbreak;
           polysemy-time = jailbreak;
-          prelate = jailbreak (hackage "0.8.0.0" "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg");
           zeugma = jailbreak;
         };
       };
@@ -291,7 +293,6 @@
           crypton-box = jailbreak unbreak notest;
           polysemy-process = jailbreak unbreak;
           polysemy-log = jailbreak;
-          prelate = jailbreak (hackage "0.8.0.0" "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg");
         };
       };
 
@@ -307,7 +308,6 @@
           crypton-box = jailbreak unbreak notest;
           polysemy-process = jailbreak unbreak;
           polysemy-log = jailbreak;
-          prelate = jailbreak (hackage "0.8.0.0" "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg");
         };
 
         dev = {
@@ -342,9 +342,12 @@
 
       };
 
-      overrides = {self, buildInputs, enable, notest, ...}: {
+      overrides = {self, buildInputs, enable, notest, hackage, ...}: {
+        chiasma = hackage "0.12.0.0" "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
+        chiasma-test = hackage "0.12.0.0" "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
         helic-x11 = notest (enable "x11" self.helic);
         helic-wayland = notest (enable "wayland" (buildInputs (p: [p.wayland.dev])) self.helic);
+        prelate = hackage "0.9.0.0" "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
       };
 
       output.expose.static = false;
