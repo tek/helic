@@ -1,5 +1,72 @@
 self: {util, ...}: let
 
+  # ---------------------------------------------------------------------------
+  # Shell command generators
+  # ---------------------------------------------------------------------------
+
+  # Poll until a systemd user service is active, then print its status.
+  # service: unit name (e.g. "helic")
+  waitService = service: ''
+    for i in $(seq 1 30); do
+      systemctl --user is-active ${service} && break
+      sleep 1
+    done
+    systemctl --no-pager --user status ${service}
+  '';
+
+  # Poll until an HTTP endpoint responds successfully.
+  # url: full URL including port and path (e.g. "http://localhost:9500/event")
+  waitHttp = url: ''
+    for i in $(seq 1 30); do
+      curl -sf ${url} >/dev/null 2>&1 && break
+      sleep 1
+    done
+  '';
+
+  # Start a helic daemon in the background with a cleanup trap.
+  # cfg:          config file path
+  # extraCleanup: additional cleanup commands (e.g. "tmux kill-server 2>/dev/null;")
+  daemon = { cfg, extraCleanup ? "" }: ''
+    hel --config-file ${cfg} listen &
+    pid=$!
+    cleanup() { kill $pid 2>/dev/null; ${extraCleanup} }
+    trap cleanup EXIT
+  '';
+
+  # Start two helic daemons with a combined cleanup trap.
+  daemon2 = { cfgA, cfgB }: ''
+    hel --config-file ${cfgA} listen &
+    pid_a=$!
+    hel --config-file ${cfgB} listen &
+    pid_b=$!
+    cleanup() { kill $pid_a $pid_b 2>/dev/null; }
+    trap cleanup EXIT
+  '';
+
+  # Retry a shell command up to n times with 1-second sleeps.
+  # n:   max attempts
+  # cmd: shell command string to try
+  retry = n: cmd: ''
+    for i in $(seq 1 ${toString n}); do
+      ${cmd} && break
+      sleep 1
+    done
+  '';
+
+  # Shorthand for `hel --config-file <cfg> <args>`.
+  hel = cfg: args: "hel --config-file ${cfg} ${args}";
+
+  # Build the outer SSH command that runs a zscript inside the VM.
+  # port: SSH port on the host
+  # check: path to the zscript derivation
+  sshTest = { port, check }: ''
+    sshpass -p test ssh -p ${toString port} test@localhost ${check}
+  '';
+
+  # ---------------------------------------------------------------------------
+  # NixOS modules
+  # ---------------------------------------------------------------------------
+
   userModule = {
     users.users.test = {
       isNormalUser = true;
@@ -200,6 +267,10 @@ self: {util, ...}: let
     '';
   };
 
+  # ---------------------------------------------------------------------------
+  # Sessions
+  # ---------------------------------------------------------------------------
+
   tmuxSession = {
     ports.helic-tmux = { guest = 9500; host = 50; };
 
@@ -227,6 +298,15 @@ self: {util, ...}: let
       discoveryModule
     ];
   };
+
+  # ---------------------------------------------------------------------------
+  # Config-file shorthands
+  # ---------------------------------------------------------------------------
+
+  cfgA = "/etc/helic-a.yaml";
+  cfgB = "/etc/helic-b.yaml";
+  cfgTmux = "/etc/helic-tmux.yaml";
+  cfgLeak = "/etc/helic-leak.yaml";
 
 in {
 
@@ -278,11 +358,7 @@ in {
   commands.x11-test = let
 
     check = util.zscript "check" ''
-    for i in $(seq 1 30); do
-      systemctl --user is-active helic && break
-      sleep 1
-    done
-    systemctl --no-pager --user status helic
+    ${waitService "helic"}
     export DISPLAY=:0
     export XAUTHORITY=$(systemctl --user show-environment | sed -n 's/^XAUTHORITY=//p')
     echo -n 'helic-x11-test' | xclip -selection clipboard >/dev/null 2>&1 &
@@ -293,9 +369,7 @@ in {
 
   in {
     env = "x11-test";
-    command = ''
-    sshpass -p test ssh -p 10022 test@localhost ${check}
-    '';
+    command = sshTest { port = 10022; inherit check; };
     expose = true;
     buildInputs = pkgs: [pkgs.sshpass];
   };
@@ -303,11 +377,7 @@ in {
   commands.wayland-test = let
 
     check = util.zscript "check" ''
-    for i in $(seq 1 30); do
-      systemctl --user is-active helic && break
-      sleep 1
-    done
-    systemctl --no-pager --user status helic
+    ${waitService "helic"}
     export WAYLAND_DISPLAY=wayland-1
 
     # Test clipboard read: wl-copy -> helic detects it
@@ -324,9 +394,7 @@ in {
 
   in {
     env = "wayland-test";
-    command = ''
-    sshpass -p test ssh -p 11022 test@localhost ${check}
-    '';
+    command = sshTest { port = 11022; inherit check; };
     expose = true;
     buildInputs = pkgs: [pkgs.sshpass];
   };
@@ -334,22 +402,13 @@ in {
   commands.leak-test = let
 
     check = util.zscript "check" ''
-    # Start helic daemon
-    hel --config-file /etc/helic-leak.yaml listen &
-    pid=$!
-    cleanup() { kill $pid 2>/dev/null; }
-    trap cleanup EXIT
-
-    # Wait for HTTP server
-    for i in $(seq 1 30); do
-      curl -sf http://localhost:9500/event >/dev/null 2>&1 && break
-      sleep 1
-    done
+    ${daemon { cfg = cfgLeak; }}
+    ${waitHttp "http://localhost:9500/event"}
 
     # Make 20 yank + list requests to localhost
     for i in $(seq 1 20); do
-      echo -n "leak-test-$i" | hel --config-file /etc/helic-leak.yaml yank
-      hel --config-file /etc/helic-leak.yaml list >/dev/null 2>&1
+      echo -n "leak-test-$i" | ${hel cfgLeak "yank"}
+      ${hel cfgLeak "list"} >/dev/null 2>&1
       sleep 0.1
     done
 
@@ -357,7 +416,7 @@ in {
 
     # Also try load requests
     for i in $(seq 1 10); do
-      hel --config-file /etc/helic-leak.yaml load 0 >/dev/null 2>&1 || true
+      ${hel cfgLeak "load 0"} >/dev/null 2>&1 || true
       sleep 0.1
     done
 
@@ -386,61 +445,39 @@ in {
 
   in {
     env = "leak-test";
-    command = ''
-    sshpass -p test ssh -p 13022 test@localhost ${check}
-    '';
+    command = sshTest { port = 13022; inherit check; };
     expose = true;
     buildInputs = pkgs: [pkgs.sshpass];
   };
 
   commands.tmux-test = let
 
+    retryTmuxRead = retry 10 (hel cfgTmux "list" + " 2>/dev/null | grep -q 'helic-tmux-read-test'");
+
     check = util.zscript "check" ''
     # Start a tmux server session
     tmux new-session -d -s main
 
-    # Start helic daemon
-    hel --config-file /etc/helic-tmux.yaml listen &
-    pid=$!
-    cleanup() { kill $pid 2>/dev/null; tmux kill-server 2>/dev/null; }
-    trap cleanup EXIT
-
-    # Wait for HTTP server to be ready
-    for i in $(seq 1 30); do
-      curl -sf http://localhost:9500/event >/dev/null 2>&1 && break
-      sleep 1
-    done
+    ${daemon { cfg = cfgTmux; extraCleanup = "tmux kill-server 2>/dev/null;"; }}
+    ${waitHttp "http://localhost:9500/event"}
 
     # Wait for tmux control mode client to connect
-    for i in $(seq 1 30); do
-      count=$(tmux list-clients 2>/dev/null | wc -l)
-      [[ $count -ge 1 ]] && break
-      sleep 1
-    done
+    ${retry 30 ''[[ $(tmux list-clients 2>/dev/null | wc -l) -ge 1 ]]''}
 
     # Test: hel yank -> tmux show-buffer (agent writes to tmux buffer)
-    echo -n 'helic-tmux-write-test' | hel --config-file /etc/helic-tmux.yaml yank
-    for i in $(seq 1 10); do
-      result=$(tmux show-buffer 2>/dev/null) || true
-      [[ $result == 'helic-tmux-write-test' ]] && break
-      sleep 1
-    done
+    echo -n 'helic-tmux-write-test' | ${hel cfgTmux "yank"}
+    ${retry 10 ''[[ $(tmux show-buffer 2>/dev/null) == 'helic-tmux-write-test' ]]''}
     [[ $(tmux show-buffer) == 'helic-tmux-write-test' ]]
 
     # Test: tmux set-buffer -> hel list (listener detects %paste-buffer-changed)
     tmux set-buffer 'helic-tmux-read-test'
-    for i in $(seq 1 10); do
-      hel --config-file /etc/helic-tmux.yaml list 2>/dev/null | grep -q 'helic-tmux-read-test' && break
-      sleep 1
-    done
-    hel --config-file /etc/helic-tmux.yaml list | grep -q 'helic-tmux-read-test'
+    ${retryTmuxRead}
+    ${hel cfgTmux "list"} | grep -q 'helic-tmux-read-test'
     '';
 
   in {
     env = "tmux-test";
-    command = ''
-    sshpass -p test ssh -p 14022 test@localhost ${check}
-    '';
+    command = sshTest { port = 14022; inherit check; };
     expose = true;
     buildInputs = pkgs: [pkgs.sshpass];
   };
@@ -451,78 +488,62 @@ in {
     # Clean up stale peers files from previous runs
     rm -rf /tmp/helic-a /tmp/helic-b
 
-    # Start two helic instances as background processes
-    hel --config-file /etc/helic-a.yaml listen &
-    pid_a=$!
-    hel --config-file /etc/helic-b.yaml listen &
-    pid_b=$!
-
-    cleanup() { kill $pid_a $pid_b 2>/dev/null; }
-    trap cleanup EXIT
-
-    # Wait for both HTTP servers to be ready
-    for i in $(seq 1 30); do
-      curl -sf http://localhost:9500/key >/dev/null 2>&1 && break
-      sleep 1
-    done
-    for i in $(seq 1 30); do
-      curl -sf http://localhost:9502/key >/dev/null 2>&1 && break
-      sleep 1
-    done
+    ${daemon2 { cfgA = cfgA; cfgB = cfgB; }}
+    ${waitHttp "http://localhost:9500/key"}
+    ${waitHttp "http://localhost:9502/key"}
 
     # Wait for UDP discovery to exchange beacons
     sleep 6
 
     # Trigger connection attempts on both sides so each discovers the other's key.
     # In auth mode, broadcastTargets adds unknown discovered peers to pending.
-    echo -n 'trigger-auth-a' | hel --config-file /etc/helic-a.yaml yank
+    echo -n 'trigger-auth-a' | ${hel cfgA "yank"}
     echo 'trigger-auth-a yank exit code: '$?
-    echo -n 'trigger-auth-b' | hel --config-file /etc/helic-b.yaml yank
+    echo -n 'trigger-auth-b' | ${hel cfgB "yank"}
     echo 'trigger-auth-b yank exit code: '$?
     sleep 2
 
     echo '--- B list ---'
-    hel --config-file /etc/helic-b.yaml list
+    ${hel cfgB "list"}
     echo '--- A list ---'
-    hel --config-file /etc/helic-a.yaml list
+    ${hel cfgA "list"}
 
     # Verify that auth blocked the events from being synced.
     # trigger-auth-a was yanked on A but should NOT appear on B.
     # trigger-auth-b was yanked on B but should NOT appear on A.
-    if hel --config-file /etc/helic-b.yaml list | grep -q 'trigger-auth-a'; then
+    if ${hel cfgB "list"} | grep -q 'trigger-auth-a'; then
       echo 'FAIL: B received trigger-auth-a despite auth not being accepted'
       exit 1
     fi
-    if hel --config-file /etc/helic-a.yaml list | grep -q 'trigger-auth-b'; then
+    if ${hel cfgA "list"} | grep -q 'trigger-auth-b'; then
       echo 'FAIL: A received trigger-auth-b despite auth not being accepted'
       exit 1
     fi
 
     # Both instances should have the other in their pending list
-    hel --config-file /etc/helic-a.yaml auth list
-    hel --config-file /etc/helic-b.yaml auth list
+    ${hel cfgA "auth list"}
+    ${hel cfgB "auth list"}
 
     # Accept all pending peers on both instances
-    hel --config-file /etc/helic-a.yaml auth accept-all
-    hel --config-file /etc/helic-b.yaml auth accept-all
+    ${hel cfgA "auth accept-all"}
+    ${hel cfgB "auth accept-all"}
 
     # Now yank the real payload on A
-    echo -n 'discovery-test-payload' | hel --config-file /etc/helic-a.yaml yank
+    echo -n 'discovery-test-payload' | ${hel cfgA "yank"}
 
     # Wait for broadcast to instance B
     sleep 3
 
     # Check instance B has the event
-    hel --config-file /etc/helic-b.yaml list | grep -q 'discovery-test-payload'
+    ${hel cfgB "list"} | grep -q 'discovery-test-payload'
     '';
 
   in {
     env = "discovery-test";
-    command = ''
-    sshpass -p test ssh -p 12022 test@localhost ${check}
-    '';
+    command = sshTest { port = 12022; inherit check; };
     expose = true;
     buildInputs = pkgs: [pkgs.sshpass];
   };
 
 }
+
