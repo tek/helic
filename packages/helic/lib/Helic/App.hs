@@ -3,13 +3,19 @@
 -- | App entry points
 module Helic.App where
 
+import Chiasma.Data.TmuxError (TmuxError (NoExe))
+import Chiasma.Data.TmuxNative (TmuxNative (..))
+import Chiasma.Effect.TmuxClient (NativeTmux)
+import Chiasma.Interpreter.Codec (interpretCodecNative)
+import Chiasma.Interpreter.TmuxClient (interpretTmuxFailing, interpretTmuxNative)
 import qualified Conc
 import Conc (interpretAtomic, interpretEventsChan, interpretSync, withAsync_)
-import Polysemy.Http (Manager)
-import Polysemy.Http.Interpreter.Manager (interpretManager)
-
 import Exon (exon)
 import qualified Log
+import Path (Abs, File, Path, relfile)
+import Polysemy.Http (Manager)
+import Polysemy.Http.Interpreter.Manager (interpretManager)
+import Polysemy.Process.Executable (resolveExecutable)
 
 import Helic.Compat.Display (interpretDisplay)
 import Helic.Config.Key (resolveAuthConfig)
@@ -20,6 +26,7 @@ import Helic.Data.Config (Config (Config, debounceMillis))
 import Helic.Data.Event (Event)
 import Helic.Data.Fatal (Fatal (..))
 import Helic.Data.HistoryUpdate (HistoryUpdate)
+import Helic.Data.Host (defaultPort, resolvePeerSpec)
 import Helic.Data.KeyPairsError (KeyPairsError (..))
 import Helic.Data.ListConfig (ListConfig)
 import Helic.Data.LoadConfig (LoadConfig (LoadConfig))
@@ -28,6 +35,8 @@ import Helic.Data.NetConfig (NetConfig (..))
 import Helic.Data.PasteConfig (PasteConfig)
 import Helic.Data.PeersError (PeersError (..))
 import Helic.Data.PublicKey (PublicKey (..))
+import qualified Helic.Data.TmuxBufferCommand as TmuxBufferCommand
+import Helic.Data.TmuxConfig (TmuxConfig (..))
 import Helic.Data.YankConfig (YankConfig)
 import Helic.Discovery (runDiscoveryIfEnabled)
 import qualified Helic.Effect.Client as Client
@@ -35,10 +44,6 @@ import Helic.Effect.Client (Client)
 import qualified Helic.Effect.History as History
 import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
-import Chiasma.Interpreter.Codec (interpretCodecNative)
-import Chiasma.Interpreter.TmuxClient (interpretTmuxNativeEnvGraceful)
-import qualified Helic.Data.TmuxBufferCommand as TmuxBufferCommand
-import Helic.Data.TmuxConfig (TmuxConfig (..))
 import Helic.Interpreter.AgentNet (interpretAgentNetIfEnabled)
 import Helic.Interpreter.AgentTmux (interpretAgentTmuxIfEnabled)
 import Helic.Interpreter.Client (interpretClientNet)
@@ -48,11 +53,28 @@ import Helic.Interpreter.KeyPairs (interpretKeyPairs)
 import Helic.Interpreter.Peers (interpretPeers)
 import Helic.Interpreter.PeersPersist (interpretPeersPersistFile, resolvePeersPath)
 import Helic.List (list)
-import Helic.Data.Host (defaultPort, resolvePeerSpec)
 import Helic.Net.Api (serve)
 import Helic.Net.Sign (KeyPair)
 import Helic.Paste (paste)
 import Helic.Yank (yank)
+
+-- | Interpret 'NativeTmux' using an explicit exe path from the config, falling back to @$PATH@ lookup.
+-- When neither source provides a path, all tmux operations fail gracefully with 'NoExe'.
+interpretTmuxNativeFromConfig ::
+  Members [Log, Resource, Race, Async, Final IO, Embed IO] r =>
+  Maybe (Path Abs File) ->
+  InterpreterFor (NativeTmux !! TmuxError) r
+interpretTmuxNativeFromConfig configExe sem =
+  resolveExe >>= \case
+    Just executable ->
+      runReader TmuxNative {executable, tmuxServerSocket = Nothing} (interpretTmuxNative (raiseUnder sem))
+    Nothing -> do
+      Log.warn "tmux executable not found in config or $PATH; tmux agent will be unavailable"
+      interpretTmuxFailing NoExe sem
+  where
+    resolveExe = case configExe of
+      Just exe -> pure (Just exe)
+      Nothing -> rightToMaybe <$> resolveExecutable [relfile|tmux|] Nothing
 
 listenApp ::
   Config ->
@@ -80,7 +102,7 @@ listenApp Config {..} = do
     $ interpretDisplay
     $ interpretAgentNetIfEnabled
     $ interpretCodecNative TmuxBufferCommand.encode TmuxBufferCommand.decode
-    $ interpretTmuxNativeEnvGraceful (tmux >>= \TmuxConfig {exe} -> exe)
+    $ interpretTmuxNativeFromConfig (tmux >>= \TmuxConfig {exe} -> exe)
     $ interpretAgentTmuxIfEnabled
     $ interpretHistory maxHistory debounceMillis
     $ interpretSync
