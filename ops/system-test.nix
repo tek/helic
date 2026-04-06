@@ -137,10 +137,23 @@ self: {util, ...}: let
     '';
   };
 
-  tmuxModule = { pkgs, ... }: {
+  tmuxModule = { pkgs, ... }: let
+    # Need tmux >= 3.4 for %paste-buffer-changed control mode notification.
+    # The nixpkgs input provides 3.5a, which has the code but may not reliably send the notification.
+    # Pin to 3.6a which is verified to work.
+    tmux36 = pkgs.tmux.overrideAttrs (old: rec {
+      version = "3.6a";
+      src = pkgs.fetchFromGitHub {
+        owner = "tmux";
+        repo = "tmux";
+        rev = version;
+        hash = "sha256-VwOyR9YYhA/uyVRJbspNrKkJWJGYFFktwPnnwnIJ97s=";
+      };
+    });
+  in {
     environment.systemPackages = [
       self.packages.${pkgs.system}.helic
-      pkgs.tmux
+      tmux36
       pkgs.curl
     ];
 
@@ -383,7 +396,7 @@ in {
   commands.tmux-test = let
 
     check = util.zscript "check" ''
-    # Start a tmux server session for helic to connect to
+    # Start a tmux server session
     tmux new-session -d -s main
 
     # Start helic daemon
@@ -398,18 +411,14 @@ in {
       sleep 1
     done
 
-    # Give the tmux listener time to connect in control mode
-    sleep 5
-
-    # Test 1: tmux set-buffer -> hel list (tmux listener detects clipboard change)
-    tmux set-buffer 'helic-tmux-read-test'
-    for i in $(seq 1 10); do
-      hel --config-file /etc/helic-tmux.yaml list 2>/dev/null | grep -q 'helic-tmux-read-test' && break
+    # Wait for tmux control mode client to connect
+    for i in $(seq 1 30); do
+      count=$(tmux list-clients 2>/dev/null | wc -l)
+      [[ $count -ge 1 ]] && break
       sleep 1
     done
-    hel --config-file /etc/helic-tmux.yaml list | grep -q 'helic-tmux-read-test'
 
-    # Test 2: hel yank -> tmux show-buffer (agent writes to tmux buffer)
+    # Test: hel yank -> tmux show-buffer (agent writes to tmux buffer)
     echo -n 'helic-tmux-write-test' | hel --config-file /etc/helic-tmux.yaml yank
     for i in $(seq 1 10); do
       result=$(tmux show-buffer 2>/dev/null) || true
@@ -417,6 +426,14 @@ in {
       sleep 1
     done
     [[ $(tmux show-buffer) == 'helic-tmux-write-test' ]]
+
+    # Test: tmux set-buffer -> hel list (listener detects %paste-buffer-changed)
+    tmux set-buffer 'helic-tmux-read-test'
+    for i in $(seq 1 10); do
+      hel --config-file /etc/helic-tmux.yaml list 2>/dev/null | grep -q 'helic-tmux-read-test' && break
+      sleep 1
+    done
+    hel --config-file /etc/helic-tmux.yaml list | grep -q 'helic-tmux-read-test'
     '';
 
   in {
