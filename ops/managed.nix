@@ -25,6 +25,14 @@
         lower = "1.2.0.11";
         upper = "1.3";
       };
+      chiasma = {
+        lower = null;
+        upper = null;
+      };
+      chiasma-test = {
+        lower = null;
+        upper = null;
+      };
       chronos = {
         lower = "1.1.6.2";
         upper = "1.2";
@@ -1050,6 +1058,16 @@
       };
     };
     lower = {
+      chiasma = {
+        version = "0.12.2.0";
+        hash = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+        repo = "hackage.haskell.org";
+      };
+      chiasma-test = {
+        version = "0.12.2.0";
+        hash = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+        repo = "hackage.haskell.org";
+      };
       chronos = {
         jailbreak = true;
       };

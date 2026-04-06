@@ -258,7 +258,6 @@
       };
 
       package-sets.ghc912 = {
-        compiler = "ghc912";
         overrides = {hackage, jailbreak, notest, unbreak, ...}: {
           bytebuild = jailbreak;
           chronos = jailbreak;
@@ -298,16 +297,21 @@
 
       envs = {
 
-        lower.overrides = {unbreak, notest, ...}: {
+        lower.overrides = {hackage, jailbreak, unbreak, notest, ...}: {
+          chiasma = jailbreak (hackage "0.12.2.0" "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm");
+          chiasma-test = jailbreak notest (hackage "0.12.2.0" "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6");
           crypton-box = unbreak notest;
         };
 
         latest.overrides = {buildInputs, hackage, jailbreak, unbreak, notest, ...}: {
+          chiasma = hackage "0.12.2.0" "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+          chiasma-test = hackage "0.12.2.0" "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
           gi-gtk = buildInputs (p: [p.gtk4.dev]);
           gi-gdk = buildInputs (p: [p.gtk4.dev]);
           crypton-box = jailbreak unbreak notest;
           polysemy-process = jailbreak unbreak;
           polysemy-log = jailbreak;
+          prelate = hackage "0.9.0.0" "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
         };
 
         dev = {
@@ -328,8 +332,6 @@
           polysemy-http = jailbreak unbreak;
         };
 
-        ghc912.package-set.extends = "ghc912";
-
         profiled.package-set.extends = "ghc912";
 
         x11 = {
@@ -345,9 +347,9 @@
       overrides = {self, buildInputs, enable, notest, hackage, ...}: {
         chiasma = hackage "0.12.2.0" "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
         chiasma-test = hackage "0.12.2.0" "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+        prelate = hackage "0.9.0.0" "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
         helic-x11 = notest (enable "x11" self.helic);
         helic-wayland = notest (enable "wayland" (buildInputs (p: [p.wayland.dev])) self.helic);
-        prelate = hackage "0.9.0.0" "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
       };
 
       output.expose.static = false;
@@ -365,3 +367,4 @@
   { nixosModules.default = import ./ops/module.nix self; };
 
 }
+

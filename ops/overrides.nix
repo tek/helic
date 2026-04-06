@@ -1,6 +1,10 @@
 {
-dev-extends-ghc912 = {
-  chiasma = {
+  _meta = {
+    protocol = "2";
+  };
+  dev-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -30,7 +34,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -63,7 +67,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -88,7 +120,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -118,35 +150,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-discovery-test-extends-ghc912 = {
-  chiasma = {
+  discovery-test-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -176,7 +184,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -209,7 +217,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -234,7 +270,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -264,35 +300,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-ghc910 = {
-  chiasma = {
+  ghc910-extends-ghc910 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -322,7 +334,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -355,7 +367,7 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
+      prelate = {
   meta = {
     sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
     ver = "0.9.0.0";
@@ -381,9 +393,11 @@ mkDerivation {
 ;
 }
 ;
-};
-ghc912 = {
-  chiasma = {
+    };
+  };
+  ghc912-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -413,7 +427,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -446,7 +460,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -471,7 +513,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -501,35 +543,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-ghc98 = {
-  chiasma = {
+  ghc98-extends-ghc98 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -559,7 +577,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -592,7 +610,7 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
+      prelate = {
   meta = {
     sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
     ver = "0.9.0.0";
@@ -618,13 +636,11 @@ mkDerivation {
 ;
 }
 ;
-};
-hix-build-tools = {
-};
-hls = {
-};
-latest = {
-  base-compat = {
+    };
+  };
+  latest = {
+    extraOverrides = {
+      base-compat = {
   meta = {
     sha256 = "1bmmqclp2cphxyk06sh453n271dxrlw22c1946qflhp5hz1g9rz5";
     url = "https://hackage.haskell.org";
@@ -642,7 +658,7 @@ mkDerivation {
 ;
 }
 ;
-  base16 = {
+      base16 = {
   meta = {
     sha256 = "0rhjm2b4mpp6lr2cgppsls2z1ipfx6rc681cpj88pvf5p6jf5fd4";
     url = "https://hackage.haskell.org";
@@ -674,7 +690,7 @@ mkDerivation {
 ;
 }
 ;
-  base64 = {
+      base64 = {
   meta = {
     sha256 = "0m9h8r88jxidjkgg2h3ggv0qsqxsrmii4injnhsbq1vrcr0jmd30";
     url = "https://hackage.haskell.org";
@@ -706,7 +722,7 @@ mkDerivation {
 ;
 }
 ;
-  bytebuild = {
+      bytebuild = {
   meta = {
     sha256 = "0r14dmwywpr91qrnck3lb269hn8nmfmfwww11yglggn6fmjv6ks7";
     url = "https://hackage.haskell.org";
@@ -742,7 +758,7 @@ mkDerivation {
 ;
 }
 ;
-  cabal-doctest = {
+      cabal-doctest = {
   meta = {
     sha256 = "152rqpicqpvigjpy4rf1kjlwny1c7ys1r0r123wdjafvv1igflii";
     url = "https://hackage.haskell.org";
@@ -761,7 +777,70 @@ mkDerivation {
 ;
 }
 ;
-  chronos = {
+      chiasma = {
+  meta = {
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
+  };
+  drv = { mkDerivation, attoparsec, base, bytestring, composition
+, containers, exon, extra, first-class-families, lens, lib, parsec
+, parsers, path, polysemy, polysemy-conc, polysemy-log
+, polysemy-plugin, polysemy-process, polysemy-time, prelate
+, prettyprinter, prettyprinter-ansi-terminal, random, text
+, transformers, typed-process, uuid
+}:
+mkDerivation {
+  pname = "chiasma";
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
+  libraryHaskellDepends = [
+    attoparsec base bytestring composition containers exon extra
+    first-class-families lens parsec parsers path polysemy
+    polysemy-conc polysemy-log polysemy-plugin polysemy-process
+    polysemy-time prelate prettyprinter prettyprinter-ansi-terminal
+    random text transformers typed-process uuid
+  ];
+  homepage = "https://github.com/tek/chiasma#readme";
+  description = "A tmux client for Polysemy";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+      chiasma-test = {
+  meta = {
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
+  };
+  drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
+, lens, lib, path, path-io, polysemy, polysemy-chronos
+, polysemy-conc, polysemy-log, polysemy-plugin, polysemy-process
+, polysemy-test, polysemy-time, prelate, tasty, tasty-hedgehog
+, text, typed-process
+}:
+mkDerivation {
+  pname = "chiasma-test";
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
+  libraryHaskellDepends = [
+    base bytestring chiasma chronos exon hedgehog path path-io polysemy
+    polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
+    polysemy-process polysemy-test polysemy-time prelate text
+    typed-process
+  ];
+  testHaskellDepends = [
+    base chiasma hedgehog lens path-io polysemy polysemy-chronos
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
+  ];
+  homepage = "https://github.com/tek/chiasma#readme";
+  description = "Testing tools for chiasma";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+      chronos = {
   meta = {
     sha256 = "0kazqi6adm7ph19gm830cm44jy7zqiwib53gk495zghiz0rinhsr";
     url = "https://hackage.haskell.org";
@@ -797,7 +876,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-asn1-encoding = {
+      crypton-asn1-encoding = {
   meta = {
     sha256 = "0h4cxk9yz2xgmx0kl3gg9lixhnhvxqk85gvkwldp0mlfm3mgccvm";
     url = "https://hackage.haskell.org";
@@ -824,7 +903,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-asn1-parse = {
+      crypton-asn1-parse = {
   meta = {
     sha256 = "0dsyslbb9a3f6wj0na52qc7iimjs9xljhi6wjfch61nb9m33l1kb";
     url = "https://hackage.haskell.org";
@@ -843,7 +922,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-asn1-types = {
+      crypton-asn1-types = {
   meta = {
     sha256 = "01zvf9vn5a0jyaq5l6mmzv7ya35sxjrk10k06rmi31x128sfqs7s";
     url = "https://hackage.haskell.org";
@@ -862,7 +941,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-pem = {
+      crypton-pem = {
   meta = {
     sha256 = "1bvcl2brlgqbb1kmjzlfspmm47n1g441qgsmyhz9ql3zlcz1s524";
     url = "https://hackage.haskell.org";
@@ -888,7 +967,7 @@ mkDerivation {
 ;
 }
 ;
-  ech-config = {
+      ech-config = {
   meta = {
     sha256 = "0sxxxd9rlc3x14mgh92ic8s9hjncf38f9s7p3ic284mvnzj0l3s2";
     url = "https://hackage.haskell.org";
@@ -912,7 +991,7 @@ mkDerivation {
 ;
 }
 ;
-  exon = {
+      exon = {
   meta = {
     sha256 = "0hg271cvjqm4ps75qpnirq9nvjwpwb03mcbn1a364jrysrj6bg3b";
     url = "https://hackage.haskell.org";
@@ -939,7 +1018,7 @@ mkDerivation {
 ;
 }
 ;
-  hpke = {
+      hpke = {
   meta = {
     sha256 = "0vyny5gqw8rk0s75088ggs3q78fgmas9mnxnwjpny4h9nw6dysr9";
     url = "https://hackage.haskell.org";
@@ -965,7 +1044,7 @@ mkDerivation {
 ;
 }
 ;
-  http-client = {
+      http-client = {
   meta = {
     sha256 = "1qciglcaik1a96flj07fhqx2h692kgcv63hinffr35ka22wrg3i9";
     url = "https://hackage.haskell.org";
@@ -1002,7 +1081,7 @@ mkDerivation {
 ;
 }
 ;
-  http-client-tls = {
+      http-client-tls = {
   meta = {
     sha256 = "1f8br94l5kywpsfvpmw54b1v6nx1yapslzrwiswsf6vf8kwfjjzg";
     url = "https://hackage.haskell.org";
@@ -1034,7 +1113,7 @@ mkDerivation {
 ;
 }
 ;
-  http-semantics = {
+      http-semantics = {
   meta = {
     sha256 = "0p9qb38z9khk91cy78lv8f66693xyxn9yy87mnwwpghaa7kk67df";
     url = "https://hackage.haskell.org";
@@ -1059,7 +1138,7 @@ mkDerivation {
 ;
 }
 ;
-  http2 = {
+      http2 = {
   meta = {
     sha256 = "1wa88jb5hk64g4v320jsj4sfldcpwkjjvpxvxh30yvdmvraidq9x";
     url = "https://hackage.haskell.org";
@@ -1102,7 +1181,7 @@ mkDerivation {
 ;
 }
 ;
-  incipit = {
+      incipit = {
   meta = {
     sha256 = "0vr1balwy6v9l15pjlyy372w0scli1wcl6395jqdkjncqm3ymdin";
     url = "https://hackage.haskell.org";
@@ -1126,7 +1205,7 @@ mkDerivation {
 ;
 }
 ;
-  mime-types = {
+      mime-types = {
   meta = {
     sha256 = "0mdfiq304yrqb15lh4ajs7mp3wd4ingc5f0bqry9ig0pfj4kcdvn";
     url = "https://hackage.haskell.org";
@@ -1145,7 +1224,7 @@ mkDerivation {
 ;
 }
 ;
-  optparse-applicative = {
+      optparse-applicative = {
   meta = {
     sha256 = "0cs8fqipakad38lvm75nz98hmvf881mgjhnc7icblxfzh92ay6kn";
     url = "https://hackage.haskell.org";
@@ -1171,7 +1250,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     url = "https://hackage.haskell.org";
@@ -1197,7 +1276,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-conc = {
+      polysemy-conc = {
   meta = {
     sha256 = "1xli6ja9f7qx2k9956lw4h9y5ywdglhgw769afxw9d4w9avclx28";
     url = "https://hackage.haskell.org";
@@ -1226,7 +1305,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     url = "https://hackage.haskell.org";
@@ -1257,7 +1336,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-log = {
+      polysemy-log = {
   meta = {
     sha256 = "09jdy3jzry31knaydjqka0mj8jwscdys5wq2xij21lxbxr5msy1m";
     url = "https://hackage.haskell.org";
@@ -1289,7 +1368,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-process = {
+      polysemy-process = {
   meta = {
     sha256 = "1qvbkldhai77r2pr7wbznsb9pr0pawynmvcd31v3v8jpki3xaycr";
     url = "https://hackage.haskell.org";
@@ -1322,7 +1401,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-resume = {
+      polysemy-resume = {
   meta = {
     sha256 = "1i2bnpd3l357jhln8xl92z65b3mskz9y8z1xlha4lm0m855qyk15";
     url = "https://hackage.haskell.org";
@@ -1348,7 +1427,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-test = {
+      polysemy-test = {
   meta = {
     sha256 = "1sp9iag1brknmdy0qvmgnmynwc4gbg1jy21w584x1m2hpqi25p6j";
     url = "https://hackage.haskell.org";
@@ -1376,7 +1455,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-time = {
+      polysemy-time = {
   meta = {
     sha256 = "0cw39gvmr9rgh3hc0gd55wimm4lxzw9nyrczixk42nw170bpls40";
     url = "https://hackage.haskell.org";
@@ -1402,10 +1481,9 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
+      prelate = {
   meta = {
     sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    url = "https://hackage.haskell.org";
     ver = "0.9.0.0";
   };
   drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
@@ -1429,7 +1507,7 @@ mkDerivation {
 ;
 }
 ;
-  servant-client = {
+      servant-client = {
   meta = {
     sha256 = "0xlf354mcvg3cg8nqfi1aqfym686qcyy1yv46fg9fxchms9njczr";
     url = "https://hackage.haskell.org";
@@ -1467,7 +1545,7 @@ mkDerivation {
 ;
 }
 ;
-  servant-client-core = {
+      servant-client-core = {
   meta = {
     sha256 = "0yv0asv77zjclnvadjb2hxjghnmz5rnba4akg237x3ssh50i52ca";
     url = "https://hackage.haskell.org";
@@ -1500,7 +1578,7 @@ mkDerivation {
 ;
 }
 ;
-  servant-server = {
+      servant-server = {
   meta = {
     sha256 = "053d5j5sxki31v8d5b73jx53bfhz76pm8xyb99n0rk1gxc8rg18x";
     url = "https://hackage.haskell.org";
@@ -1543,7 +1621,7 @@ mkDerivation {
 ;
 }
 ;
-  tasty = {
+      tasty = {
   meta = {
     sha256 = "0x6khif6n0rzfgkvrbiagg1sj0lwmjfr6qarjnjwmb9ywdk7598b";
     url = "https://hackage.haskell.org";
@@ -1567,7 +1645,7 @@ mkDerivation {
 ;
 }
 ;
-  tasty-expected-failure = {
+      tasty-expected-failure = {
   meta = {
     sha256 = "1dplg5n7rv8azy7xysl0z85inicvcxwprf5n9lh5k12lki5i1hdc";
     url = "https://hackage.haskell.org";
@@ -1591,7 +1669,7 @@ mkDerivation {
 ;
 }
 ;
-  tasty-hedgehog = {
+      tasty-hedgehog = {
   meta = {
     sha256 = "04kg2qdnsqzzmj3xggy2jcgidlp21lsjkz4sfnbq7b1yhrv2vbbc";
     url = "https://hackage.haskell.org";
@@ -1615,7 +1693,7 @@ mkDerivation {
 ;
 }
 ;
-  time-hourglass = {
+      time-hourglass = {
   meta = {
     sha256 = "11fm4wywl0q5g0q34d049x7wxlp80rycp7hqrp2m7l7dmhihnn6d";
     url = "https://hackage.haskell.org";
@@ -1640,7 +1718,7 @@ mkDerivation {
 ;
 }
 ;
-  time-manager = {
+      time-manager = {
   meta = {
     sha256 = "1lw1xx9p5qqznrg04s7phki2rljxzx29z2xcd9qa46wjhhg54fds";
     url = "https://hackage.haskell.org";
@@ -1660,7 +1738,7 @@ mkDerivation {
 ;
 }
 ;
-  wai-app-static = {
+      wai-app-static = {
   meta = {
     sha256 = "1kwvzy9w4v76q5bk4xwq7kz9q9l8867my6zvsv731x6xkhy7wr2c";
     url = "https://hackage.haskell.org";
@@ -1699,7 +1777,7 @@ mkDerivation {
 ;
 }
 ;
-  wai-extra = {
+      wai-extra = {
   meta = {
     sha256 = "0ba54l3hbpv66lysdp3s7jhyry554ksc5a2f9fps9q7phl3gzak9";
     url = "https://hackage.haskell.org";
@@ -1738,7 +1816,7 @@ mkDerivation {
 ;
 }
 ;
-  warp = {
+      warp = {
   meta = {
     sha256 = "0m4wj459j7fhav4i05df5nmbnzb1j8qwjdxcwacx81jv03bm1p33";
     url = "https://hackage.haskell.org";
@@ -1782,7 +1860,7 @@ mkDerivation {
 ;
 }
 ;
-  zeugma = {
+      zeugma = {
   meta = {
     sha256 = "14k0lq3ghanvxw47g43vvzfw4d9cm04bmc2fn5cp4y3vslflaknj";
     url = "https://hackage.haskell.org";
@@ -1808,9 +1886,11 @@ mkDerivation {
 ;
 }
 ;
-};
-leak-test-extends-ghc912 = {
-  chiasma = {
+    };
+  };
+  leak-test-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -1840,7 +1920,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -1873,7 +1953,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -1898,7 +2006,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -1928,35 +2036,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-lower = {
-  auto-update = {
+  lower = {
+    extraOverrides = {
+      auto-update = {
   meta = {
     sha256 = "1fp45qcivbkk97n03dq5n233wvyd39ldajs7apdqg70pd76178sa";
     url = "https://hackage.haskell.org";
@@ -1976,7 +2060,7 @@ mkDerivation {
 ;
 }
 ;
-  base16 = {
+      base16 = {
   meta = {
     sha256 = "0rhjm2b4mpp6lr2cgppsls2z1ipfx6rc681cpj88pvf5p6jf5fd4";
     url = "https://hackage.haskell.org";
@@ -2008,7 +2092,7 @@ mkDerivation {
 ;
 }
 ;
-  cabal-doctest = {
+      cabal-doctest = {
   meta = {
     sha256 = "094mvqgh9bhx5v9xanzkhcm8pcxzmkaa68lr3bqpjzkdxydx81nk";
     url = "https://hackage.haskell.org";
@@ -2027,7 +2111,7 @@ mkDerivation {
 ;
 }
 ;
-  case-insensitive = {
+      case-insensitive = {
   meta = {
     sha256 = "0nn4hffa6i3sf6n1cg69br7qiwsc3shw26ay9bkwhkff6lfpw1bj";
     url = "https://hackage.haskell.org";
@@ -2052,7 +2136,70 @@ mkDerivation {
 ;
 }
 ;
-  chronos = {
+      chiasma = {
+  meta = {
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
+  };
+  drv = { mkDerivation, attoparsec, base, bytestring, composition
+, containers, exon, extra, first-class-families, lens, lib, parsec
+, parsers, path, polysemy, polysemy-conc, polysemy-log
+, polysemy-plugin, polysemy-process, polysemy-time, prelate
+, prettyprinter, prettyprinter-ansi-terminal, random, text
+, transformers, typed-process, uuid
+}:
+mkDerivation {
+  pname = "chiasma";
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
+  libraryHaskellDepends = [
+    attoparsec base bytestring composition containers exon extra
+    first-class-families lens parsec parsers path polysemy
+    polysemy-conc polysemy-log polysemy-plugin polysemy-process
+    polysemy-time prelate prettyprinter prettyprinter-ansi-terminal
+    random text transformers typed-process uuid
+  ];
+  homepage = "https://github.com/tek/chiasma#readme";
+  description = "A tmux client for Polysemy";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+      chiasma-test = {
+  meta = {
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
+  };
+  drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
+, lens, lib, path, path-io, polysemy, polysemy-chronos
+, polysemy-conc, polysemy-log, polysemy-plugin, polysemy-process
+, polysemy-test, polysemy-time, prelate, tasty, tasty-hedgehog
+, text, typed-process
+}:
+mkDerivation {
+  pname = "chiasma-test";
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
+  libraryHaskellDepends = [
+    base bytestring chiasma chronos exon hedgehog path path-io polysemy
+    polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
+    polysemy-process polysemy-test polysemy-time prelate text
+    typed-process
+  ];
+  testHaskellDepends = [
+    base chiasma hedgehog lens path-io polysemy polysemy-chronos
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
+  ];
+  homepage = "https://github.com/tek/chiasma#readme";
+  description = "Testing tools for chiasma";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+      chronos = {
   meta = {
     sha256 = "1pbfp25py682d17visa4i9rjxmiim8aykrgs7nv2q9anajv88kdx";
     url = "https://hackage.haskell.org";
@@ -2088,7 +2235,7 @@ mkDerivation {
 ;
 }
 ;
-  composition = {
+      composition = {
   meta = {
     sha256 = "1mywrzizfj7740ybww2fxc3q6v6wp8yxsnv6hs3b30ps2jr4mds0";
     url = "https://hackage.haskell.org";
@@ -2105,7 +2252,7 @@ mkDerivation {
 ;
 }
 ;
-  concurrent-output = {
+      concurrent-output = {
   meta = {
     sha256 = "1w87rrf337s8wc4z3dkh2mk990003jsk18ry5yawv4465k4yvamw";
     url = "https://hackage.haskell.org";
@@ -2128,7 +2275,7 @@ mkDerivation {
 ;
 }
 ;
-  cryptohash-md5 = {
+      cryptohash-md5 = {
   meta = {
     sha256 = "0y38ybbd67864nw9p326a7bi7ss8b9y1vi88702y8h07zvyi2d84";
     url = "https://hackage.haskell.org";
@@ -2154,7 +2301,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton = {
+      crypton = {
   meta = {
     sha256 = "0kk6sl42q3fw9l9xv4h8jsxvhl9535r00x1gw0l7y7mjav0pcjj5";
     url = "https://hackage.haskell.org";
@@ -2184,7 +2331,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-box = {
+      crypton-box = {
   meta = {
     sha256 = "04q7r3sjbclja4g2diiah45953kh3wi9502q55xdr19na71my6zn";
     url = "https://hackage.haskell.org";
@@ -2207,7 +2354,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-connection = {
+      crypton-connection = {
   meta = {
     sha256 = "1l5yr5nck4vyi55pyc7j1zarfcs196gbxjlwljs7s7v2r3h43jcc";
     url = "https://hackage.haskell.org";
@@ -2232,7 +2379,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-x509 = {
+      crypton-x509 = {
   meta = {
     sha256 = "0fvg9jwllhgbjafsy41q938yz1s4z3g7cjnar79g95gvkv8m6byn";
     url = "https://hackage.haskell.org";
@@ -2261,7 +2408,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-x509-store = {
+      crypton-x509-store = {
   meta = {
     sha256 = "1kivql51byld49nbyn9zy1wmmi4b7qnbr7crffwf7swfljiif3y1";
     url = "https://hackage.haskell.org";
@@ -2289,7 +2436,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-x509-system = {
+      crypton-x509-system = {
   meta = {
     sha256 = "02awppmcad9nr3srwjz5hj8fzilj05178cqvlhvl01chs5w0msm9";
     url = "https://hackage.haskell.org";
@@ -2313,7 +2460,7 @@ mkDerivation {
 ;
 }
 ;
-  crypton-x509-validation = {
+      crypton-x509-validation = {
   meta = {
     sha256 = "1z262xxkjsnwfzaiklxr62baayvwxg22xyf1h8g027s9a1h89wlb";
     url = "https://hackage.haskell.org";
@@ -2344,7 +2491,7 @@ mkDerivation {
 ;
 }
 ;
-  cryptonite = {
+      cryptonite = {
   meta = {
     sha256 = "04wq8lh300dng87n59a37ngjqbwjlxpd62vz6ifvz0gpyx0pnhy7";
     url = "https://hackage.haskell.org";
@@ -2374,7 +2521,7 @@ mkDerivation {
 ;
 }
 ;
-  either = {
+      either = {
   meta = {
     sha256 = "02gw0b0h42qwwlx2h1xk2ayhdw4abl6p1zji75cqs60x85x2a414";
     url = "https://hackage.haskell.org";
@@ -2398,7 +2545,7 @@ mkDerivation {
 ;
 }
 ;
-  exon = {
+      exon = {
   meta = {
     sha256 = "1sl4micbw42s3mbyhbyb3h28jjk1sb537crlai9h9c3p7ddn6dvd";
     url = "https://hackage.haskell.org";
@@ -2425,7 +2572,7 @@ mkDerivation {
 ;
 }
 ;
-  fast-logger = {
+      fast-logger = {
   meta = {
     sha256 = "0xa52lm4js6w5sxry4iyjd9iz4r23p1z19nwf4s8kk0scw9ks8pz";
     url = "https://hackage.haskell.org";
@@ -2452,7 +2599,7 @@ mkDerivation {
 ;
 }
 ;
-  hedgehog = {
+      hedgehog = {
   meta = {
     sha256 = "1hz8xrg5p6vplvcj8c7pgidqnwqjmqahs9dla50nqpbcbdh932ll";
     url = "https://hackage.haskell.org";
@@ -2486,7 +2633,7 @@ mkDerivation {
 ;
 }
 ;
-  hsc2hs = {
+      hsc2hs = {
   meta = {
     sha256 = "0wdg17kicnp6qbgynha216vihx7nnsglvhn5c089dqpa14hg35zw";
     url = "https://hackage.haskell.org";
@@ -2515,7 +2662,7 @@ mkDerivation {
 ;
 }
 ;
-  http-api-data = {
+      http-api-data = {
   meta = {
     sha256 = "126vifb8gq49kffjqz2cx10zv674ag9l7qjsc1p5i60d46apr4f5";
     url = "https://hackage.haskell.org";
@@ -2546,7 +2693,7 @@ mkDerivation {
 ;
 }
 ;
-  http-client = {
+      http-client = {
   meta = {
     sha256 = "1ddx0x74kgqxa84fv5m9k7c5pg34n6b7snrj9kss3ahc4k3p8s1l";
     url = "https://hackage.haskell.org";
@@ -2583,7 +2730,7 @@ mkDerivation {
 ;
 }
 ;
-  http-client-tls = {
+      http-client-tls = {
   meta = {
     sha256 = "1qgwh3zip36pbjn7c5pn1l6zv044d6l77mnariz66bdhwy9hrx1s";
     url = "https://hackage.haskell.org";
@@ -2616,7 +2763,7 @@ mkDerivation {
 ;
 }
 ;
-  http-media = {
+      http-media = {
   meta = {
     sha256 = "10rxh1brpi9gsjrhgf5227z1gxrliipmiagp6j300jdgpf3rk8f3";
     url = "https://hackage.haskell.org";
@@ -2643,7 +2790,7 @@ mkDerivation {
 ;
 }
 ;
-  http-types = {
+      http-types = {
   meta = {
     sha256 = "010mdxfymajc6zkvh3bchs8v4z7fdjkmazisaxfzjp4b5qga3ds8";
     url = "https://hackage.haskell.org";
@@ -2669,7 +2816,7 @@ mkDerivation {
 ;
 }
 ;
-  http2 = {
+      http2 = {
   meta = {
     sha256 = "1skyjg31v4s7yhpnk9p8l419nd5kapi3sp7d0hja7b1fzb96x05g";
     url = "https://hackage.haskell.org";
@@ -2710,7 +2857,7 @@ mkDerivation {
 ;
 }
 ;
-  incipit = {
+      incipit = {
   meta = {
     sha256 = "0vr1balwy6v9l15pjlyy372w0scli1wcl6395jqdkjncqm3ymdin";
     url = "https://hackage.haskell.org";
@@ -2734,7 +2881,7 @@ mkDerivation {
 ;
 }
 ;
-  incipit-base = {
+      incipit-base = {
   meta = {
     sha256 = "0iyyvxpyyybn5ygr875pav6g5hbs00wa9jbr7qslszqpkfpy5x33";
     url = "https://hackage.haskell.org";
@@ -2757,7 +2904,7 @@ mkDerivation {
 ;
 }
 ;
-  incipit-core = {
+      incipit-core = {
   meta = {
     sha256 = "144c239nxl8zi2ik3ycic3901gxn8rccij3g609n2zgnn3b6zilj";
     url = "https://hackage.haskell.org";
@@ -2776,7 +2923,7 @@ mkDerivation {
 ;
 }
 ;
-  lens = {
+      lens = {
   meta = {
     sha256 = "17g77mqcyy83lxrhb9lnjnp6m38mgphyzkaajy8kf00c0a41lyya";
     url = "https://hackage.haskell.org";
@@ -2819,7 +2966,7 @@ mkDerivation {
 ;
 }
 ;
-  mime-types = {
+      mime-types = {
   meta = {
     sha256 = "14648bjr219wk3a2v6fnma7xwkcna80ir93yng05r4ljp675wdbc";
     url = "https://hackage.haskell.org";
@@ -2838,7 +2985,7 @@ mkDerivation {
 ;
 }
 ;
-  parallel = {
+      parallel = {
   meta = {
     sha256 = "1pcaz12k48m5wcnl2vifkxg8miadridfzbn2l6a0mhfgnwjwk6pd";
     url = "https://hackage.haskell.org";
@@ -2856,7 +3003,7 @@ mkDerivation {
 ;
 }
 ;
-  path-io = {
+      path-io = {
   meta = {
     sha256 = "05hcxgyf6kkz36mazd0fqwb6mjy2049gx3vh8qq9h93gfjkpp2vc";
     url = "https://hackage.haskell.org";
@@ -2885,7 +3032,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy = {
+      polysemy = {
   meta = {
     sha256 = "0y339fh1jvjdjmw6xkwizd3m9bqsgnhaj56xgkz1pcmv00pmj275";
     url = "https://hackage.haskell.org";
@@ -2918,7 +3065,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1h5rqyxpmjslqz145y5qa75fww9iqlrnilpvp6bbk5kz2sz935rz";
     url = "https://hackage.haskell.org";
@@ -2944,7 +3091,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-conc = {
+      polysemy-conc = {
   meta = {
     sha256 = "0lzgw6dqhw0dv00bn9aasys2v8iddxyck5vmpglrp92chba55jxv";
     url = "https://hackage.haskell.org";
@@ -2973,7 +3120,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "12kzq6910qwj7n1rwym3zibjm5cv7llfgk9iagcwd16vfysag6wp";
     url = "https://hackage.haskell.org";
@@ -3010,7 +3157,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-log = {
+      polysemy-log = {
   meta = {
     sha256 = "09jdy3jzry31knaydjqka0mj8jwscdys5wq2xij21lxbxr5msy1m";
     url = "https://hackage.haskell.org";
@@ -3042,7 +3189,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-plugin = {
+      polysemy-plugin = {
   meta = {
     sha256 = "18y0nfx7x7am7cvj9wwhzal9bqv6sj7ckvmkd16blx4c2nqyikp9";
     url = "https://hackage.haskell.org";
@@ -3074,7 +3221,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-process = {
+      polysemy-process = {
   meta = {
     sha256 = "125fiwq30ybncmc0pb25ki3k2sxbhkjz4k2i53bcj9y026xgvjyi";
     url = "https://hackage.haskell.org";
@@ -3107,7 +3254,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-resume = {
+      polysemy-resume = {
   meta = {
     sha256 = "1i2bnpd3l357jhln8xl92z65b3mskz9y8z1xlha4lm0m855qyk15";
     url = "https://hackage.haskell.org";
@@ -3133,7 +3280,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-test = {
+      polysemy-test = {
   meta = {
     sha256 = "1m6ncbihr742765rshz6w7dn450f3d2ip6ci3qah27lnz7yrwmp6";
     url = "https://hackage.haskell.org";
@@ -3161,7 +3308,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-time = {
+      polysemy-time = {
   meta = {
     sha256 = "1ay0ym01wznk98km2ksw8slj52gc7rav6n16z4sndzsw7cdwdq2y";
     url = "https://hackage.haskell.org";
@@ -3187,7 +3334,7 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
+      prelate = {
   meta = {
     sha256 = "0id72rbynmbb15ld8pv8nijll3k50x2mrpcqsv8dkbs7q05fn9vg";
     url = "https://hackage.haskell.org";
@@ -3214,7 +3361,7 @@ mkDerivation {
 ;
 }
 ;
-  reflection = {
+      reflection = {
   meta = {
     sha256 = "0xiivs8grfnp896hznp6rfx09d86mfyaaxvnslgmjl626520ac8p";
     url = "https://hackage.haskell.org";
@@ -3237,7 +3384,7 @@ mkDerivation {
 ;
 }
 ;
-  relude = {
+      relude = {
   meta = {
     sha256 = "0nv2cp8wngzi1yszp0pvqi35ii0l63x7y78h5ha938qc8shza2ap";
     url = "https://hackage.haskell.org";
@@ -3268,7 +3415,7 @@ mkDerivation {
 ;
 }
 ;
-  servant = {
+      servant = {
   meta = {
     sha256 = "0w01g2vnawsk5gpf8sw4p7wss650jg60kglmp93bnfqzyc8i1awh";
     url = "https://hackage.haskell.org";
@@ -3302,7 +3449,7 @@ mkDerivation {
 ;
 }
 ;
-  servant-client = {
+      servant-client = {
   meta = {
     sha256 = "0iv254h277vfmmwq14807bcdwyi0xccs6dl5k75gqgwn3aawza11";
     url = "https://hackage.haskell.org";
@@ -3340,7 +3487,7 @@ mkDerivation {
 ;
 }
 ;
-  servant-client-core = {
+      servant-client-core = {
   meta = {
     sha256 = "0wwla0yxrs9q7f9lmlifhmx2ph49isagd2mpz6pxnw9nfvnpvdns";
     url = "https://hackage.haskell.org";
@@ -3369,7 +3516,7 @@ mkDerivation {
 ;
 }
 ;
-  servant-server = {
+      servant-server = {
   meta = {
     sha256 = "1xp86ha73fkqbsxyycr0wga0k106vfb4kpjyzh055l2qb47kyj9j";
     url = "https://hackage.haskell.org";
@@ -3412,7 +3559,7 @@ mkDerivation {
 ;
 }
 ;
-  string-interpolate = {
+      string-interpolate = {
   meta = {
     sha256 = "0vvcdd9m7z6rxqcf39xdjaz7hv0hbkkxvcpnyxcvldrsqzlhy3r8";
     url = "https://hackage.haskell.org";
@@ -3449,7 +3596,7 @@ mkDerivation {
 ;
 }
 ;
-  tasty = {
+      tasty = {
   meta = {
     sha256 = "1jqrcmibqv03109qc6lhi2jnip4mxygcd0j4j0g1n0q0akcplica";
     url = "https://hackage.haskell.org";
@@ -3473,7 +3620,7 @@ mkDerivation {
 ;
 }
 ;
-  tasty-expected-failure = {
+      tasty-expected-failure = {
   meta = {
     sha256 = "1dplg5n7rv8azy7xysl0z85inicvcxwprf5n9lh5k12lki5i1hdc";
     url = "https://hackage.haskell.org";
@@ -3497,7 +3644,7 @@ mkDerivation {
 ;
 }
 ;
-  tasty-hedgehog = {
+      tasty-hedgehog = {
   meta = {
     sha256 = "04kg2qdnsqzzmj3xggy2jcgidlp21lsjkz4sfnbq7b1yhrv2vbbc";
     url = "https://hackage.haskell.org";
@@ -3521,7 +3668,7 @@ mkDerivation {
 ;
 }
 ;
-  terminal-size = {
+      terminal-size = {
   meta = {
     sha256 = "0rc3z6nf8189zk014nna568sg2hpxmyqlv6ha1y0fhpw9m8872bk";
     url = "https://hackage.haskell.org";
@@ -3539,7 +3686,7 @@ mkDerivation {
 ;
 }
 ;
-  text-conversions = {
+      text-conversions = {
   meta = {
     sha256 = "0lfcp2f8ld46cry5wm2afcn362mb7fp28ii3afji7bns1fvhh6lf";
     url = "https://hackage.haskell.org";
@@ -3564,7 +3711,7 @@ mkDerivation {
 ;
 }
 ;
-  time-manager = {
+      time-manager = {
   meta = {
     sha256 = "1lw1xx9p5qqznrg04s7phki2rljxzx29z2xcd9qa46wjhhg54fds";
     url = "https://hackage.haskell.org";
@@ -3584,7 +3731,7 @@ mkDerivation {
 ;
 }
 ;
-  tls = {
+      tls = {
   meta = {
     sha256 = "11rxsmwhv6g4298a0355v6flz4n6gw64qw3iha7z0ka3nv7vq4vv";
     url = "https://hackage.haskell.org";
@@ -3619,7 +3766,7 @@ mkDerivation {
 ;
 }
 ;
-  torsor = {
+      torsor = {
   meta = {
     sha256 = "07p05f7j6h99pxx1v4j0ya5py4nc93gnbj09pdhl23i2zc75064f";
     url = "https://hackage.haskell.org";
@@ -3638,7 +3785,7 @@ mkDerivation {
 ;
 }
 ;
-  unliftio = {
+      unliftio = {
   meta = {
     sha256 = "0cp92d9f2hzya636y7w8m0gw7ik6ri2clzpdnz5klh917nnbd7ii";
     url = "https://hackage.haskell.org";
@@ -3672,7 +3819,7 @@ mkDerivation {
 ;
 }
 ;
-  wai = {
+      wai = {
   meta = {
     sha256 = "1vxagql34hjvnrw0116kx6z5wnj4gcddf36kfs65f6zr2ib6c11l";
     url = "https://hackage.haskell.org";
@@ -3697,7 +3844,7 @@ mkDerivation {
 ;
 }
 ;
-  wai-app-static = {
+      wai-app-static = {
   meta = {
     sha256 = "1irlknakxl7dcwxxdw0iliql7xrbyssz4bdk18amr2xl2d0fcwzc";
     url = "https://hackage.haskell.org";
@@ -3736,7 +3883,7 @@ mkDerivation {
 ;
 }
 ;
-  wai-extra = {
+      wai-extra = {
   meta = {
     sha256 = "19arbw49dz0fbyv5ybyx8v30b340d47p1nwbpp61dfdd71wkvhn0";
     url = "https://hackage.haskell.org";
@@ -3775,7 +3922,7 @@ mkDerivation {
 ;
 }
 ;
-  wai-logger = {
+      wai-logger = {
   meta = {
     sha256 = "1l0gspzbwkrs1dqay2rv5wz1gg49a31l3vyl741b2j2apkgamf3p";
     url = "https://hackage.haskell.org";
@@ -3797,7 +3944,7 @@ mkDerivation {
 ;
 }
 ;
-  warp = {
+      warp = {
   meta = {
     sha256 = "0n937l9dfb77mh0rjah72gsiclar7wbn9fcr09x19hx1nnmwcfda";
     url = "https://hackage.haskell.org";
@@ -3839,7 +3986,7 @@ mkDerivation {
 ;
 }
 ;
-  x509 = {
+      x509 = {
   meta = {
     sha256 = "1pld1yx0fl6g4bzqfx147xipl3kzfx6pz8q4difw2k0kg0qj6xar";
     url = "https://hackage.haskell.org";
@@ -3868,7 +4015,7 @@ mkDerivation {
 ;
 }
 ;
-  zeugma = {
+      zeugma = {
   meta = {
     sha256 = "14k0lq3ghanvxw47g43vvzfw4d9cm04bmc2fn5cp4y3vslflaknj";
     url = "https://hackage.haskell.org";
@@ -3894,9 +4041,11 @@ mkDerivation {
 ;
 }
 ;
-};
-min-extends-ghc912 = {
-  chiasma = {
+    };
+  };
+  min-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -3926,7 +4075,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -3959,7 +4108,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -3984,7 +4161,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -4014,35 +4191,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-profiled-extends-ghc912 = {
-  chiasma = {
+  profiled-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -4072,7 +4225,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -4105,7 +4258,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -4130,7 +4311,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -4160,35 +4341,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-tmux-test-extends-ghc912 = {
-  chiasma = {
+  tmux-test-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -4218,7 +4375,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -4251,7 +4408,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -4276,7 +4461,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -4306,35 +4491,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-wayland-test-extends-ghc912 = {
-  chiasma = {
+  wayland-test-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -4364,7 +4525,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -4397,7 +4558,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -4422,7 +4611,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -4452,35 +4641,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-x11-extends-ghc912 = {
-  chiasma = {
+  x11-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -4510,7 +4675,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -4543,7 +4708,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -4568,7 +4761,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -4598,35 +4791,11 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
-x11-test-extends-ghc912 = {
-  chiasma = {
+  x11-test-extends-ghc912 = {
+    extraOverrides = {
+      chiasma = {
   meta = {
     sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
     ver = "0.12.2.0";
@@ -4656,7 +4825,7 @@ mkDerivation {
 ;
 }
 ;
-  chiasma-test = {
+      chiasma-test = {
   meta = {
     sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
     ver = "0.12.2.0";
@@ -4689,7 +4858,35 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-chronos = {
+      prelate = {
+  meta = {
+    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
+    ver = "0.9.0.0";
+  };
+  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
+, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
+, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
+, template-haskell
+}:
+mkDerivation {
+  pname = "prelate";
+  version = "0.9.0.0";
+  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
+  libraryHaskellDepends = [
+    aeson base exon extra generic-lens incipit microlens microlens-ghc
+    polysemy-chronos polysemy-conc polysemy-log polysemy-process
+    polysemy-resume polysemy-time template-haskell
+  ];
+  homepage = "https://github.com/tek/prelate#readme";
+  description = "A Prelude";
+  license = "BSD-2-Clause-Patent";
+}
+;
+}
+;
+    };
+    overrides = {
+      polysemy-chronos = {
   meta = {
     sha256 = "1gc17p8xj77y0b8hjkbmsgw2ih5396mzlc6cjw5jmrviigsw726k";
     ver = "0.7.0.1";
@@ -4714,7 +4911,7 @@ mkDerivation {
 ;
 }
 ;
-  polysemy-http = {
+      polysemy-http = {
   meta = {
     sha256 = "0ii0ldlr2j4mby6x9l04jxwnf06r71kb8smnqk2hwjhaapai37pq";
     ver = "0.13.1.0";
@@ -4744,31 +4941,6 @@ mkDerivation {
 ;
 }
 ;
-  prelate = {
-  meta = {
-    sha256 = "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";
-    ver = "0.9.0.0";
+    };
   };
-  drv = { mkDerivation, aeson, base, exon, extra, generic-lens, incipit
-, lib, microlens, microlens-ghc, polysemy-chronos, polysemy-conc
-, polysemy-log, polysemy-process, polysemy-resume, polysemy-time
-, template-haskell
-}:
-mkDerivation {
-  pname = "prelate";
-  version = "0.9.0.0";
-  src = /nix/store/r93bggfcmfsm1p8kqrrisivly8i58pns-source;
-  libraryHaskellDepends = [
-    aeson base exon extra generic-lens incipit microlens microlens-ghc
-    polysemy-chronos polysemy-conc polysemy-log polysemy-process
-    polysemy-resume polysemy-time template-haskell
-  ];
-  homepage = "https://github.com/tek/prelate#readme";
-  description = "A Prelude";
-  license = "BSD-2-Clause-Patent";
-}
-;
-}
-;
-};
 }
