@@ -40,14 +40,15 @@ initialBackoff = 2
 listenOnce ::
   Members [TmuxApi TmuxBufferCommand, Events Event, Reader InstanceName, ChronosTime, Log] r =>
   Sem r ()
-listenOnce =
+listenOnce = do
+  Log.trace "tmux listener: waiting for notification"
   TmuxApi.receiveNotification >>= \case
     TmuxNotification {name = "paste-buffer-changed", args} -> do
       Log.debug [exon|Tmux buffer changed: #{show args}|]
       text <- TmuxApi.send ShowBuffer
       unless (text == "") do
         Conc.publish =<< Event.now agentIdTmux (TextContent text) def
-    _ -> unit
+    n -> Log.trace [exon|tmux listener: ignoring notification: #{show n}|]
 
 -- | Retry loop for the tmux listener with exponential backoff.
 -- Connection failures are logged at debug level since tmux not running is a normal situation.
@@ -78,8 +79,7 @@ tmuxListenerThread =
 
     loop =
       withTmuxNative @TmuxBufferCommand do
-        resuming pure $ forever do
-          listenOnce
+        resuming pure $ forever listenOnce
 
 -- | Handle 'Agent.Update' by setting the tmux buffer.
 -- Opens a temporary tmux connection for each update.

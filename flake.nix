@@ -343,8 +343,8 @@
       };
 
       overrides = {self, buildInputs, enable, notest, hackage, ...}: {
-        chiasma = hackage "0.12.0.0" "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-        chiasma-test = hackage "0.12.0.0" "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
+        chiasma = hackage "0.12.2.0" "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+        chiasma-test = hackage "0.12.2.0" "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
         helic-x11 = notest (enable "x11" self.helic);
         helic-wayland = notest (enable "wayland" (buildInputs (p: [p.wayland.dev])) self.helic);
         prelate = hackage "0.9.0.0" "031cv6wjf8c6bfr29jikkydagnk4y2yk081nkbj307fk4nzgvjsw";

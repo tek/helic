@@ -2,8 +2,8 @@
 dev-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -14,8 +14,8 @@ dev-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -32,8 +32,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -43,8 +43,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -53,7 +53,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -147,8 +148,8 @@ mkDerivation {
 discovery-test-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -159,8 +160,8 @@ discovery-test-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -177,8 +178,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -188,8 +189,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -198,7 +199,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -292,8 +294,8 @@ mkDerivation {
 ghc910 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -304,8 +306,8 @@ ghc910 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -322,8 +324,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -333,8 +335,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -343,7 +345,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -382,8 +385,8 @@ mkDerivation {
 ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -394,8 +397,8 @@ ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -412,8 +415,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -423,8 +426,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -433,7 +436,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -527,8 +531,8 @@ mkDerivation {
 ghc98 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -539,8 +543,8 @@ ghc98 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -557,8 +561,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -568,8 +572,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -578,7 +582,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -1807,8 +1812,8 @@ mkDerivation {
 leak-test-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -1819,8 +1824,8 @@ leak-test-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -1837,8 +1842,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -1848,8 +1853,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -1858,7 +1863,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -3892,8 +3898,8 @@ mkDerivation {
 min-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -3904,8 +3910,8 @@ min-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -3922,8 +3928,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -3933,8 +3939,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -3943,7 +3949,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -4037,8 +4044,8 @@ mkDerivation {
 profiled-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -4049,8 +4056,8 @@ profiled-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -4067,8 +4074,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -4078,8 +4085,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -4088,7 +4095,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -4182,8 +4190,8 @@ mkDerivation {
 tmux-test-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -4194,8 +4202,8 @@ tmux-test-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -4212,8 +4220,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -4223,8 +4231,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -4233,7 +4241,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -4327,8 +4336,8 @@ mkDerivation {
 wayland-test-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -4339,8 +4348,8 @@ wayland-test-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -4357,8 +4366,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -4368,8 +4377,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -4378,7 +4387,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -4472,8 +4482,8 @@ mkDerivation {
 x11-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -4484,8 +4494,8 @@ x11-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -4502,8 +4512,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -4513,8 +4523,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -4523,7 +4533,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
@@ -4617,8 +4628,8 @@ mkDerivation {
 x11-test-extends-ghc912 = {
   chiasma = {
   meta = {
-    sha256 = "0rnndpz1l77iq5jmp8yaan1chx2v4z22bgrwd0rw6r3nla08xs3p";
-    ver = "0.12.0.0";
+    sha256 = "18q3yy4div1m2r1zpbzh10khpx19cy7ybn5b0js5zci7sj986zkm";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, attoparsec, base, bytestring, composition
 , containers, exon, extra, first-class-families, lens, lib, parsec
@@ -4629,8 +4640,8 @@ x11-test-extends-ghc912 = {
 }:
 mkDerivation {
   pname = "chiasma";
-  version = "0.12.0.0";
-  src = /nix/store/vkmf03vqhgb0nfl2rv5n3x3mgbac5l1h-source;
+  version = "0.12.2.0";
+  src = /nix/store/x95iq9b12kdq5dyj3jswbskidj7g7w2w-source;
   libraryHaskellDepends = [
     attoparsec base bytestring composition containers exon extra
     first-class-families lens parsec parsers path polysemy
@@ -4647,8 +4658,8 @@ mkDerivation {
 ;
   chiasma-test = {
   meta = {
-    sha256 = "178wqpnzr30krw9skirbpbdjhbbvlah9diwlmhjkkz6511p9dhhv";
-    ver = "0.12.0.0";
+    sha256 = "0rm2wxbj7s24nnjcvkrrfzsmabla8apalkn4phx8qa400928s7s6";
+    ver = "0.12.2.0";
   };
   drv = { mkDerivation, base, bytestring, chiasma, chronos, exon, hedgehog
 , lens, lib, path, path-io, polysemy, polysemy-chronos
@@ -4658,8 +4669,8 @@ mkDerivation {
 }:
 mkDerivation {
   pname = "chiasma-test";
-  version = "0.12.0.0";
-  src = /nix/store/vggq5bdj7hp0ncxhxfx7ijjaqdrzg7fx-source;
+  version = "0.12.2.0";
+  src = /nix/store/rlx3jlsxg5ccdyas1a36cn0c2mhi3wxi-source;
   libraryHaskellDepends = [
     base bytestring chiasma chronos exon hedgehog path path-io polysemy
     polysemy-chronos polysemy-conc polysemy-log polysemy-plugin
@@ -4668,7 +4679,8 @@ mkDerivation {
   ];
   testHaskellDepends = [
     base chiasma hedgehog lens path-io polysemy polysemy-chronos
-    polysemy-plugin polysemy-test prelate tasty tasty-hedgehog
+    polysemy-plugin polysemy-process polysemy-test prelate tasty
+    tasty-hedgehog
   ];
   homepage = "https://github.com/tek/chiasma#readme";
   description = "Testing tools for chiasma";
