@@ -39,7 +39,7 @@ makeHost port = PeerAddress {host = Host "localhost", port}
 -- The server generates its own key pair internally via 'serve'.
 serverConf :: Int -> NetConfig
 serverConf port =
-  NetConfig (Just True) (Just port) Nothing Nothing (Just AuthConfig {enable = Just True, privateKey = Nothing, publicKey = Nothing, allowedKeys = Nothing, peersFile = Nothing}) Nothing Nothing Nothing
+  NetConfig (Just True) Nothing (Just port) Nothing Nothing (Just AuthConfig {enable = Just True, privateKey = Nothing, publicKey = Nothing, allowedKeys = Nothing, peersFile = Nothing}) Nothing Nothing Nothing
 
 assertSendFails ::
   Members [Fail, Manager, Log, Race, Embed IO] r =>

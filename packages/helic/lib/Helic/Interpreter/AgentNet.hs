@@ -35,7 +35,7 @@ import qualified Helic.Effect.KeyPairs as KeyPairs
 import Helic.Effect.KeyPairs (KeyPairs)
 import qualified Helic.Effect.Peers as Peers
 import Helic.Effect.Peers (Peers)
-import Helic.Interpreter.Agent (interpretAgentIf)
+import Helic.Interpreter.Agent (interpretAgentNull)
 import Helic.Net.Client (sendEventLog)
 import Helic.Net.Sign (KeyPair)
 
@@ -155,11 +155,13 @@ interpretAgentNet sem =
       Log.error [exon|Failed to obtain key pair: #{err.text}|]
       interpret (\ (Update _) -> unit) sem
 
--- | Interpret 'Agent' for remote hosts if it is enabled by the configuration.
+-- | Interpret 'Agent' for remote hosts if broadcasting is enabled by the configuration.
 interpretAgentNetIfEnabled ::
   Members [Manager, Peers !! PeersError, KeyPairs !! KeyPairsError, Reader NetConfig] r =>
   Members [Log, Interrupt, Race, Resource, Async, Embed IO, Final IO] r =>
   InterpreterFor (Agent @@ AgentNet) r
-interpretAgentNetIfEnabled =
-  interpretAgentIf interpretAgentNet
+interpretAgentNetIfEnabled sem = do
+  ask @NetConfig >>= \case
+    NetConfig {broadcast = Just False} -> interpretAgentNull sem
+    _ -> interpretAgentNet (untag sem)
 

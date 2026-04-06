@@ -20,7 +20,7 @@ target =
     tmux =
       TmuxConfig (Just True) (Just [absfile|/bin/tmux|])
     net =
-      NetConfig (Just True) (Just 10001) (Just 5) (Just ["remote:1000"]) Nothing Nothing Nothing Nothing
+      NetConfig (Just True) Nothing (Just 10001) (Just 5) (Just ["remote:1000"]) Nothing Nothing Nothing Nothing
     x =
       X11Config (Just True) (Just (Set.fromList [Selection.Clipboard, Selection.Primary, Selection.Secondary]))
 

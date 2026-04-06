@@ -148,8 +148,7 @@ self: {util, ...}: let
     name: tmux-test
     verbose: true
     net:
-      enable: true
-      port: 9500
+      broadcast: false
     tmux:
       enable: true
     x11:

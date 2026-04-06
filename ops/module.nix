@@ -109,18 +109,24 @@ in {
 
     net = {
 
-      enable = mkEnableOption "network propagation" // { default = true; };
+      enable = mkEnableOption "the HTTP server for CLI commands and remote sync" // { default = true; };
+
+      broadcast = mkOption {
+        type = types.nullOr types.bool;
+        default = true;
+        description = "Whether to broadcast clipboard events to remote hosts. Independent of the HTTP server.";
+      };
 
       port = mkOption {
         type = types.port;
         default = 9500;
-        description = "The http server is used both for yanking and broadcast to other hosts.";
+        description = "The HTTP server port, used for CLI commands and receiving events from remote hosts.";
       };
 
       hosts = mkOption {
         type = types.listOf types.str;
         default = [];
-        description = "The network addresses of other helic instances that should be shared with.";
+        description = ''The network addresses of other helic instances that should be shared with. If discovery is enabled, discovered instances are included automatically.'';
         example = literalExpression ["otherhost:9500"];
       };
 

@@ -18,6 +18,7 @@ json ''Timeout
 data NetConfig =
   NetConfig {
     enable :: Maybe Bool,
+    broadcast :: Maybe Bool,
     port :: Maybe Int,
     timeout :: Maybe Timeout,
     hosts :: Maybe [PeerSpec],

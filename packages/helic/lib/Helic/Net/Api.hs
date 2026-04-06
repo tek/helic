@@ -179,7 +179,7 @@ serve ::
 serve = do
   conf <- ask @NetConfig
   Log.debug [exon|serve: net.enable=#{show conf.enable}, auth=#{show (NetConfig.authEnabled conf)}|]
-  when (fromMaybe False conf.enable) do
+  when (fromMaybe True conf.enable) do
     (key, verify) <- if NetConfig.authEnabled conf then authResources else do
       Log.debug "serve: auth disabled, running without verification middleware"
       pure (Nothing, const id)
