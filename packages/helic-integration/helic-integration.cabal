@@ -1,0 +1,83 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.38.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           helic-integration
+version:        0.1.0.0
+synopsis:       Integration tests for Helic
+description:    See https://hackage.haskell.org/package/helic-integration/docs/Helic-Integration.html
+category:       Clipboard
+homepage:       https://github.com/tek/helic#readme
+bug-reports:    https://github.com/tek/helic/issues
+author:         Torsten Schmits
+maintainer:     hackage@tryp.io
+copyright:      2025 Torsten Schmits
+license:        BSD-2-Clause-Patent
+license-file:   LICENSE
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/tek/helic
+
+test-suite helic-integration-test
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Helic.Test.TmuxSetBufferTest
+  hs-source-dirs:
+      test
+  default-extensions:
+      AllowAmbiguousTypes
+      ApplicativeDo
+      BlockArguments
+      DataKinds
+      DefaultSignatures
+      DeriveAnyClass
+      DerivingStrategies
+      DerivingVia
+      DisambiguateRecordFields
+      DuplicateRecordFields
+      FunctionalDependencies
+      GADTs
+      LambdaCase
+      LiberalTypeSynonyms
+      MonadComprehensions
+      MultiWayIf
+      NoFieldSelectors
+      OverloadedLabels
+      OverloadedLists
+      OverloadedRecordDot
+      OverloadedStrings
+      PackageImports
+      PartialTypeSignatures
+      PatternSynonyms
+      QuantifiedConstraints
+      QuasiQuotes
+      RecordWildCards
+      RecursiveDo
+      RoleAnnotations
+      TemplateHaskell
+      TypeFamilies
+      TypeFamilyDependencies
+      UndecidableInstances
+      UnicodeSyntax
+      ViewPatterns
+  ghc-options: -fplugin=Polysemy.Plugin -threaded -rtsopts -with-rtsopts=-N -Wall -Widentities -Wincomplete-uni-patterns -Wmissing-deriving-strategies -Wredundant-constraints -Wunused-type-patterns -Wunused-packages
+  build-depends:
+      base <5
+    , chiasma
+    , chiasma-test
+    , helic
+    , polysemy
+    , polysemy-plugin
+    , polysemy-test
+    , prelate
+    , tasty
+  mixins:
+      base hiding (Prelude)
+    , prelate (Prelate as Prelude)
+    , prelate hiding (Prelate)
+  default-language: GHC2021

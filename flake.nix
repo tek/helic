@@ -199,6 +199,40 @@
 
       };
 
+      packages.helic-integration = {
+        src = ./packages/helic-integration;
+        cabal = {
+          meta.synopsis = "Integration tests for Helic";
+          prelude = {
+            enable = true;
+            package = "prelate";
+            module = "Prelate";
+          };
+          ghc-options = ["-fplugin=Polysemy.Plugin"];
+          dependencies = [
+            "polysemy"
+            "polysemy-plugin"
+          ];
+        };
+
+        buildInputs = pkgs: [pkgs.tmux];
+
+        library.enable = false;
+
+        test = {
+          enable = true;
+          dependencies = [
+            "chiasma"
+            "chiasma-test"
+            "helic"
+            "polysemy-test"
+            "tasty"
+          ];
+        };
+
+        expose.target = false;
+      };
+
       packages.helic-gen-keys = {
         src = ./packages/helic-gen-keys;
         cabal = {
@@ -222,6 +256,8 @@
             "optparse-applicative"
           ];
         };
+
+        expose.target = false;
       };
 
       ghci = {
