@@ -3,8 +3,8 @@
 module Helic.Data.TmuxBufferCommand where
 
 import Chiasma.Data.DecodeError (DecodeError (..))
-import Chiasma.Data.TmuxRequest (TmuxRequest (TmuxRequest))
-import Chiasma.Data.TmuxResponse (TmuxResponse (TmuxResponse))
+import Chiasma.Data.TmuxRequest (TmuxRequest (..))
+import Chiasma.Data.TmuxResponse (TmuxResponse (..))
 import qualified Data.Text as Text
 import Exon (exon)
 
@@ -29,9 +29,17 @@ tmuxQuote text =
 encode :: TmuxBufferCommand a -> TmuxRequest
 encode = \case
   ShowBuffer ->
-    TmuxRequest "show-buffer" [] Nothing
+    TmuxRequest {
+      cmd = "show-buffer",
+      args = [],
+      query = Nothing
+    }
   SetBuffer text ->
-    TmuxRequest "set-buffer" ["--", tmuxQuote text] Nothing
+    TmuxRequest {
+      cmd = "set-buffer",
+      args = ["--", tmuxQuote text],
+      query = Nothing
+    }
 
 decode :: TmuxResponse -> TmuxBufferCommand a -> Either DecodeError a
 decode (TmuxResponse lines_) = \case
