@@ -238,6 +238,50 @@ self: {util, ...}: let
     '';
   };
 
+  stressModule = { pkgs, ... }: {
+    environment.systemPackages = [
+      self.packages.${pkgs.system}.helic
+      pkgs.curl
+      pkgs.procps
+    ];
+
+    # Allow test user to change system clock for suspend simulation
+    security.sudo = {
+      enable = true;
+      extraRules = [{
+        users = ["test"];
+        commands = [
+          { command = "ALL"; options = ["NOPASSWD"]; }
+        ];
+      }];
+    };
+
+    environment.etc."helic-stress.yaml".text = ''
+    name: stress-test
+    verbose: true
+    net:
+      enable: true
+      port: 9500
+      broadcast: false
+      auth:
+        enable: true
+        privateKey: CFUmbCKzYtmnvy7duaq4BPA8bp4U5MDUd9TGdEOuWEM=
+        publicKey: eDsSQYyE3555i3dDAiSiMeoOyo7EL2oGeFW1M2YeKHQ=
+        peersFile: /tmp/helic-stress/peers.yaml
+      discovery:
+        enable: true
+        port: 9501
+        interval: 2
+        ttl: 10
+    tmux:
+      enable: false
+    x11:
+      enable: false
+    wayland:
+      enable: false
+    '';
+  };
+
   leakModule = { pkgs, ... }: {
     environment.systemPackages = [
       self.packages.${pkgs.system}.helic
@@ -280,6 +324,15 @@ self: {util, ...}: let
     ];
   };
 
+  stressSession = {
+    ports.helic-stress = { guest = 9500; host = 50; };
+
+    nixos-base = [
+      userModule
+      stressModule
+    ];
+  };
+
   leakSession = {
     ports.helic-leak = { guest = 9500; host = 50; };
 
@@ -303,6 +356,7 @@ self: {util, ...}: let
   # Config-file shorthands
   # ---------------------------------------------------------------------------
 
+  cfgStress = "/etc/helic-stress.yaml";
   cfgA = "/etc/helic-a.yaml";
   cfgB = "/etc/helic-b.yaml";
   cfgTmux = "/etc/helic-tmux.yaml";
@@ -317,6 +371,8 @@ in {
   services.discovery-session = discoverySession;
 
   services.tmux-session = tmuxSession;
+
+  services.stress-session = stressSession;
 
   services.leak-session = leakSession;
 
@@ -338,6 +394,13 @@ in {
     package-set.extends = "ghc912";
     basePort = 14000;
     services.tmux-session.enable = true;
+    expose.shell = true;
+  };
+
+  envs.stress-test = {
+    package-set.extends = "ghc912";
+    basePort = 15000;
+    services.stress-session.enable = true;
     expose.shell = true;
   };
 
@@ -478,6 +541,108 @@ in {
   in {
     env = "tmux-test";
     command = sshTest { port = 14022; inherit check; };
+    expose = true;
+    buildInputs = pkgs: [pkgs.sshpass];
+  };
+
+  commands.stress-test = let
+
+    # Measure CPU usage of a process over a 3-second window using /proc/stat.
+    # Returns the percentage (0-100 per core) via the 'cpu_pct' variable.
+    measureCpu = pid: ''
+    clk_tck=$(getconf CLK_TCK)
+    read_proc_ticks() {
+      # Strip the (comm) field which may contain spaces, then extract utime+stime (fields 14+15)
+      sed 's/^[0-9]* ([^)]*) //' /proc/${pid}/stat | awk '{print $12 + $13}'
+    }
+    proc1=$(read_proc_ticks)
+    sleep 3
+    proc2=$(read_proc_ticks)
+    proc_delta=$((proc2 - proc1))
+    wall_ticks=$((3 * clk_tck))
+    cpu_pct=$((proc_delta * 100 / wall_ticks))
+    '';
+
+    check = util.zscript "check" ''
+    ${daemon { cfg = cfgStress; }}
+    ${waitHttp "http://localhost:9500/event"}
+
+    echo "=== Phase 1: Stress test — 2000 rapid yanks ==="
+    for i in $(seq 1 2000); do
+      echo -n "stress-payload-$i" | ${hel cfgStress "yank"} 2>/dev/null
+    done
+    echo "Yanks complete, waiting for processing..."
+    sleep 3
+
+    # Verify helic is still responsive
+    count=$(${hel cfgStress "list"} 2>/dev/null | wc -l)
+    echo "History entries (lines): $count"
+    if [ "$count" -lt 2 ]; then
+      echo "FAIL: helic appears unresponsive after stress test"
+      exit 1
+    fi
+
+    # Measure baseline CPU
+    ${measureCpu "$pid"}
+    echo "Baseline CPU after stress: $cpu_pct%"
+    if [ "$cpu_pct" -gt 10 ]; then
+      echo "FAIL: CPU usage is $cpu_pct% even before suspend simulation (expected <10%)"
+      exit 1
+    fi
+
+    echo "=== Phase 2: Simulate suspend/resume with 8h time skip ==="
+    # SIGSTOP simulates process suspension
+    kill -STOP $pid
+    echo "Process stopped"
+
+    # Advance system clock by 8 hours
+    current=$(date +%s)
+    future=$((current + 8 * 3600))
+    sudo date -s @$future
+    echo "Clock advanced to $(date)"
+
+    # Resume the process
+    kill -CONT $pid
+    echo "Process resumed"
+
+    # Let it settle — if there's a time-skew bug, it will spike now
+    sleep 5
+
+    # Measure CPU after resume
+    ${measureCpu "$pid"}
+    echo "Post-resume CPU: $cpu_pct%"
+    if [ "$cpu_pct" -gt 10 ]; then
+      echo "FAIL: CPU usage is $cpu_pct% after suspend/resume — possible time-skew busy loop"
+      exit 1
+    fi
+
+    # Verify helic is still functional after resume
+    echo -n 'post-resume-test' | ${hel cfgStress "yank"}
+    sleep 1
+    if ! ${hel cfgStress "list"} | grep -q 'post-resume-test'; then
+      echo "FAIL: helic not functional after resume"
+      exit 1
+    fi
+
+    echo "=== Phase 3: Stress test after resume ==="
+    for i in $(seq 1 500); do
+      echo -n "post-resume-stress-$i" | ${hel cfgStress "yank"} 2>/dev/null
+    done
+    sleep 3
+
+    ${measureCpu "$pid"}
+    echo "Post-resume-stress CPU: $cpu_pct%"
+    if [ "$cpu_pct" -gt 10 ]; then
+      echo "FAIL: CPU usage is $cpu_pct% after post-resume stress"
+      exit 1
+    fi
+
+    echo "PASS: All stress and suspend/resume checks passed"
+    '';
+
+  in {
+    env = "stress-test";
+    command = sshTest { port = 15022; inherit check; };
     expose = true;
     buildInputs = pkgs: [pkgs.sshpass];
   };
