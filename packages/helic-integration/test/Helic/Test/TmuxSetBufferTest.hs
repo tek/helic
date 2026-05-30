@@ -49,10 +49,16 @@ test_setBufferDoubleQuotes :: UnitTest
 test_setBufferDoubleQuotes =
   setBufferTest "a \"b\""
 
+-- | Content containing dollar signs (must not be expanded as tmux variables).
+test_setBufferDollarSign :: UnitTest
+test_setBufferDollarSign =
+  setBufferTest "hello $nope hello"
+
 test_setBuffer :: TestTree
 test_setBuffer =
   testGroup "set-buffer" [
     unitTest "multi-line round-trip" test_setBufferMultiline,
     unitTest "backslash round-trip" test_setBufferBackslash,
-    unitTest "double-quote round-trip" test_setBufferDoubleQuotes
+    unitTest "double-quote round-trip" test_setBufferDoubleQuotes,
+    unitTest "dollar-sign round-trip" test_setBufferDollarSign
   ]

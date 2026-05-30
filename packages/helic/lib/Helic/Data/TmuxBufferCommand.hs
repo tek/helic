@@ -15,16 +15,21 @@ data TmuxBufferCommand a where
   -- | Set the content of the most recent buffer.
   SetBuffer :: Text -> TmuxBufferCommand ()
 
--- | Escape a text value for tmux double-quoted arguments.
--- Backslashes are doubled, double quotes are backslash-escaped, and newlines become the two-char sequence backslash-n.
+-- | Escape a text value for tmux single-quoted arguments.
+-- Single quotes suppress all expansions (variables, backslash), so only two characters in the content need
+-- special treatment:
+--
+-- * Single quotes are replaced by @'\''@ (end quote, backslash-escaped quote, start quote).
+-- * Newlines are replaced by @'"\n"'@ — ending the single-quoted segment, inserting a double-quoted @\n@ that tmux
+--   interprets as a newline, and resuming the single-quoted segment. This avoids sending a raw newline into the
+--   control-mode command stream (which is line-oriented), and avoids ANSI-C @$'...'@ quoting (unsupported by tmux).
 tmuxQuote :: Text -> Text
 tmuxQuote text =
-  [exon|"#{escape text}"|]
+  [exon|'#{escape text}'|]
   where
     escape =
-      Text.replace "\n" [exon|\n|] .
-      Text.replace [exon|"|] [exon|\"|] .
-      Text.replace [exon|\|] [exon|\\|]
+      Text.replace "\n" [exon|'"\n"'|] .
+      Text.replace "'" [exon|'\''|]
 
 encode :: TmuxBufferCommand a -> TmuxRequest
 encode = \case
